@@ -1,4 +1,6 @@
-#import vcf from GATK VarToTable
+# Import vcf from GATK VarToTable
+#
+
 import_GATK_VCF <- function(filename,
                             HighBulk = character(),
                             LowBulk = character(),
@@ -31,8 +33,11 @@ import_GATK_VCF <- function(filename,
   #Subset any unwanted chromosomes
   SNPset <- subset(SNPset, CHROM %in% ChromList)
 
-  # Calculate some descripters
+  # Calculate some descriptors
   SNPset$REF_FRQ <- (SNPset$AD_REF.HIGH + SNPset$AD_REF.LOW) / (SNPset$DP.HIGH + SNPset$DP.LOW)
   SNPset$deltaSNP <- SNPset$SNPindex.HIGH - SNPset$SNPindex.LOW
+
+  # calculate G Statistic
+  SNPset$GStat <- GetGStat(SNPset)
   return(SNPset)
 }
