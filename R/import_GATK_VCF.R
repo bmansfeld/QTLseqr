@@ -1,4 +1,12 @@
-#import vcf from GATK VarToTable
+# Imports SNP data from GATK VarToTable output.
+# The required GATK fields (-F) are CHROM (Chromosome) and POS (Position)
+# The required Genotype fields (-GF) are AD (Allele Depth), DP (Depth), GQ  (Genotype Quality)
+# Recommended fields are REF (Reference allele) and ALT (Alternative allele)
+# Recommended Genotype feilds are PL (Phred-scaled likelihoods)
+# After importing the data, the function then calculates total reference allele frequency for both bulks together,
+# the delta SNP index (i.e. SNP index of the low bulk substracted from the SNP index of the high bulk)
+# and the G statistic
+
 import_GATK_VCF <- function(filename,
                             HighBulk = character(),
                             LowBulk = character(),
@@ -31,8 +39,11 @@ import_GATK_VCF <- function(filename,
   #Subset any unwanted chromosomes
   SNPset <- subset(SNPset, CHROM %in% ChromList)
 
-  # Calculate some descripters
+  # Calculate some descriptors
   SNPset$REF_FRQ <- (SNPset$AD_REF.HIGH + SNPset$AD_REF.LOW) / (SNPset$DP.HIGH + SNPset$DP.LOW)
   SNPset$deltaSNP <- SNPset$SNPindex.HIGH - SNPset$SNPindex.LOW
+
+  # calculate G Statistic
+  SNPset$GStat <- GetGStat(SNPset)
   return(SNPset)
 }
