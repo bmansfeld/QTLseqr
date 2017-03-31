@@ -12,3 +12,4 @@ LazyData: true
 Imports:
     modeest (>= 2.1),
     ggplot2 (>= 2.2.0)
+Suggests: parallel
