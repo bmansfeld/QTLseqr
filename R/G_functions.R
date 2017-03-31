@@ -95,7 +95,7 @@ ParGetWeightedStats <- function(VarSet, WinSize = 1e4)
     SW
 }
 
-GetPvals <- function(VarSet, plotGdist = FALSE) {
+GetPvals <- function(VarSet) {
     # Non-parametric estimation of the null distribution of G'
 
     lnGprime <- log(VarSet$Gprime)
@@ -125,19 +125,19 @@ GetPvals <- function(VarSet, plotGdist = FALSE) {
     VarSet$qval <- p.adjust(p = VarSet$pval, method = "BH")
 
 
-    if (plotGdist == T) {
-        #plot Gprime distrubtion
-        p <-
-            ggplot2::ggplot(VarSet) + geom_histogram(aes(x = Gprime, y = ..density..), binwidth = 1)  +
-            stat_function(
-                fun = dlnorm,
-                size = 1,
-                color = 'blue',
-                args = c(meanlog = muE, sdlog = sqrt(varE))
-            )
-        print(p)
-    }
-
     return(VarSet)
 
+}
+
+
+plotGprimedist <- function(VarSet)
+{
+    #plot Gprime distrubtion
+    ggplot2::ggplot(VarSet) + geom_histogram(aes(x = Gprime, y = ..density..), binwidth = 1)  +
+        stat_function(
+            fun = dlnorm,
+            size = 1,
+            color = 'blue',
+            args = c(meanlog = muE, sdlog = sqrt(varE))
+        )
 }
