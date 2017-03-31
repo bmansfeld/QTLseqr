@@ -29,20 +29,14 @@ GetGStat2 <- function(SNPset) {
 }
 
 
-ParGetWeightedStats <- function(VarSet, WinSize = 1e4)
-    # For each SNP calculates the G' statistic, a weighted average of G across neighboring SNPs.
-    # G' is calculated over a window of WinSize and weighted with a tricube kernel
-    # where weights are defined by physical distance away from the focal SNP
+GetWeightedStats <- function(SNPset, WinSize = 1e4)
+    # For each SNP calculates statistics, weighted average of across neighboring SNPs.
+    # To account for Linkage disequilibrium (LD) Stats are calculated over a window of WinSize
+    # and weighted with a tricube kernel where weights are defined by physical distance away from the focal SNP
+    # Returns a SNPset data frame with 3 new columns: Gprime, nSNPs in window, and delatSNPprime
 
 {
-    # Calculate the number of cores
-    n_cores <- detectCores() - 1
-
-    # Initiate cluster
-    cl <- makeCluster(n_cores)
-    message("Using ",n_cores, " cores")
-
-    # Create empty dataframe to rebuild VarSet
+    # Create empty dataframe to rebuild SNPset
     SW <- data.frame()
 
     # Calculte half the tricube kernel weights for WinSize
@@ -54,9 +48,77 @@ ParGetWeightedStats <- function(VarSet, WinSize = 1e4)
     KNum <- (1 - Dvector ^ 3) ^ 3
 
     # Calculate G' for each SNP within each chromosome
-    for (x in levels(as.factor(VarSet$CHROM))) {
+    for (x in levels(as.factor(SNPset$CHROM))) {
 
-        chr <- as.data.frame(subset(VarSet, CHROM == x))
+        chr <- as.data.frame(subset(SNPset, CHROM == x))
+
+        message("Calculating G' for Chr: ",x,"...")
+
+        # create sliding window step bins around each SNP
+        bin <-
+            data.frame(
+                start = chr$POS - (WinSize / 2),
+                end = chr$POS + (WinSize / 2),
+                focal = chr$POS
+            )
+
+        SWdata <- apply(X = bin, MARGIN = 1,FUN = function(y) {
+            # the distance from the focal SNP is calculated for each SNP in the window. One (1) is added as an index
+            dfromFocal <-
+                abs(chr[y["start"] < chr$POS &
+                        chr$POS <= y["end"], "POS"] - y["focal"]) + 1
+
+            # A Kernel weight is given to each SNP including the focal SNP
+            KNumWeight <- KNum[dfromFocal]
+            Kweight <- KNumWeight / sum(KNumWeight)
+
+            # The wighted G stat is calculated by multiplying by the Kernel Weight
+            weightedStats <-
+                chr[y["start"] < chr$POS & chr$POS <= y["end"], c("GStat","deltaSNP")] * Kweight
+
+            # Calculate G' for the focal SNP
+            c(Gprime=sum(weightedStats$GStat),deltaSNPprime=sum(weightedStats$deltaSNP),nSNPs=nrow(weightedStats))
+
+        })
+        SWdata<-t(as.data.frame(SWdata))
+        chr <- cbind(chr,SWdata)
+        SW <- rbind(SW, chr)
+
+    }
+    SW
+}
+
+
+ParGetWeightedStats <- function(SNPset, WinSize = 1e4)
+    # Parallelized version of GetWeighedStats to increase speed of analysis.
+    # For each SNP calculates statistics, weighted average of across neighboring SNPs.
+    # To account for Linkage disequilibrium (LD) Stats are calculated over a window of WinSize
+    # and weighted with a tricube kernel where weights are defined by physical distance away from the focal SNP
+    # Returns a SNPset data frame with 3 new columns: Gprime, nSNPs in window, and delatSNPprime
+
+{
+    # Calculate the number of cores
+    n_cores <- detectCores() - 1
+
+    # Initiate cluster
+    cl <- makeCluster(n_cores)
+    message("Using ",n_cores, " cores")
+
+    # Create empty dataframe to rebuild SNPset
+    SW <- data.frame()
+
+    # Calculte half the tricube kernel weights for WinSize
+    Dvector <- abs(seq(
+        from = 0,
+        to = 1,
+        length = (WinSize + 1) / 2
+    ))
+    KNum <- (1 - Dvector ^ 3) ^ 3
+
+    # Calculate G' for each SNP within each chromosome
+    for (x in levels(as.factor(SNPset$CHROM))) {
+
+        chr <- as.data.frame(subset(SNPset, CHROM == x))
 
         message("Calculating G' for Chr: ",x,"...")
 
@@ -95,10 +157,10 @@ ParGetWeightedStats <- function(VarSet, WinSize = 1e4)
     SW
 }
 
-GetPvals <- function(VarSet) {
+GetPvals <- function(SNPset) {
     # Non-parametric estimation of the null distribution of G'
 
-    lnGprime <- log(VarSet$Gprime)
+    lnGprime <- log(SNPset$Gprime)
 
     # calculate left median absolute deviation for the trimmed G' prime set
     MAD <-
@@ -106,7 +168,7 @@ GetPvals <- function(VarSet) {
 
     # Trim the G prime set to exclude outlier regions (i.e. QTL) using Hampel's rule
     trimGprime <-
-        VarSet$Gprime[lnGprime - median(lnGprime) <= 5.2 * median(MAD)]
+        SNPset$Gprime[lnGprime - median(lnGprime) <= 5.2 * median(MAD)]
 
     medianTrimGprime <- median(trimGprime)
 
@@ -117,23 +179,23 @@ GetPvals <- function(VarSet) {
     muE <- log(medianTrimGprime)
     varE <- abs(muE - log(modeTrimGprime))
 
-    VarSet$pval <-
-        1 - plnorm(q = VarSet$Gprime,
+    SNPset$pval <-
+        1 - plnorm(q = SNPset$Gprime,
             meanlog = muE,
             sdlog = sqrt(varE))
 
-    VarSet$qval <- p.adjust(p = VarSet$pval, method = "BH")
+    SNPset$qval <- p.adjust(p = SNPset$pval, method = "BH")
 
 
-    return(VarSet)
+    return(SNPset)
 
 }
 
 
-plotGprimedist <- function(VarSet)
+plotGprimedist <- function(SNPset)
 {
     #plot Gprime distrubtion
-    ggplot2::ggplot(VarSet) + geom_histogram(aes(x = Gprime, y = ..density..), binwidth = 1)  +
+    ggplot2::ggplot(SNPset) + geom_histogram(aes(x = Gprime, y = ..density..), binwidth = 1)  +
         stat_function(
             fun = dlnorm,
             size = 1,
