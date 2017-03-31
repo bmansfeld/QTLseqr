@@ -35,7 +35,6 @@ ParGetWeightedStats <- function(VarSet, WinSize = 1e4)
     # where weights are defined by physical distance away from the focal SNP
 
 {
-    library(parallel)
     # Calculate the number of cores
     n_cores <- detectCores() - 1
 
@@ -69,7 +68,7 @@ ParGetWeightedStats <- function(VarSet, WinSize = 1e4)
                 focal = chr$POS
             )
 
-        SWdata <- parApply(cl=cl, X=bin, MARGIN=1,FUN= function(y) {
+        SWdata <- parallel::parApply(cl=cl, X=bin, MARGIN=1,FUN= function(y) {
             # the distance from the focal SNP is calculated for each SNP in the window. One (1) is added as an index
             dfromFocal <-
                 abs(chr[y["start"] < chr$POS &
@@ -96,3 +95,49 @@ ParGetWeightedStats <- function(VarSet, WinSize = 1e4)
     SW
 }
 
+GetPvals <- function(VarSet, plotGdist = FALSE) {
+    # Non-parametric estimation of the null distribution of G'
+
+    lnGprime <- log(VarSet$Gprime)
+
+    # calculate left median absolute deviation for the trimmed G' prime set
+    MAD <-
+        median(abs(lnGprime[lnGprime <= median(lnGprime)] - median(lnGprime)))
+
+    # Trim the G prime set to exclude outlier regions (i.e. QTL) using Hampel's rule
+    trimGprime <-
+        VarSet$Gprime[lnGprime - median(lnGprime) <= 5.2 * median(MAD)]
+
+    medianTrimGprime <- median(trimGprime)
+
+    # estimate the mode of the trimmed G' prime set using the half-sample method
+    modeTrimGprime <-
+        modeest::mlv(x = trimGprime, bw = 0.5, method = "hsm")$M
+
+    muE <- log(medianTrimGprime)
+    varE <- abs(muE - log(modeTrimGprime))
+
+    VarSet$pval <-
+        1 - plnorm(q = VarSet$Gprime,
+            meanlog = muE,
+            sdlog = sqrt(varE))
+
+    VarSet$qval <- p.adjust(p = VarSet$pval, method = "BH")
+
+
+    if (plotGdist == T) {
+        #plot Gprime distrubtion
+        p <-
+            ggplot2::ggplot(VarSet) + geom_histogram(aes(x = Gprime, y = ..density..), binwidth = 1)  +
+            stat_function(
+                fun = dlnorm,
+                size = 1,
+                color = 'blue',
+                args = c(meanlog = muE, sdlog = sqrt(varE))
+            )
+        print(p)
+    }
+
+    return(VarSet)
+
+}
