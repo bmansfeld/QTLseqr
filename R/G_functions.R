@@ -3,7 +3,7 @@
 GetGStat <- function(SNPset) {
     # Calculates the G statistic using expected values that are equal to half the
     # read depth of each SNP in each bulk
-    SNPset$GStat <- apply(SNPset[,5:ncol(SNPset)], 1, function(x) {
+    SNPset$GStat <- apply(SNPset[, 5:ncol(SNPset)], 1, function(x) {
         obs <-
             c((x["AD_REF.LOW"]), (x["AD_REF.HIGH"]), (x["AD_ALT.LOW"]), (x["AD_ALT.HIGH"]))
         exp <-
@@ -18,12 +18,14 @@ GetGStat <- function(SNPset) {
 GetGStat2 <- function(SNPset) {
     # Version 2 calculates the G statistic using expected values assuming read depth
     # is equal for all alleles in both bulks
-    SNPset$GStat2 <- apply(SNPset[,5:ncol(SNPset)], 1, function(x) {
-        obs <-
-            c((x["AD_REF.LOW"]), (x["AD_REF.HIGH"]), (x["AD_ALT.LOW"]), (x["AD_ALT.HIGH"]))
-        exp <- rep((((x["AD_REF.LOW"]) + (x["AD_ALT.LOW"])) * ((x["AD_REF.HIGH"]) + (x["AD_ALT.HIGH"]))) / sum(obs), 4)
-        2 * sum(obs * log(obs / exp), na.rm = T)
-    })
+    SNPset$GStat2 <-
+        apply(SNPset[, 5:ncol(SNPset)], 1, function(x) {
+            obs <-
+                c((x["AD_REF.LOW"]), (x["AD_REF.HIGH"]), (x["AD_ALT.LOW"]), (x["AD_ALT.HIGH"]))
+            exp <-
+                rep((((x["AD_REF.LOW"]) + (x["AD_ALT.LOW"])) * ((x["AD_REF.HIGH"]) + (x["AD_ALT.HIGH"]))) / sum(obs), 4)
+            2 * sum(obs * log(obs / exp), na.rm = T)
+        })
     SNPset
 
 }
@@ -49,10 +51,9 @@ GetWeightedStats <- function(SNPset, WinSize = 1e4)
 
     # Calculate G' for each SNP within each chromosome
     for (x in levels(as.factor(SNPset$CHROM))) {
-
         chr <- as.data.frame(subset(SNPset, CHROM == x))
 
-        message("Calculating G' for Chr: ",x,"...")
+        message("Calculating G' for Chr: ", x, "...")
 
         # create sliding window step bins around each SNP
         bin <-
@@ -62,26 +63,35 @@ GetWeightedStats <- function(SNPset, WinSize = 1e4)
                 focal = chr$POS
             )
 
-        SWdata <- apply(X = bin, MARGIN = 1,FUN = function(y) {
-            # the distance from the focal SNP is calculated for each SNP in the window. One (1) is added as an index
-            dfromFocal <-
-                abs(chr[y["start"] < chr$POS &
-                        chr$POS <= y["end"], "POS"] - y["focal"]) + 1
+        SWdata <- apply(
+            X = bin,
+            MARGIN = 1,
+            FUN = function(y) {
+                # the distance from the focal SNP is calculated for each SNP in the window. One (1) is added as an index
+                dfromFocal <-
+                    abs(chr[y["start"] < chr$POS &
+                            chr$POS <= y["end"], "POS"] - y["focal"]) + 1
 
-            # A Kernel weight is given to each SNP including the focal SNP
-            KNumWeight <- KNum[dfromFocal]
-            Kweight <- KNumWeight / sum(KNumWeight)
+                # A Kernel weight is given to each SNP including the focal SNP
+                KNumWeight <- KNum[dfromFocal]
+                Kweight <- KNumWeight / sum(KNumWeight)
 
-            # The wighted G stat is calculated by multiplying by the Kernel Weight
-            weightedStats <-
-                chr[y["start"] < chr$POS & chr$POS <= y["end"], c("GStat","deltaSNP")] * Kweight
+                # The wighted G stat is calculated by multiplying by the Kernel Weight
+                weightedStats <-
+                    chr[y["start"] < chr$POS &
+                            chr$POS <= y["end"], c("GStat", "deltaSNP")] * Kweight
 
-            # Calculate G' for the focal SNP
-            c(Gprime=sum(weightedStats$GStat),deltaSNPprime=sum(weightedStats$deltaSNP),nSNPs=nrow(weightedStats))
+                # Calculate G' for the focal SNP
+                c(
+                    Gprime = sum(weightedStats$GStat),
+                    deltaSNPprime = sum(weightedStats$deltaSNP),
+                    nSNPs = nrow(weightedStats)
+                )
 
-        })
-        SWdata<-t(as.data.frame(SWdata))
-        chr <- cbind(chr,SWdata)
+            }
+        )
+        SWdata <- t(as.data.frame(SWdata))
+        chr <- cbind(chr, SWdata)
         SW <- rbind(SW, chr)
 
     }
@@ -97,12 +107,19 @@ ParGetWeightedStats <- function(SNPset, WinSize = 1e4)
     # Returns a SNPset data frame with 3 new columns: Gprime, nSNPs in window, and delatSNPprime
 
 {
+    if (!requireNamespace("parallel", quietly = T)) {
+        stop(
+            "The package 'parallel' needs to be installed for this to run.
+            Please install it or use the GetWeightedStats function instead.",
+            call. = F
+        )
+    }
     # Calculate the number of cores
-    n_cores <- detectCores() - 1
+    n_cores <- parallel::detectCores() - 1
 
     # Initiate cluster
-    cl <- makeCluster(n_cores)
-    message("Using ",n_cores, " cores")
+    cl <- parallel::makeCluster(n_cores)
+    message("Using ", n_cores, " cores")
 
     # Create empty dataframe to rebuild SNPset
     SW <- data.frame()
@@ -117,10 +134,9 @@ ParGetWeightedStats <- function(SNPset, WinSize = 1e4)
 
     # Calculate G' for each SNP within each chromosome
     for (x in levels(as.factor(SNPset$CHROM))) {
-
         chr <- as.data.frame(subset(SNPset, CHROM == x))
 
-        message("Calculating G' for Chr: ",x,"...")
+        message("Calculating G' for Chr: ", x, "...")
 
         # create sliding window step bins around each SNP
         bin <-
@@ -130,26 +146,37 @@ ParGetWeightedStats <- function(SNPset, WinSize = 1e4)
                 focal = chr$POS
             )
 
-        SWdata <- parallel::parApply(cl=cl, X=bin, MARGIN=1,FUN= function(y) {
-            # the distance from the focal SNP is calculated for each SNP in the window. One (1) is added as an index
-            dfromFocal <-
-                abs(chr[y["start"] < chr$POS &
-                        chr$POS <= y["end"], "POS"] - y["focal"]) + 1
+        SWdata <-
+            parallel::parApply(
+                cl = cl,
+                X = bin,
+                MARGIN = 1,
+                FUN = function(y) {
+                    # the distance from the focal SNP is calculated for each SNP in the window. One (1) is added as an index
+                    dfromFocal <-
+                        abs(chr[y["start"] < chr$POS &
+                                chr$POS <= y["end"], "POS"] - y["focal"]) + 1
 
-            # A Kernel weight is given to each SNP including the focal SNP
-            KNumWeight <- KNum[dfromFocal]
-            Kweight <- KNumWeight / sum(KNumWeight)
+                    # A Kernel weight is given to each SNP including the focal SNP
+                    KNumWeight <- KNum[dfromFocal]
+                    Kweight <- KNumWeight / sum(KNumWeight)
 
-            # The wighted G stat is calculated by multiplying by the Kernel Weight
-            weightedStats <-
-                chr[y["start"] < chr$POS & chr$POS <= y["end"], c("GStat","deltaSNP")] * Kweight
+                    # The wighted G stat is calculated by multiplying by the Kernel Weight
+                    weightedStats <-
+                        chr[y["start"] < chr$POS &
+                                chr$POS <= y["end"], c("GStat", "deltaSNP")] * Kweight
 
-            # Calculate G' for the focal SNP
-            c(Gprime=sum(weightedStats$GStat),deltaSNPprime=sum(weightedStats$deltaSNP),nSNPs=nrow(weightedStats))
+                    # Calculate G' for the focal SNP
+                    c(
+                        Gprime = sum(weightedStats$GStat),
+                        deltaSNPprime = sum(weightedStats$deltaSNP),
+                        nSNPs = nrow(weightedStats)
+                    )
 
-        })
-        SWdata<-t(as.data.frame(SWdata))
-        chr <- cbind(chr,SWdata)
+                }
+            )
+        SWdata <- t(as.data.frame(SWdata))
+        chr <- cbind(chr, SWdata)
         SW <- rbind(SW, chr)
 
     }
