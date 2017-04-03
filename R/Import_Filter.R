@@ -8,45 +8,46 @@
 # and the G statistic
 
 ImportFromGATK <- function(filename,
-                            HighBulk = character(),
-                            LowBulk = character(),
-                            ChromList = NULL) {
-  VarTable <-
-    read.table(file = filename,
-               header = T,
-               stringsAsFactors = F)
+    HighBulk = character(),
+    LowBulk = character(),
+    ChromList = NULL) {
+    VarTable <-
+        read.table(file = filename,
+            header = T,
+            stringsAsFactors = F)
 
-   # Format data frame for analysis
-  SNPset <- VarTable[, 1:4]
+    # Format data frame for analysis
+    SNPset <- VarTable[, 1:4]
 
-  # High Bulk data
-  SNPset$DP.HIGH <- VarTable[, paste0(HighBulk, ".DP")]
-  SNPset$AD_REF.HIGH <-
-    as.numeric(gsub(",.*$", "", x = VarTable[, paste0(HighBulk, ".AD")]))
-  SNPset$AD_ALT.HIGH <- SNPset$DP.HIGH - SNPset$AD_REF.HIGH
-  SNPset$GQ.HIGH <- VarTable[, paste0(HighBulk, ".GQ")]
-  # Calculate SNP index
-  SNPset$SNPindex.HIGH <- SNPset$AD_ALT.HIGH / SNPset$DP.HIGH
+    # High Bulk data
+    SNPset$DP.HIGH <- VarTable[, paste0(HighBulk, ".DP")]
+    SNPset$AD_REF.HIGH <-
+        as.numeric(gsub(",.*$", "", x = VarTable[, paste0(HighBulk, ".AD")]))
+    SNPset$AD_ALT.HIGH <- SNPset$DP.HIGH - SNPset$AD_REF.HIGH
+    SNPset$GQ.HIGH <- VarTable[, paste0(HighBulk, ".GQ")]
+    # Calculate SNP index
+    SNPset$SNPindex.HIGH <- SNPset$AD_ALT.HIGH / SNPset$DP.HIGH
 
-  # Low Bulk data
-  SNPset$DP.LOW <- VarTable[, paste0(LowBulk, ".DP")]
-  SNPset$AD_REF.LOW <-
-    as.numeric(gsub(",.*$", "", x = VarTable[, paste0(LowBulk, ".AD")]))
-  SNPset$AD_ALT.LOW <- SNPset$DP.LOW - SNPset$AD_REF.LOW
-  SNPset$GQ.LOW <- VarTable[, paste0(LowBulk, ".GQ")]
-  SNPset$SNPindex.LOW <- SNPset$AD_ALT.LOW / SNPset$DP.LOW
+    # Low Bulk data
+    SNPset$DP.LOW <- VarTable[, paste0(LowBulk, ".DP")]
+    SNPset$AD_REF.LOW <-
+        as.numeric(gsub(",.*$", "", x = VarTable[, paste0(LowBulk, ".AD")]))
+    SNPset$AD_ALT.LOW <- SNPset$DP.LOW - SNPset$AD_REF.LOW
+    SNPset$GQ.LOW <- VarTable[, paste0(LowBulk, ".GQ")]
+    SNPset$SNPindex.LOW <- SNPset$AD_ALT.LOW / SNPset$DP.LOW
 
-  #Subset any unwanted chromosomes
-  if (!is.null(ChromList)) {
-      SNPset <- subset(SNPset, CHROM %in% ChromList)
-  }
-  # Calculate some descriptors
-  SNPset$REF_FRQ <- (SNPset$AD_REF.HIGH + SNPset$AD_REF.LOW) / (SNPset$DP.HIGH + SNPset$DP.LOW)
-  SNPset$deltaSNP <- SNPset$SNPindex.HIGH - SNPset$SNPindex.LOW
+    #Subset any unwanted chromosomes
+    if (!is.null(ChromList)) {
+        SNPset <- subset(SNPset, CHROM %in% ChromList)
+    }
+    # Calculate some descriptors
+    SNPset$REF_FRQ <-
+        (SNPset$AD_REF.HIGH + SNPset$AD_REF.LOW) / (SNPset$DP.HIGH + SNPset$DP.LOW)
+    SNPset$deltaSNP <- SNPset$SNPindex.HIGH - SNPset$SNPindex.LOW
 
-  # calculate G Statistic
-  SNPset$GStat <- GetGStat(SNPset)
-  return(SNPset)
+    # calculate G Statistic
+    SNPset$GStat <- GetGStat(SNPset)
+    return(SNPset)
 }
 
 
@@ -58,11 +59,17 @@ FilterSNPs <- function(SNPset,
     MaxTotalDepth,
     MinSampleDepth = NULL,
     MinGQ = 99) {
-
     # Filter by total reference allele frequency
-    if (!is.null(RefAlleleFreq)){
-        message("Filtering by reference allele frequency: Min = ", RefAlleleFreq, ", Max = ", 1 - RefAlleleFreq)
-        SNPset <- subset(SNPset, REF_FRQ < 1 - RefAlleleFreq & REF_FRQ > RefAlleleFreq)
+    if (!is.null(RefAlleleFreq)) {
+        message(
+            "Filtering by reference allele frequency: Min = ",
+            RefAlleleFreq,
+            ", Max = ",
+            1 - RefAlleleFreq
+        )
+        SNPset <-
+            subset(SNPset,
+                REF_FRQ < 1 - RefAlleleFreq & REF_FRQ > RefAlleleFreq)
     }
 
     #Total read depth filtering
@@ -70,7 +77,9 @@ FilterSNPs <- function(SNPset,
     if (!is.null(FilterByMAD)) {
         # filter by Read depth for each SNP FilterByMAD MADs around the median
         # constant is set at 1.4826 assuming reads have normal distribution
-        message("Filtering by total read depth: ",FilterByMAD, " MADs arround the median")
+        message("Filtering by total read depth: ",
+            FilterByMAD,
+            " MADs arround the median")
         madDP <-
             mad(x = (SNPset$DP.HIGH + SNPset$DP.LOW),
                 constant = 1.4826)
@@ -96,15 +105,17 @@ FilterSNPs <- function(SNPset,
 
 
     # Read depth in each bulk should be greater than 40
-    if (!is.null(MinSampleDepth)){
-      SNPset <-
-          subset(SNPset, DP.HIGH >= MinSampleDepth & DP.LOW >= MinSampleDepth)
+    if (!is.null(MinSampleDepth)) {
+        SNPset <-
+            subset(SNPset,
+                DP.HIGH >= MinSampleDepth & DP.LOW >= MinSampleDepth)
     }
 
     # Filter by LOW BULK Genotype Quality
-    if (!is.null(MinGQ)){
+    if (!is.null(MinGQ)) {
         SNPset <-
-            SNPset <- subset(SNPset, GQ.LOW == MinGQ & GQ.HIGH == MinGQ)
+            SNPset <-
+            subset(SNPset, GQ.LOW == MinGQ & GQ.HIGH == MinGQ)
     }
 
     return(SNPset)
