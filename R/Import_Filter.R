@@ -11,6 +11,7 @@ ImportFromGATK <- function(filename,
     HighBulk = character(),
     LowBulk = character(),
     ChromList = NULL) {
+    message("Importing SNPs from file")
     VarTable <-
         read.table(file = filename,
             header = T,
@@ -46,6 +47,7 @@ ImportFromGATK <- function(filename,
     SNPset$deltaSNP <- SNPset$SNPindex.HIGH - SNPset$SNPindex.LOW
 
     # calculate G Statistic
+    message("Calculating G statistic using method 1")
     SNPset$GStat <- GetGStat(SNPset)
     return(SNPset)
 }
