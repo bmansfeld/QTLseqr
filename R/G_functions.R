@@ -30,7 +30,7 @@ GetGStat2 <- function(SNPset) {
 }
 
 
-GetWeightedStats <- function(SNPset, WinSize = 1e4)
+GetPrimeStats <- function(SNPset, WinSize = 1e4)
     # For each SNP calculates statistics, weighted average of across neighboring SNPs.
     # To account for Linkage disequilibrium (LD) Stats are calculated over a window of WinSize
     # and weighted with a tricube kernel where weights are defined by physical distance away from the focal SNP
@@ -98,7 +98,7 @@ GetWeightedStats <- function(SNPset, WinSize = 1e4)
 }
 
 
-ParGetWeightedStats <- function(SNPset,
+ParGetPrimeStats <- function(SNPset,
     WinSize = 1e6,
     n_cores = NULL)
     # Parallelized version of GetWeighedStats to increase speed of analysis.
