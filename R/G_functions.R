@@ -3,22 +3,21 @@
 GetGStat <- function(SNPset) {
     # Calculates the G statistic using expected values that are equal to half the
     # read depth of each SNP in each bulk
-    SNPset$GStat <- apply(SNPset[, 5:ncol(SNPset)], 1, function(x) {
+    GStat <- apply(SNPset[, 5:ncol(SNPset)], 1, function(x) {
         obs <-
             c((x["AD_REF.LOW"]), (x["AD_REF.HIGH"]), (x["AD_ALT.LOW"]), (x["AD_ALT.HIGH"]))
         exp <-
             c(0.5 * (x["DP.LOW"]), 0.5 * (x["DP.HIGH"]), 0.5 * (x["DP.LOW"]), 0.5 * (x["DP.HIGH"]))
         2 * sum(obs * log(obs / exp), na.rm = T)
     })
-    SNPset
-
+    GStat
 }
 
 
 GetGStat2 <- function(SNPset) {
     # Version 2 calculates the G statistic using expected values assuming read depth
     # is equal for all alleles in both bulks
-    SNPset$GStat2 <-
+    GStat2 <-
         apply(SNPset[, 5:ncol(SNPset)], 1, function(x) {
             obs <-
                 c((x["AD_REF.LOW"]), (x["AD_REF.HIGH"]), (x["AD_ALT.LOW"]), (x["AD_ALT.HIGH"]))
@@ -26,7 +25,7 @@ GetGStat2 <- function(SNPset) {
                 rep((((x["AD_REF.LOW"]) + (x["AD_ALT.LOW"])) * ((x["AD_REF.HIGH"]) + (x["AD_ALT.HIGH"]))) / sum(obs), 4)
             2 * sum(obs * log(obs / exp), na.rm = T)
         })
-    SNPset
+    GStat2
 
 }
 
