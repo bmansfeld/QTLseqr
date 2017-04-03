@@ -118,7 +118,7 @@ ParGetWeightedStats <- function(SNPset,
     # Calculate the number of cores
     if (is.null(n_cores)) {
         n_cores <- parallel::detectCores() - 1
-
+    }
     # Initiate cluster
     cl <- parallel::makeCluster(n_cores)
     message("Using ", n_cores, " cores")
