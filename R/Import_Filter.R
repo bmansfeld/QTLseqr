@@ -56,7 +56,7 @@ ImportFromGATK <- function(filename,
 # Filter SNPs based on some usefull parameters including read depth and quality
 FilterSNPs <- function(SNPset,
     RefAlleleFreq = NULL,
-    FilterByMAD = 2.5,
+    FilterAroundMedianDepth = 2.5,
     MinTotalDepth,
     MaxTotalDepth,
     MinSampleDepth = NULL,
@@ -64,9 +64,9 @@ FilterSNPs <- function(SNPset,
     # Filter by total reference allele frequency
     if (!is.null(RefAlleleFreq)) {
         message(
-            "Filtering by reference allele frequency: Min = ",
+            "Filtering by reference allele frequency: ",
             RefAlleleFreq,
-            ", Max = ",
+            " <= REF_FRQ <= ",
             1 - RefAlleleFreq
         )
         SNPset <-
@@ -76,38 +76,42 @@ FilterSNPs <- function(SNPset,
 
     #Total read depth filtering
 
-    if (!is.null(FilterByMAD)) {
+    if (!missing(FilterAroundMedianDepth)) {
         # filter by Read depth for each SNP FilterByMAD MADs around the median
-        # constant is set at 1.4826 assuming reads have normal distribution
-        message("Filtering by total read depth: ",
-            FilterByMAD,
-            " MADs arround the median")
         madDP <-
             mad(x = (SNPset$DP.HIGH + SNPset$DP.LOW),
-                constant = 1.4826)
-        medianDP <- median(SNPset$DP.HIGH + SNPset$DP.LOW)
+                constant = 1, na.rm = TRUE)
+        medianDP <- median(x = (SNPset$DP.HIGH + SNPset$DP.LOW), na.rm = TRUE)
+        maxDP <- medianDP + FilterAroundMedianDepth * madDP
+        minDP <- medianDP - FilterAroundMedianDepth * madDP
         SNPset <-
             subset(
                 SNPset,
-                (DP.HIGH + DP.LOW) < (medianDP + FilterByMAD * madDP) &
-                    (DP.HIGH + DP.LOW) > (medianDP - FilterByMAD * madDP)
+                (DP.HIGH + DP.LOW) <= maxDP &
+                    (DP.HIGH + DP.LOW) >= minDP
             )
+        message("Filtering by total read depth: ",
+            FilterAroundMedianDepth,
+            " MADs arround the median: ", minDP, " <= Total DP <= ", maxDP)
 
     }
 
     if (!missing(MinTotalDepth)) {
         # Filter by minimum total SNP depth
-        SNPset <- subset(SNPset, (DP.HIGH + DP.LOW) > MinTotalDepth)
+        message("Filtering by total sample read depth: Total DP >= ", MinTotalDepth)
+        SNPset <- subset(SNPset, (DP.HIGH + DP.LOW) >= MinTotalDepth)
     }
 
     if (!missing(MaxTotalDepth)) {
         # Filter by maximum total SNP depth
-        SNPset <- subset(SNPset, (DP.HIGH + DP.LOW) < MaxTotalDepth)
+        message("Filtering by total sample read depth: Total DP <= ", MaxTotalDepth)
+        SNPset <- subset(SNPset, (DP.HIGH + DP.LOW) <= MaxTotalDepth)
     }
 
 
     # Read depth in each bulk should be greater than 40
-    if (!is.null(MinSampleDepth)) {
+    if (!missing(MinSampleDepth)) {
+        message("Filtering by per sample read depth: DP >= ", MinSampleDepth)
         SNPset <-
             subset(SNPset,
                 DP.HIGH >= MinSampleDepth & DP.LOW >= MinSampleDepth)
@@ -115,9 +119,10 @@ FilterSNPs <- function(SNPset,
 
     # Filter by LOW BULK Genotype Quality
     if (!is.null(MinGQ)) {
+        message("Filtering by Genotype Quality: GQ >= ", MinGQ)
         SNPset <-
             SNPset <-
-            subset(SNPset, GQ.LOW == MinGQ & GQ.HIGH == MinGQ)
+            subset(SNPset, GQ.LOW >= MinGQ & GQ.HIGH >= MinGQ)
     }
 
     return(SNPset)
