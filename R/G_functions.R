@@ -98,7 +98,9 @@ GetWeightedStats <- function(SNPset, WinSize = 1e4)
 }
 
 
-ParGetWeightedStats <- function(SNPset, WinSize = 1e4)
+ParGetWeightedStats <- function(SNPset,
+    WinSize = 1e6,
+    cores = NULL)
     # Parallelized version of GetWeighedStats to increase speed of analysis.
     # For each SNP calculates statistics, weighted average of across neighboring SNPs.
     # To account for Linkage disequilibrium (LD) Stats are calculated over a window of WinSize
@@ -114,7 +116,11 @@ ParGetWeightedStats <- function(SNPset, WinSize = 1e4)
         )
     }
     # Calculate the number of cores
-    n_cores <- parallel::detectCores() - 1
+    if (is.null(cores)) {
+        n_cores <- parallel::detectCores() - 1
+    } else {
+        n_cores <- cores
+    }
 
     # Initiate cluster
     cl <- parallel::makeCluster(n_cores)
@@ -179,7 +185,7 @@ ParGetWeightedStats <- function(SNPset, WinSize = 1e4)
         SW <- rbind(SW, chr)
 
     }
-    stopCluster(cl)
+    parallel::stopCluster(cl)
     SW
 }
 
