@@ -37,8 +37,9 @@ ImportFromGATK <- function(filename,
   SNPset$SNPindex.LOW <- SNPset$AD_ALT.LOW / SNPset$DP.LOW
 
   #Subset any unwanted chromosomes
-  SNPset <- subset(SNPset, CHROM %in% ChromList)
-
+  if (!is.null(ChromList)) {
+      SNPset <- subset(SNPset, CHROM %in% ChromList)
+  }
   # Calculate some descriptors
   SNPset$REF_FRQ <- (SNPset$AD_REF.HIGH + SNPset$AD_REF.LOW) / (SNPset$DP.HIGH + SNPset$DP.LOW)
   SNPset$deltaSNP <- SNPset$SNPindex.HIGH - SNPset$SNPindex.LOW
