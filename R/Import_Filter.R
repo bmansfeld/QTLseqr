@@ -61,6 +61,9 @@ FilterSNPs <- function(SNPset,
     MaxTotalDepth,
     MinSampleDepth = NULL,
     MinGQ = 99) {
+
+    org_count <- nrow(SNPset)
+    count <- nrow(SNPset)
     # Filter by total reference allele frequency
     if (!is.null(RefAlleleFreq)) {
         message(
@@ -72,6 +75,8 @@ FilterSNPs <- function(SNPset,
         SNPset <-
             subset(SNPset,
                 REF_FRQ < 1 - RefAlleleFreq & REF_FRQ > RefAlleleFreq)
+        message("...Filtered ", count - nrow(SNPset), " SNPs")
+        count <- nrow(SNPset)
     }
 
     #Total read depth filtering
@@ -93,6 +98,8 @@ FilterSNPs <- function(SNPset,
         message("Filtering by total read depth: ",
             FilterAroundMedianDepth,
             " MADs arround the median: ", minDP, " <= Total DP <= ", maxDP)
+        message("...Filtered ", count - nrow(SNPset), " SNPs")
+        count <- nrow(SNPset)
 
     }
 
@@ -100,12 +107,16 @@ FilterSNPs <- function(SNPset,
         # Filter by minimum total SNP depth
         message("Filtering by total sample read depth: Total DP >= ", MinTotalDepth)
         SNPset <- subset(SNPset, (DP.HIGH + DP.LOW) >= MinTotalDepth)
+        message("...Filtered ", count - nrow(SNPset), " SNPs")
+        count <- nrow(SNPset)
     }
 
     if (!missing(MaxTotalDepth)) {
         # Filter by maximum total SNP depth
         message("Filtering by total sample read depth: Total DP <= ", MaxTotalDepth)
         SNPset <- subset(SNPset, (DP.HIGH + DP.LOW) <= MaxTotalDepth)
+        message("...Filtered ", count - nrow(SNPset), " SNPs")
+        count <- nrow(SNPset)
     }
 
 
@@ -115,6 +126,8 @@ FilterSNPs <- function(SNPset,
         SNPset <-
             subset(SNPset,
                 DP.HIGH >= MinSampleDepth & DP.LOW >= MinSampleDepth)
+        message("...Filtered ", count - nrow(SNPset), " SNPs")
+        count <- nrow(SNPset)
     }
 
     # Filter by LOW BULK Genotype Quality
@@ -123,7 +136,16 @@ FilterSNPs <- function(SNPset,
         SNPset <-
             SNPset <-
             subset(SNPset, GQ.LOW >= MinGQ & GQ.HIGH >= MinGQ)
+        message("...Filtered ", count - nrow(SNPset), " SNPs")
+        count <- nrow(SNPset)
     }
 
+    # #Filter SNP Clusters
+    # if (!is.null(SNPsInCluster) & !is.null(ClusterWin)) {
+    #     tmp <- which(diff(SNPset$POS, SNPsInCluster-1) < ClusterWin)
+    # message("...Filtered ", count - nrow(SNPset), " SNPs")
+    # count <- nrow(SNPset)
+    # }
+    message("Original SNP number: ",org_count,", Filtered: ",org_count - count, ", Remaining: ",count)
     return(SNPset)
 }
