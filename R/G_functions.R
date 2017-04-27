@@ -247,7 +247,7 @@ plotGprimedist <- function(SNPset)
 
     #plot Gprime distrubtion
     p <- ggplot2::ggplot(SNPset) +
-        xlim(0, max(SNPset$Gprime)) +
+        xlim(0, max(SNPset$Gprime) + 1) +
         geom_histogram(aes(x = Gprime, y = ..density..), binwidth = 0.5)  +
         stat_function(
             fun = dlnorm,
