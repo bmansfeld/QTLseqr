@@ -1,4 +1,13 @@
-# Imports SNP data from GATK VarToTable output.
+#' Imports SNP data from GATK VarToTable output.
+#' @param filename The name of the GATK VarToTable output .table file which the data are to be read from.
+#' @param HighBulk The sample name of the High Bulk
+#' @param LowBulk The sample name of the Low Bulk
+#' @param ChromList a string vector of the chromosomes to be used in the analysis. Useful for filtering out unwanted contigs etc.
+#' @examples df <-  ImportFromGATK(filename = file.table,
+#'     HighBulk = HighBulkSampleName,
+#'     LowBulk = LowBulkSampleName,
+#'     ChromList = c("Chr1","Chr4","Chr7"))
+
 # The required GATK fields (-F) are CHROM (Chromosome) and POS (Position)
 # The required Genotype fields (-GF) are AD (Allele Depth), DP (Depth), GQ  (Genotype Quality)
 # Recommended fields are REF (Reference allele) and ALT (Alternative allele)
@@ -7,7 +16,7 @@
 # the delta SNP index (i.e. SNP index of the low bulk substracted from the SNP index of the high bulk)
 # and the G statistic
 
-importFromGATK <- function(filename,
+ImportFromGATK <- function(filename,
     HighBulk = character(),
     LowBulk = character(),
     ChromList = NULL) {
@@ -54,7 +63,7 @@ importFromGATK <- function(filename,
 
 
 # Filter SNPs based on some usefull parameters including read depth and quality
-filterSNPs <- function(SNPset,
+FilterSNPs <- function(SNPset,
     RefAlleleFreq = NULL,
     FilterAroundMedianDepth = 2.5,
     MinTotalDepth,
