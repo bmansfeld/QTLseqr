@@ -100,7 +100,8 @@ GetPrimeStats <- function(SNPset, WinSize = 1e4)
 
 ParGetPrimeStats <- function(SNPset,
     WinSize = 1e6,
-    n_cores = NULL)
+    n_cores = NULL,
+    ...)
     # Parallelized version of GetWeighedStats to increase speed of analysis.
     # For each SNP calculates statistics, weighted average of across neighboring SNPs.
     # To account for Linkage disequilibrium (LD) Stats are calculated over a window of WinSize
@@ -184,6 +185,10 @@ ParGetPrimeStats <- function(SNPset,
 
     }
     parallel::stopCluster(cl)
+
+    #calculate p- and q-values
+    message("#calculating p- and q-values")
+    SW <- GetPvals(SW, ...)
     SW
 }
 
