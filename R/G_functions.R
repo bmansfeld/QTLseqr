@@ -154,7 +154,8 @@ ParGetPrimeStats <- function(SNPset,
                 X = bin,
                 MARGIN = 1,
                 FUN = function(y) {
-                    # the distance from the focal SNP is calculated for each SNP in the window. One (1) is added as an index
+                    # the distance from the focal SNP is calculated for each SNP in the window.
+                    # One (1) is added because the focal SNP is stored in the first value of the vector
                     dfromFocal <-
                         abs(chr[y["start"] < chr$POS &
                                 chr$POS <= y["end"], "POS"] - y["focal"]) + 1
@@ -186,7 +187,7 @@ ParGetPrimeStats <- function(SNPset,
     SW
 }
 
-GetPvals <- function(SNPset) {
+GetPvals <- function(SNPset, ModeEstMethod = "hsm", ...) {
     # Non-parametric estimation of the null distribution of G'
 
     lnGprime <- log(SNPset$Gprime)
@@ -203,7 +204,7 @@ GetPvals <- function(SNPset) {
 
     # estimate the mode of the trimmed G' prime set using the half-sample method
     modeTrimGprime <-
-        modeest::mlv(x = trimGprime, bw = 0.5, method = "hsm")$M
+        modeest::mlv(x = trimGprime, bw = 0.5, method = ModeEstMethod, ...)$M
 
     muE <- log(medianTrimGprime)
     varE <- abs(muE - log(modeTrimGprime))
@@ -222,7 +223,7 @@ GetPvals <- function(SNPset) {
 
 
 
-plotGprimedist <- function(SNPset)
+plotGprimedist <- function(SNPset, ModeEstMethod = "hsm")
 {
     # Non-parametric estimation of the null distribution of G'
 
@@ -240,7 +241,7 @@ plotGprimedist <- function(SNPset)
 
     # estimate the mode of the trimmed G' prime set using the half-sample method
     modeTrimGprime <-
-        modeest::mlv(x = trimGprime, bw = 0.5, method = "hsm")$M
+        modeest::mlv(x = trimGprime, bw = 0.5, method = ModeEstMethod)$M
 
     muE <- log(medianTrimGprime)
     varE <- abs(muE - log(modeTrimGprime))
