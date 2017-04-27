@@ -7,7 +7,7 @@
 # the delta SNP index (i.e. SNP index of the low bulk substracted from the SNP index of the high bulk)
 # and the G statistic
 
-ImportFromGATK <- function(filename,
+importFromGATK <- function(filename,
     HighBulk = character(),
     LowBulk = character(),
     ChromList = NULL) {
@@ -54,7 +54,7 @@ ImportFromGATK <- function(filename,
 
 
 # Filter SNPs based on some usefull parameters including read depth and quality
-FilterSNPs <- function(SNPset,
+filterSNPs <- function(SNPset,
     RefAlleleFreq = NULL,
     FilterAroundMedianDepth = 2.5,
     MinTotalDepth,
