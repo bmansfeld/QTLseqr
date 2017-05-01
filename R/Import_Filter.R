@@ -76,30 +76,43 @@ ImportFromGATK <- function(filename,
 
 #' Filter SNPs based on read depth and quality
 #'
-#' A wrapper for the subset function Use filtering paramaters to filter out high and low depth resads as well as
-#' low Genotype Quality as defined by GATK. All filters are optional but recommended.
+#' A wrapper for the subset function. Use filtering paramaters to filter out
+#' high and low depth reads as well as low Genotype Quality as defined by GATK.
+#' All filters are optional but recommended.
 #'
 #'
 #' @param SNPset The data frame imported by \code{ImportFromGATK}
-#' @param RefAlleleFreq A numeric < 1. This will filter out SNPs with a Reference
-#' Allele Frequency less than \code{RefAlleleFreq} and greater than 1 - \code{RefAlleleFreq}
-#' @param FilterAroundMedianDepth Filters total SNP read depth for both bulks.
-#' A median and median absolute deviation (MAD) of depth will be calculated. SNPs with
-#' read depth greater or less than \code{FilterAroundMedianDepth} MADs away from the mean
-#' will be filtered.
-#' @param MinTotalDepth The minimum total read depth for a SNP (counting both bulks)
-#' @param MaxTotalDepth The maximum total read depth for a SNP (counting both bulks)
+#' @param RefAlleleFreq A numeric < 1. This will filter out SNPs with a
+#'   Reference Allele Frequency less than \code{RefAlleleFreq} and greater than
+#'   1 - \code{RefAlleleFreq}. Eg. \code{RefAlleleFreq = 0.3} will keep SNPs
+#'   with 0.3 <= REF_FRQ <= 0.7
+#' @param FilterAroundMedianDepth Filters total SNP read depth for both bulks. A
+#'   median and median absolute deviation (MAD) of depth will be calculated.
+#'   SNPs with read depth greater or less than \code{FilterAroundMedianDepth}
+#'   MADs away from the median will be filtered.
+#' @param MinTotalDepth The minimum total read depth for a SNP (counting both
+#'   bulks)
+#' @param MaxTotalDepth The maximum total read depth for a SNP (counting both
+#'   bulks)
 #' @param MinSampleDepth The minimum read depth for a SNP in each bulk
-#' @param MinGQ The minimum Genotype Quality as set by GATK. This is a measure of
-#' how confident GATK was with the assigned genotype (i.e. homozygous ref,
-#' heterozygous, homozygous alt). See \href{http://gatkforums.broadinstitute.org/gatk/discussion/1268/what-is-a-vcf-and-how-should-i-interpret-it}{What is a VCF and how should I interpret it?}
-#' @param Verbose logical. If \code{TRUE} will report number of SNPs filtered in each step.
+#' @param MinGQ The minimum Genotype Quality as set by GATK. This is a measure
+#'   of how confident GATK was with the assigned genotype (i.e. homozygous ref,
+#'   heterozygous, homozygous alt). See
+#'   \href{http://gatkforums.broadinstitute.org/gatk/discussion/1268/what-is-a-vcf-and-how-should-i-interpret-it}{What
+#'   is a VCF and how should I interpret it?}
+#' @param Verbose logical. If \code{TRUE} will report number of SNPs filtered in
+#'   each step.
 #' @return Returns a subset of the data frame suplied which meets the filtering
-#' conditions applied by the selected paramaters. The function reports
+#'   conditions applied by the selected paramaters. If \code{Verbose} is
+#'   \code{TRUE} the function reports the number of SNPs filtered in each steps
+#'   as well as the initiatl number of SNPs, the total number of SNPs filtered
+#'   and the remaining number.
 #'
-#' @seealso \code{\link{mad}} for explaination of calculation of median absolute deviation.
-#' \href{http://gatkforums.broadinstitute.org/gatk/discussion/1268/what-is-a-vcf-and-how-should-i-interpret-it}{What is a VCF and how should I interpret it?}
-#' for more information on GATK Fields and Genotype Fields
+#' @seealso See \code{\link[stats]{mad}} for explaination of calculation of
+#'   median absolute deviation.
+#'   \href{http://gatkforums.broadinstitute.org/gatk/discussion/1268/what-is-a-vcf-and-how-should-i-interpret-it}{What
+#'   is a VCF and how should I interpret it?} for more information on GATK
+#'   Fields and Genotype Fields
 #' @examples df_filt <- FilterSNPs(
 #'     df,
 #'     RefAlleleFreq = 0.3,
