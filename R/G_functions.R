@@ -1,8 +1,23 @@
 # G functions - All functions the manipulate the G statistic
 
+#' Calculates the G statistic - method 1
+#'
+#' The function is used by \code{\link{ImportFromGATK}} to calculate the G statisic
+#'
+#' G is defined by the equation:
+#' \deqn{G = 2*\sum_{i=1}^{4} n_{i}*ln\frac{obs(n_i)}{exp(n_i)}}{G = 2 * \sum n_i * ln(obs(n_i)/exp(n_i))}
+#' Where for each SNP, \eqn{n_i} from i = 1 to 4 corresponds to the reference and
+#' alternate allele depths for each bulk, as described in the following table:
+#' \tabular{rcc}{
+#' Allele \tab High Bulk \tab Low Bulk \cr
+#' Reference \tab \eqn{n_1} \tab \eqn{n_2} \cr
+#' Alternate \tab \eqn{n_3} \tab \eqn{n_4} \cr} ...and \eqn{obs(n_i)} are the observed allele depths as described in the data
+#' frame. In this method for calculating G, the expected values \eqn{exp(n_i)}
+#' are derived by deviding the read depth for the SNP in each bulk by 2. As we
+#' expect 50\% of those reads to support the reference allele.
+#' #' @seealso \code{\link{GetGStat2}}
+
 GetGStat <- function(SNPset) {
-    # Calculates the G statistic using expected values that are equal to half the
-    # read depth of each SNP in each bulk
     GStat <- apply(SNPset[, 5:ncol(SNPset)], 1, function(x) {
         obs <-
             c((x["AD_REF.LOW"]), (x["AD_REF.HIGH"]), (x["AD_ALT.LOW"]), (x["AD_ALT.HIGH"]))
@@ -12,11 +27,24 @@ GetGStat <- function(SNPset) {
     })
     GStat
 }
-
+#' Calculates the G statistic - method 2
+#'
+#' The function is used by \code{\link{ImportFromGATK}} to calculate the G statisic
+#'
+#' G is defined by the equation:
+#' \deqn{G = 2*\sum_{i=1}^{4} n_{i}*ln\frac{obs(n_i)}{exp(n_i)}}{G = 2 * \sum n_i * ln(obs(n_i)/exp(n_i))}
+#' Where for each SNP, \eqn{n_i} from i = 1 to 4 corresponds to the reference and
+#' alternate allele depths for each bulk, as described in the following table:
+#' \tabular{rcc}{
+#' Allele \tab High Bulk \tab Low Bulk \cr
+#' Reference \tab \eqn{n_1} \tab \eqn{n_2} \cr
+#' Alternate \tab \eqn{n_3} \tab \eqn{n_4} \cr} ...and \eqn{obs(n_i)} are the
+#' observed allele depths as described in the data
+#' frame. Method 2 calculates the G statistic using expected values assuming read depth
+#' is equal for all alleles in both bulks: \eqn{((n_1 + n_3)*(n_2 + n_4))/(n_1 + n_2 + n_3 + n_4)}
+#' @seealso \code{\link{GetGStat}}
 
 GetGStat2 <- function(SNPset) {
-    # Version 2 calculates the G statistic using expected values assuming read depth
-    # is equal for all alleles in both bulks
     GStat2 <-
         apply(SNPset[, 5:ncol(SNPset)], 1, function(x) {
             obs <-

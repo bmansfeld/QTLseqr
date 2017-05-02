@@ -1,6 +1,6 @@
 #' Imports SNP data from GATK VarToTable output
 #'
-#' \code{ImportFromGATK} imports SNP data from the output of the
+#' Imports SNP data from the output of the
 #' \href{https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_variantutils_VariantsToTable.php}{VariantsToTable}
 #' function in GATK.
 #' After importing the data, the function then calculates total reference allele
