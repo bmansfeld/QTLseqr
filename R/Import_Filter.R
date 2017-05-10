@@ -15,6 +15,7 @@
 #' @param HighBulk The sample name of the High Bulk
 #' @param LowBulk The sample name of the Low Bulk
 #' @param ChromList a string vector of the chromosomes to be used in the analysis. Useful for filtering out unwanted contigs etc.
+#' @param method either "one" (default) or "two". The method for calculation G statistic. In method two equal coverage is assumed for both bulks.
 #' @return Returns a data frame containing columns for Read depth (DP),
 #' Reference Allele Depth (AD.REF) and Alternative Allele Depth (AD.ALT), Genoytype Quality (GQ) and SNPindex for each bulk (indicated by .HIGH and .LOW column name suffix).
 #' Total reference allele frequnce "REF_FRQ" is the sum of AD.REF for both bulks devided by total Depth for that SNP.
@@ -25,13 +26,15 @@
 #' @examples df <-  ImportFromGATK(filename = file.table,
 #'     HighBulk = HighBulkSampleName,
 #'     LowBulk = LowBulkSampleName,
-#'     ChromList = c("Chr1","Chr4","Chr7"))
+#'     ChromList = c("Chr1","Chr4","Chr7"),
+#'     method = "one")
 #'
 
 ImportFromGATK <- function(filename,
     HighBulk = character(),
     LowBulk = character(),
-    ChromList = NULL) {
+    ChromList = NULL,
+    method = "one") {
     message("Importing SNPs from file")
     VarTable <-
         read.table(file = filename,
@@ -68,8 +71,13 @@ ImportFromGATK <- function(filename,
     SNPset$deltaSNP <- SNPset$SNPindex.HIGH - SNPset$SNPindex.LOW
 
     # calculate G Statistic
-    message("Calculating G statistic using method 1")
-    SNPset$GStat <- GetGStat(SNPset)
+    if (method != "two") {
+        message("Calculating G statistic using method 1")
+        SNPset$GStat <- GetGStat(SNPset)
+    } else {
+        message("Calculating G statistic using method 2")
+        SNPset$GStat <- GetGStat2(SNPset)
+    }
     return(SNPset)
 }
 
