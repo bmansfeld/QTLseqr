@@ -4,6 +4,7 @@
 #'
 #' The function is used by \code{\link{ImportFromGATK}} to calculate the G statisic
 #'
+#' @param SNPset a data frame with SNPs and genotype fields as imported by ImportFromGATK
 #' G is defined by the equation:
 #' \deqn{G = 2*\sum_{i=1}^{4} n_{i}*ln\frac{obs(n_i)}{exp(n_i)}}{G = 2 * \sum n_i * ln(obs(n_i)/exp(n_i))}
 #' Where for each SNP, \eqn{n_i} from i = 1 to 4 corresponds to the reference and
@@ -27,10 +28,13 @@ GetGStat <- function(SNPset) {
     })
     GStat
 }
+
+
 #' Calculates the G statistic - method 2
 #'
 #' The function is used by \code{\link{ImportFromGATK}} to calculate the G statisic
 #'
+#' @param SNPset a data frame with SNPs and genotype fields as imported by ImportFromGATK
 #' G is defined by the equation:
 #' \deqn{G = 2*\sum_{i=1}^{4} n_{i}*ln\frac{obs(n_i)}{exp(n_i)}}{G = 2 * \sum n_i * ln(obs(n_i)/exp(n_i))}
 #' Where for each SNP, \eqn{n_i} from i = 1 to 4 corresponds to the reference and
@@ -57,13 +61,34 @@ GetGStat2 <- function(SNPset) {
 
 }
 
+#' Calculate tricube weighted statistics for each SNP
+#'
+#' For each SNP calculates statistics, weighted average of across neighboring
+#' SNPs. To account for Linkage disequilibrium (LD) Stats are calculated over a
+#' window of WinSize and weighted with a tricube kernel where weights are
+#' defined by physical distance away from the focal SNP
+#' @return Returns the supplied SNPset data frame with 5 new columns added:
+#' @return \code{Gprime} The weighted G statistic caluculted with a tricube
+#'   smoothing kernel
+#' @return \code{nSNPs} The number of SNPs in the window used to calculate
+#'   Gprime
+#' @return \code{deltaSNPprime} The weighted delta SNP statistic calculated with
+#'   a tricube smooting kernel
+#' @return \code{pval} The p-value calculated by Non-parametric estimation of
+#'   the null distribution of G'
+#' @return \code{qval} The adjusted q-value after Benjamini-Hochberg adjustment
+#'
+#' @param SNPset a data frame with SNPs and genotype fields as imported by
+#'   \code{ImportFromGATK}
+#' @param WinSize the window size (in base pairs) bracketing each SNP for which
+#'   to calculate the statitics. Magwene et. al recommend a window size of ~24
+#'   cM.
+#' @param ... Further arguments passed to \code{modeest::mlv} via
+#'   \code{GetPvals}
+#' @examples df_filt_4mb <- GetPrimeStats(df_filt, WinSize = 4e6)
+#' @seealso \code{\link{GetPvals}} for how p-values are calculated.
 
-GetPrimeStats <- function(SNPset, WinSize = 1e4)
-    # For each SNP calculates statistics, weighted average of across neighboring SNPs.
-    # To account for Linkage disequilibrium (LD) Stats are calculated over a window of WinSize
-    # and weighted with a tricube kernel where weights are defined by physical distance away from the focal SNP
-    # Returns a SNPset data frame with 3 new columns: Gprime, nSNPs in window, and delatSNPprime
-
+GetPrimeStats <- function(SNPset, WinSize = 1e4, ...)
 {
     # Create empty dataframe to rebuild SNPset
     SW <- data.frame()
@@ -122,19 +147,47 @@ GetPrimeStats <- function(SNPset, WinSize = 1e4)
         SW <- rbind(SW, chr)
 
     }
+    #calculate p- and q-values
+    message("#calculating p- and q-values")
+    SW <- GetPvals(SW, ...)
     SW
 }
 
+
+#' Calculate tricube weighted statistics for each SNP - Parallelized version
+#'
+#' Needs the paralle package to work!
+#' For each SNP calculates statistics, weighted average of across neighboring
+#' SNPs. To account for Linkage disequilibrium (LD) Stats are calculated over a
+#' window of WinSize and weighted with a tricube kernel where weights are
+#' defined by physical distance away from the focal SNP
+#' @return Returns the supplied SNPset data frame with 5 new columns added:
+#' @return \code{Gprime} The weighted G statistic caluculted with a tricube
+#'   smoothing kernel
+#' @return \code{nSNPs} The number of SNPs in the window used to calculate
+#'   Gprime
+#' @return \code{deltaSNPprime} The weighted delta SNP statistic calculated with
+#'   a tricube smooting kernel
+#' @return \code{pval} The p-value calculated by Non-parametric estimation of
+#'   the null distribution of G'
+#' @return \code{qval} The adjusted q-value after Benjamini-Hochberg adjustment
+#'
+#' @param SNPset a data frame with SNPs and genotype fields as imported by
+#'   \code{ImportFromGATK}
+#' @param WinSize the window size (in base pairs) bracketing each SNP for which
+#'   to calculate the statitics. Magwene et. al recommend a window size of ~24
+#'   cM.
+#' @param n_cores the number of cores to be used for the process. Defults to
+#'   NULL which will then use the number of available cores - 1.
+#' @param ... Further arguments passed to \code{modeest::mlv} via
+#'   \code{GetPvals}
+#' @examples df_filt_4mb <- ParGetPrimeStats(df_filt, WinSize = 4e6, n_cores = 3)
+#' @seealso \code{\link{GetPvals}} for how p-values are calculated.
 
 ParGetPrimeStats <- function(SNPset,
     WinSize = 1e6,
     n_cores = NULL,
     ...)
-    # Parallelized version of GetWeighedStats to increase speed of analysis.
-    # For each SNP calculates statistics, weighted average of across neighboring SNPs.
-    # To account for Linkage disequilibrium (LD) Stats are calculated over a window of WinSize
-    # and weighted with a tricube kernel where weights are defined by physical distance away from the focal SNP
-    # Returns a SNPset data frame with 3 new columns: Gprime, nSNPs in window, and delatSNPprime
 
 {
     if (!requireNamespace("parallel", quietly = T)) {
@@ -220,8 +273,27 @@ ParGetPrimeStats <- function(SNPset,
     SW
 }
 
+#' Non-parametric estimation of the null distribution of G'
+#'
+#' The function is used by \code{GetPrimeStats} to estimate p-values for the weighted G' statistic based on the
+#' non-parametric estimation method described in Magwene et al. 2013. Breifly,
+#' using the natural log of Gprime a median absolute deviation (MAD) is
+#' calculated. The Gprime set is trimmed to exclude outlier regions (i.e. QTL)
+#' based on Hampel's rule. An estimation of the mode of the trimmed set is
+#' calculated using the \code{\link[modeest]{mlv}} function from the package modeest. Finally, the mean
+#' and variance of the set are estimated using the median and mode and p-values
+#' are estimated from a log normal distribution. Adjusted p-values (q-values)
+#' are assigned using the \code{\link[stats]{p.adjust}} function.
+#'
+#' @param SNPset a data frame with SNPs and genotype fields as imported by
+#'   \code{ImportFromGATK} and after running \code{GetPrimeStats}
+#' @param ModeEstMethod String. The method for estimation of the mode. Passed on to
+#' \code{\link[modeest]{mlv}}. The default is half sample method (hsm). See
+#' \code{\link[modeest]{mlv}} for other methods.
+#' @param ... Further arguments passed to \code{modeest::mlv}
+#'
+
 GetPvals <- function(SNPset, ModeEstMethod = "hsm", ...) {
-    # Non-parametric estimation of the null distribution of G'
 
     lnGprime <- log(SNPset$Gprime)
 
@@ -255,6 +327,8 @@ GetPvals <- function(SNPset, ModeEstMethod = "hsm", ...) {
 }
 
 
+#' Plots a histogram of the distribution of Gprime with a log normal
+#' distribution overlay
 
 plotGprimedist <- function(SNPset, ModeEstMethod = "hsm")
 {

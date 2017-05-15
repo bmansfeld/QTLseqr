@@ -60,6 +60,7 @@ df_filt <- FilterSNPs(
     MinGQ = 99,
     Verbose = TRUE
 )
+
 }
 \seealso{
 See \code{\link[stats]{mad}} for explaination of calculation of

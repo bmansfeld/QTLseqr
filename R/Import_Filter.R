@@ -137,6 +137,8 @@ ImportFromGATK <- function(filename,
 #'     MinGQ = 99,
 #'     Verbose = TRUE
 #' )
+#'
+
 FilterSNPs <- function(SNPset,
     RefAlleleFreq = NULL,
     FilterAroundMedianDepth = 2.5,

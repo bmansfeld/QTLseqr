@@ -6,10 +6,8 @@
 \usage{
 GetGStat2(SNPset)
 }
-\description{
-The function is used by \code{\link{ImportFromGATK}} to calculate the G statisic
-}
-\details{
+\arguments{
+\item{SNPset}{a data frame with SNPs and genotype fields as imported by ImportFromGATK
 G is defined by the equation:
 \deqn{G = 2*\sum_{i=1}^{4} n_{i}*ln\frac{obs(n_i)}{exp(n_i)}}{G = 2 * \sum n_i * ln(obs(n_i)/exp(n_i))}
 Where for each SNP, \eqn{n_i} from i = 1 to 4 corresponds to the reference and
@@ -20,7 +18,10 @@ Reference \tab \eqn{n_1} \tab \eqn{n_2} \cr
 Alternate \tab \eqn{n_3} \tab \eqn{n_4} \cr} ...and \eqn{obs(n_i)} are the
 observed allele depths as described in the data
 frame. Method 2 calculates the G statistic using expected values assuming read depth
-is equal for all alleles in both bulks: \eqn{((n_1 + n_3)*(n_2 + n_4))/(n_1 + n_2 + n_3 + n_4)}
+is equal for all alleles in both bulks: \eqn{((n_1 + n_3)*(n_2 + n_4))/(n_1 + n_2 + n_3 + n_4)}}
+}
+\description{
+The function is used by \code{\link{ImportFromGATK}} to calculate the G statisic
 }
 \seealso{
 \code{\link{GetGStat}}
