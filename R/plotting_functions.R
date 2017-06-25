@@ -76,3 +76,41 @@ plotQTL <-
 
     }
 
+#' Plots a histogram of the distribution of Gprime with a log normal
+#' distribution overlay
+
+plotGprimedist <- function(SNPset, ModeEstMethod = "hsm")
+{
+    # Non-parametric estimation of the null distribution of G'
+
+    lnGprime <- log(SNPset$Gprime)
+
+    # calculate left median absolute deviation for the trimmed G' prime set
+    MAD <-
+        median(abs(lnGprime[lnGprime <= median(lnGprime)] - median(lnGprime)))
+
+    # Trim the G prime set to exclude outlier regions (i.e. QTL) using Hampel's rule
+    trimGprime <-
+        SNPset$Gprime[lnGprime - median(lnGprime) <= 5.2 * median(MAD)]
+
+    medianTrimGprime <- median(trimGprime)
+
+    # estimate the mode of the trimmed G' prime set using the half-sample method
+    modeTrimGprime <-
+        modeest::mlv(x = trimGprime, bw = 0.5, method = ModeEstMethod)$M
+
+    muE <- log(medianTrimGprime)
+    varE <- abs(muE - log(modeTrimGprime))
+
+    #plot Gprime distrubtion
+    p <- ggplot2::ggplot(SNPset) +
+        xlim(0, max(SNPset$Gprime) + 1) +
+        geom_histogram(aes(x = Gprime, y = ..density..), binwidth = 0.5)  +
+        stat_function(
+            fun = dlnorm,
+            size = 1,
+            color = 'blue',
+            args = c(meanlog = muE, sdlog = sqrt(varE))
+        )
+    return(p)
+}
