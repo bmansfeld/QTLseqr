@@ -19,7 +19,8 @@ plotQTL <-
             )
 
         #don't plot threshold lines in deltaSNPprime or number of SNPs as they are not relevant
-        if (var == "deltaSNP" | var == "nSNPs")
+        if ((plotThreshold == TRUE & var == "deltaSNP") | (plotThreshold == TRUE & var == "nSNPs"))
+            message("FDR threshold is not be plotted in deltaSNP or nSNPs plots")
             plotThreshold <- FALSE
 
         SNPset <-
@@ -29,7 +30,7 @@ plotQTL <-
                 SNPset[SNPset$CHROM == subset, ]
             }
 
-        p <- ggplot(data = SNPset) +
+        p <- ggplot2::ggplot(data = SNPset) +
             facet_grid( ~ CHROM, scales = "free_x") +
             scale_x_continuous(labels = format_genomic(),
                 name = "Genomic Position") +
@@ -105,6 +106,7 @@ plotGprimedist <- function(SNPset, ModeEstMethod = "hsm")
     #plot Gprime distrubtion
     p <- ggplot2::ggplot(SNPset) +
         xlim(0, max(SNPset$Gprime) + 1) +
+        xlab("G' value") +
         geom_histogram(aes(x = Gprime, y = ..density..), binwidth = 0.5)  +
         stat_function(
             fun = dlnorm,

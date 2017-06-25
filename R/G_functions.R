@@ -335,10 +335,6 @@ GetPvals <- function(SNPset, ModeEstMethod = "hsm", ...) {
 #' containing all SNPs with q-values below a set alpha. Each entry in the list
 #' is a SNP set data frame in a contiguous region with
 
-
-
-
-
 GetSigRegions <- function(SNPset, alpha = 0.05)
 {
     if ("qval" %in% colnames(SNPset))
