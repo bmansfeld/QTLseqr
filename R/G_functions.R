@@ -183,6 +183,7 @@ GetPrimeStats <- function(SNPset, WinSize = 1e4, ...)
 #'   \code{GetPvals}
 #' @examples df_filt_4mb <- ParGetPrimeStats(df_filt, WinSize = 4e6, n_cores = 3)
 #' @seealso \code{\link{GetPvals}} for how p-values are calculated.
+#' @export ParGetPrimeStats
 
 ParGetPrimeStats <- function(SNPset,
     WinSize = 1e6,
@@ -267,8 +268,8 @@ ParGetPrimeStats <- function(SNPset,
     }
     parallel::stopCluster(cl)
 
-    #calculate p- and q-values
-    message("#calculating p- and q-values")
+    #Calculate p- and q-values
+    message("Calculating p- and q-values")
     SW <- GetPvals(SW, ...)
     SW
 }
@@ -319,6 +320,8 @@ GetPvals <- function(SNPset, ModeEstMethod = "hsm", ...) {
             meanlog = muE,
             sdlog = sqrt(varE))
 
+    SNPset$negLogPval <- -log10(SNPSet$pval)
+
     SNPset$qval <- p.adjust(p = SNPset$pval, method = "BH")
 
 
@@ -364,4 +367,42 @@ plotGprimedist <- function(SNPset, ModeEstMethod = "hsm")
             args = c(meanlog = muE, sdlog = sqrt(varE))
         )
     return(p)
+}
+
+
+#' Return SNPs in significant regions
+#'
+#' The function takes a SNP set after calculation of p- and q-values and returns a list
+#' containing all SNPs with q-values below a set alpha. Each entry in the list
+#' is a SNP set data frame in a contiguous region with
+
+
+
+
+
+GetSigRegions <- function(SNPset, alpha = 0.05)
+{
+    if ("qval" %in% colnames(SNPset))
+    {
+        SigRegions <- list()
+        for (x in levels(as.factor(SNPset$CHROM))) {
+            chr <- as.data.frame(subset(SNPset, CHROM == x))
+
+            runs <- S4Vectors::Rle(chr$qval <= alpha)
+            runvals <- S4Vectors::runValue(runs)
+            starts <- S4Vectors::start(runs)
+            ends <- S4Vectors::end(runs)
+
+            for (i in 1:nrun(runs)) {
+                SigRegions[[length(SigRegions) + 1]] <- if (runvals[i]) {
+                    chr[starts[i]:ends[i],]
+                }
+            }
+        }
+        return(SigRegions)
+    } else {
+        stop("Please first run GetPrimeStats or ParGetPrimeStats to ",
+            "calculate q-values")
+    }
+
 }
