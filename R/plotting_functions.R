@@ -5,8 +5,10 @@ plotQTL <-
         line = TRUE,
         plotThreshold = FALSE,
         q = 0.05,
-        ...){
-        tmp <- SNPset[order(SNPset$pval, decreasing = F), ]
+        ...) {
+        #get fdr threshold by ordering snps by pval then getting the last pval
+        #with a qval < q
+        tmp <- SNPset[order(SNPset$pval, decreasing = F),]
         fdrT <- tmp[sum(tmp$qval <= q), var]
 
         if (length(fdrT) == 0) {
@@ -19,22 +21,28 @@ plotQTL <-
             )
 
         #don't plot threshold lines in deltaSNPprime or number of SNPs as they are not relevant
-        if ((plotThreshold == TRUE & var == "deltaSNP") | (plotThreshold == TRUE & var == "nSNPs"))
-            message("FDR threshold is not be plotted in deltaSNP or nSNPs plots")
+        if ((plotThreshold == TRUE &
+                var == "deltaSNP") | (plotThreshold == TRUE & var == "nSNPs")) {
+            message("FDR threshold is not plotted in deltaSNP or nSNPs plots")
             plotThreshold <- FALSE
-
+        }
         SNPset <-
             if (is.null(subset)) {
                 SNPset
             } else {
-                SNPset[SNPset$CHROM == subset, ]
+                SNPset[SNPset$CHROM == subset,]
             }
 
         p <- ggplot2::ggplot(data = SNPset) +
-            facet_grid( ~ CHROM, scales = "free_x") +
+            facet_grid(~ CHROM, scales = "free_x") +
             scale_x_continuous(labels = format_genomic(),
                 name = "Genomic Position") +
-            theme(plot.margin = margin(b = 10, l = 20, r = 20, unit = "pt"))
+            theme(plot.margin = margin(
+                b = 10,
+                l = 20,
+                r = 20,
+                unit = "pt"
+            ))
 
         if (var == "Gprime") {
             p <- p + ylab("G' value")
@@ -53,7 +61,9 @@ plotQTL <-
             var <- "deltaSNPprime"
             p <- p + ylab(expression(Delta * 'SNP-index')) +
                 ylim(-0.55, 0.55) +
-                geom_hline(yintercept = 0, color = "black", alpha = 0.4)
+                geom_hline(yintercept = 0,
+                    color = "black",
+                    alpha = 0.4)
         }
 
         if (line) {
@@ -65,7 +75,7 @@ plotQTL <-
             p <- p + geom_point(aes_string(x = "POS", y = var), ...)
         }
 
-        if (plotThreshold)
+        if (plotThreshold == TRUE)
             p <-
             p + geom_hline(
                 yintercept = fdrT,
