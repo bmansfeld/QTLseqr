@@ -15,6 +15,11 @@ plotQTL <-
             warning("The q threshold is too low. No line will be drawn")
         }
 
+        if (!all(subset %in% unique(SNPset$CHROM))) {
+            whichnot <- paste(subset[which(!subset %in% unique(SNPset$CHROM))], collapse = ', ')
+            stop(paste0("The following are not true chromosome names: ", whichnot))
+        }
+
         if (!var %in% c("nSNPs", "deltaSNP", "Gprime", "negLogPval"))
             stop(
                 "Please choose one of the following variables to plot: \"nSNPs\", \"deltaSNP\", \"Gprime\", \"negLogPval\""
