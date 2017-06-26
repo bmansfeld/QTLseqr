@@ -37,6 +37,7 @@
 #'     ChromList = c("Chr1","Chr4","Chr7"),
 #'     method = "one")
 #' @export ImportFromGATK
+
 ImportFromGATK <- function(filename,
     HighBulk = character(),
     LowBulk = character(),
@@ -139,6 +140,7 @@ ImportFromGATK <- function(filename,
 #' )
 #'
 #' @export FilterSNPs
+
 FilterSNPs <- function(SNPset,
     RefAlleleFreq = NULL,
     FilterAroundMedianDepth = 2.5,
