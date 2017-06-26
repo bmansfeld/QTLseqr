@@ -79,7 +79,7 @@ plotQTLstats <-
             ggplot2::facet_grid( ~ CHROM, scales = "free_x") +
             ggplot2::scale_x_continuous(labels = format_genomic(),
                 name = "Genomic Position") +
-            ggplot2::theme(plot.margin = margin(
+            ggplot2::theme(plot.margin = ggplot2::margin(
                 b = 10,
                 l = 20,
                 r = 20,
