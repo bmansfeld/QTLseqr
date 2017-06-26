@@ -5,7 +5,8 @@
 #'
 #' @param SNPset a data frame with SNPs and genotype fields as imported by
 #'   \code{ImportFromGATK} and after running \code{GetPrimeStats}
-#' @param subset a vector of chromosome names to use in plotting. Defaults to
+#' @param subset a vector of chromosome names for use in quick plotting of
+#'   chromosomes of interest. Defaults to
 #'   NULL and will plot all chromosomes in the SNPset
 #' @param var character. The paramater for plotting. Must be one of: "nSNPs",
 #'   "deltaSNP", "Gprime", "negLogPval"
