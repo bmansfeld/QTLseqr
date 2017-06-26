@@ -2,6 +2,7 @@
 
 export(FilterSNPs)
 export(GetPvals)
+export(GetSigRegions)
 export(ImportFromGATK)
 export(ParGetPrimeStats)
 export(plotGprimedist)
