@@ -111,11 +111,11 @@ plotQTLstats <-
         
         if (line) {
             p <-
-                p + ggplot2::geom_line(aes_string(x = "POS", y = var), size = 2, ...)
+                p + ggplot2::geom_line(ggplot2::aes_string(x = "POS", y = var), size = 2, ...)
         }
         
         if (!line) {
-            p <- p + ggplot2::geom_point(aes_string(x = "POS", y = var), ...)
+            p <- p + ggplot2::geom_point(ggplot2::aes_string(x = "POS", y = var), ...)
         }
         
         if (plotThreshold == TRUE)
