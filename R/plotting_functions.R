@@ -51,7 +51,7 @@ plotQTLstats <-
         }
 
         if (!all(subset %in% unique(SNPset$CHROM))) {
-            whichnot <- paste(subset[which(!subset %in% unique(SNPset$CHROM))], collapse = ', ')
+            whichnot <- paste(subset[base::which(!subset %in% unique(SNPset$CHROM))], collapse = ', ')
             stop(paste0("The following are not true chromosome names: ", whichnot))
         }
 
