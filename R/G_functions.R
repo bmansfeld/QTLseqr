@@ -321,7 +321,7 @@ GetPvals <- function(SNPset, ModeEstMethod = "hsm", ...) {
             meanlog = muE,
             sdlog = sqrt(varE))
 
-    SNPset$negLogPval <- -log10(SNPSet$pval)
+    SNPset$negLogPval <- -log10(SNPset$pval)
 
     SNPset$qval <- p.adjust(p = SNPset$pval, method = "BH")
 
