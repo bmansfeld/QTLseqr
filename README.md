@@ -1,6 +1,6 @@
-# QTLseqR
+# QTLseqr
 
-QTLseqR is an R package for QTL mapping using Bulk Segregant Analysis.
+QTLseqr is an R package for QTL mapping using Bulk Segregant Analysis.
 
 The package is an R implementation of the analysis described in
 The Statistics of Bulk Segregant Analysis Using Next Generation Sequencing 
