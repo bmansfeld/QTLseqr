@@ -46,9 +46,8 @@ Returns a subset of the data frame suplied which meets the filtering
   and the remaining number.
 }
 \description{
-A wrapper for the subset function. Use filtering paramaters to filter out
-high and low depth reads as well as low Genotype Quality as defined by GATK.
-All filters are optional but recommended.
+Use filtering paramaters to filter out high and low depth reads as well as
+low Genotype Quality as defined by GATK. All filters are optional but recommended.
 }
 \examples{
 df_filt <- FilterSNPs(

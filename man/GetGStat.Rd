@@ -17,7 +17,7 @@ Allele \tab High Bulk \tab Low Bulk \cr
 Reference \tab \eqn{n_1} \tab \eqn{n_2} \cr
 Alternate \tab \eqn{n_3} \tab \eqn{n_4} \cr} ...and \eqn{obs(n_i)} are the observed allele depths as described in the data
 frame. In this method for calculating G, the expected values \eqn{exp(n_i)}
-are derived by deviding the read depth for the SNP in each bulk by 2. As we
+are derived by dividing the read depth for the SNP in each bulk by 2. As we
 expect 50\% of those reads to support the reference allele.}
 }
 \description{
