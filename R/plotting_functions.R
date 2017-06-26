@@ -23,8 +23,8 @@
 #'   \code{subset}. By setting \code{var} to "nSNPs" the distribution of SNPs
 #'   used to calculate G' will be plotted. "deltaSNP" will plot a tri-cube
 #'   weighted delta SNP-index for each SNP. "Gprime" will plot the tri-cube
-#'   weighted G' value. Setting "neLogPval" will plot the -log10 of the p-value
-#'   at each SNP. In Gprime and negLogPval plots, a genome wide FDR threshold of
+#'   weighted G' value. Setting "negLogPval" will plot the -log10 of the p-value
+#'   at each SNP. In "Gprime" and "negLogPval" plots, a genome wide FDR threshold of
 #'   q can be drawn by setting "plotThreshold" to TRUE. The defualt is a red
 #'   line. If you would like to plot a different line we suggest setting
 #'   "plotThreshold" to FALSE and manually adding a line using
@@ -43,26 +43,28 @@ plotQTLstats <-
         ...) {
         #get fdr threshold by ordering snps by pval then getting the last pval
         #with a qval < q
-        tmp <- SNPset[order(SNPset$pval, decreasing = F),]
+        tmp <- SNPset[order(SNPset$pval, decreasing = F), ]
         fdrT <- tmp[sum(tmp$qval <= q), var]
-
+        
         if (length(fdrT) == 0) {
             warning("The q threshold is too low. No line will be drawn")
         }
-
+        
         if (!all(subset %in% unique(SNPset$CHROM))) {
-            whichnot <- paste(subset[base::which(!subset %in% unique(SNPset$CHROM))], collapse = ', ')
+            whichnot <-
+                paste(subset[base::which(!subset %in% unique(SNPset$CHROM))], collapse = ', ')
             stop(paste0("The following are not true chromosome names: ", whichnot))
         }
-
+        
         if (!var %in% c("nSNPs", "deltaSNP", "Gprime", "negLogPval"))
             stop(
                 "Please choose one of the following variables to plot: \"nSNPs\", \"deltaSNP\", \"Gprime\", \"negLogPval\""
             )
-
+        
         #don't plot threshold lines in deltaSNPprime or number of SNPs as they are not relevant
         if ((plotThreshold == TRUE &
-                var == "deltaSNP") | (plotThreshold == TRUE & var == "nSNPs")) {
+                var == "deltaSNP") |
+                (plotThreshold == TRUE & var == "nSNPs")) {
             message("FDR threshold is not plotted in deltaSNP or nSNPs plots")
             plotThreshold <- FALSE
         }
@@ -70,62 +72,64 @@ plotQTLstats <-
             if (is.null(subset)) {
                 SNPset
             } else {
-                SNPset[SNPset$CHROM == subset,]
+                SNPset[SNPset$CHROM == subset, ]
             }
-
+        
         p <- ggplot2::ggplot(data = SNPset) +
-            facet_grid(~ CHROM, scales = "free_x") +
-            scale_x_continuous(labels = format_genomic(),
+            ggplot2::facet_grid( ~ CHROM, scales = "free_x") +
+            ggplot2::scale_x_continuous(labels = format_genomic(),
                 name = "Genomic Position") +
-            theme(plot.margin = margin(
+            ggplot2::theme(plot.margin = margin(
                 b = 10,
                 l = 20,
                 r = 20,
                 unit = "pt"
             ))
-
+        
         if (var == "Gprime") {
-            p <- p + ylab("G' value")
+            p <- p + ggplot2::ylab("G' value")
         }
-
+        
         if (var == "negLogPval") {
             p <-
-                p + ylab(expression("-" * log[10] * '(p-value)'))
+                p + ggplot2::ylab(expression("-" * log[10] * '(p-value)'))
         }
-
+        
         if (var == "nSNPs") {
-            p <- p + ylab("Number of SNPs in window")
+            p <- p + ggplot2::ylab("Number of SNPs in window")
         }
-
+        
         if (var == "deltaSNP") {
             var <- "deltaSNPprime"
-            p <- p + ylab(expression(Delta * 'SNP-index')) +
-                ylim(-0.55, 0.55) +
-                geom_hline(yintercept = 0,
+            p <-
+                p + ggplot2::ylab(expression(Delta * 'SNP-index')) +
+                ggplot2::ylim(-0.55, 0.55) +
+                ggplot2::geom_hline(yintercept = 0,
                     color = "black",
                     alpha = 0.4)
         }
-
+        
         if (line) {
             p <-
-                p + geom_line(aes_string(x = "POS", y = var), size = 2, ...)
+                p + ggplot2::geom_line(aes_string(x = "POS", y = var), size = 2, ...)
         }
-
+        
         if (!line) {
-            p <- p + geom_point(aes_string(x = "POS", y = var), ...)
+            p <- p + ggplot2::geom_point(aes_string(x = "POS", y = var), ...)
         }
-
+        
         if (plotThreshold == TRUE)
             p <-
-            p + geom_hline(
+            p + ggplot2::geom_hline(
                 yintercept = fdrT,
                 color = "red",
                 size = 2,
                 alpha = 0.4
             )
         p
-
+        
     }
+
 
 #' Plots Gprime distribution
 #'
@@ -151,7 +155,6 @@ plotQTLstats <-
 #' estimated and used to plot the log normal distribution.
 #'
 #' @examples plotGprimedist(df_filt_6Mb, ModeEstMethod = "hsm")
-
 #'
 #' @seealso \code{\link{GetPvals}} for how p-values are calculated.
 #' @export plotGprimedist
@@ -159,32 +162,32 @@ plotQTLstats <-
 plotGprimedist <- function(SNPset, ModeEstMethod = "hsm")
 {
     # Non-parametric estimation of the null distribution of G'
-
+    
     lnGprime <- log(SNPset$Gprime)
-
+    
     # calculate left median absolute deviation for the trimmed G' prime set
     MAD <-
         median(abs(lnGprime[lnGprime <= median(lnGprime)] - median(lnGprime)))
-
+    
     # Trim the G prime set to exclude outlier regions (i.e. QTL) using Hampel's rule
     trimGprime <-
         SNPset$Gprime[lnGprime - median(lnGprime) <= 5.2 * median(MAD)]
-
+    
     medianTrimGprime <- median(trimGprime)
-
+    
     # estimate the mode of the trimmed G' prime set using the half-sample method
     modeTrimGprime <-
         modeest::mlv(x = trimGprime, bw = 0.5, method = ModeEstMethod)$M
-
+    
     muE <- log(medianTrimGprime)
     varE <- abs(muE - log(modeTrimGprime))
-
+    
     #plot Gprime distrubtion
     p <- ggplot2::ggplot(SNPset) +
-        xlim(0, max(SNPset$Gprime) + 1) +
-        xlab("G' value") +
-        geom_histogram(aes(x = Gprime, y = ..density..), binwidth = 0.5)  +
-        stat_function(
+        ggplot2::xlim(0, max(SNPset$Gprime) + 1) +
+        ggplot2::xlab("G' value") +
+        ggplot2::geom_histogram(ggplot2::aes(x = Gprime, y = ..density..), binwidth = 0.5)  +
+        ggplot2::stat_function(
             fun = dlnorm,
             size = 1,
             color = 'blue',

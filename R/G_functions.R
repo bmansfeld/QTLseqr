@@ -16,7 +16,7 @@
 #' frame. In this method for calculating G, the expected values \eqn{exp(n_i)}
 #' are derived by deviding the read depth for the SNP in each bulk by 2. As we
 #' expect 50\% of those reads to support the reference allele.
-#' #' @seealso \code{\link{GetGStat2}}
+#' @seealso \code{\link{GetGStat2}}
 
 GetGStat <- function(SNPset) {
     GStat <- apply(SNPset[, 5:ncol(SNPset)], 1, function(x) {
