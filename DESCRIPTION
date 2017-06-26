@@ -1,10 +1,10 @@
-Package: QTLseqR
+Package: QTLseqr
 Type: Package
-Title: QTLseqR performs QTL mapping using Bulk Segregant Analysis of Next Gen Sequencing data.
+Title: QTLseqr performs QTL mapping using Bulk Segregant Analysis of Next Gen Sequencing data.
 Version: 0.1.0
 Author: Ben N. Mansfeld
 Maintainer: Ben N. Mansfeld <mansfeld@msu.edu>
-Description: QTLseqR performs QTL mapping using Bulk Segregant Analysis of Next Gen Sequencing data.
+Description: QTLseqr performs QTL mapping using Bulk Segregant Analysis of Next Gen Sequencing data.
     The package is an R implementation of the analysis described in The Statistics of Bulk Segregant Analysis Using Next Generation Sequencing Magwene PM, Willis JH, Kelly JK (2011) The Statistics of Bulk Segregant Analysis Using Next Generation Sequencing. PLOS Computational Biology 7(11): e1002255. doi: 10.1371/journal.pcbi.1002255    
 License: What license is it under?
 Encoding: UTF-8
