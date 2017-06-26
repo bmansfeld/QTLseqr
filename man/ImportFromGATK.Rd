@@ -26,7 +26,7 @@ Returns a data frame containing columns for Read depth (DP),
   Reference Allele Depth (AD.REF) and Alternative Allele Depth (AD.ALT),
   Genoytype Quality (GQ) and SNPindex for each bulk (indicated by .HIGH and
   .LOW column name suffix). Total reference allele frequnce "REF_FRQ" is the
-  sum of AD.REF for both bulks devided by total Depth for that SNP. The
+  sum of AD.REF for both bulks divided by total Depth for that SNP. The
   deltaSNPindex is equal to  SNPindex.HIGH - SNPindex.LOW. The GStat column
   is the calculated G statistic for that SNP.
 }
@@ -35,7 +35,7 @@ Imports SNP data from the output of the
 \href{https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_variantutils_VariantsToTable.php}{VariantsToTable}
 function in GATK. After importing the data, the function then calculates
 total reference allele frequency for both bulks together, the delta SNP index
-(i.e. SNP index of the low bulk substracted from the SNP index of the high
+(i.e. SNP index of the low bulk substacted from the SNP index of the high
 bulk), the G statistic and returns a data frame. The required GATK fields
 (-F) are CHROM (Chromosome) and POS (Position). The required Genotype fields
 (-GF) are AD (Allele Depth), DP (Depth), GQ  (Genotype Quality). Recommended
