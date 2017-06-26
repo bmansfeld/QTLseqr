@@ -48,10 +48,10 @@ ImportFromGATK <- function(filename,
         read.table(file = filename,
             header = T,
             stringsAsFactors = F)
-
+    
     # Format data frame for analysis
     SNPset <- VarTable[, 1:4]
-
+    
     # High Bulk data
     SNPset$DP.HIGH <- VarTable[, paste0(HighBulk, ".DP")]
     SNPset$AD_REF.HIGH <-
@@ -60,7 +60,7 @@ ImportFromGATK <- function(filename,
     SNPset$GQ.HIGH <- VarTable[, paste0(HighBulk, ".GQ")]
     # Calculate SNP index
     SNPset$SNPindex.HIGH <- SNPset$AD_ALT.HIGH / SNPset$DP.HIGH
-
+    
     # Low Bulk data
     SNPset$DP.LOW <- VarTable[, paste0(LowBulk, ".DP")]
     SNPset$AD_REF.LOW <-
@@ -68,16 +68,16 @@ ImportFromGATK <- function(filename,
     SNPset$AD_ALT.LOW <- SNPset$DP.LOW - SNPset$AD_REF.LOW
     SNPset$GQ.LOW <- VarTable[, paste0(LowBulk, ".GQ")]
     SNPset$SNPindex.LOW <- SNPset$AD_ALT.LOW / SNPset$DP.LOW
-
+    
     #Keep only wanted chromosomes
     if (!is.null(ChromList)) {
-        SNPset <- subset(SNPset, CHROM %in% ChromList)
+        SNPset <- SNPset[SNPset$CHROM %in% ChromList, ]
     }
     # Calculate some descriptors
     SNPset$REF_FRQ <-
         (SNPset$AD_REF.HIGH + SNPset$AD_REF.LOW) / (SNPset$DP.HIGH + SNPset$DP.LOW)
     SNPset$deltaSNP <- SNPset$SNPindex.HIGH - SNPset$SNPindex.LOW
-
+    
     # calculate G Statistic
     if (method != "two") {
         message("Calculating G statistic using method 1")
@@ -92,10 +92,8 @@ ImportFromGATK <- function(filename,
 
 #' Filter SNPs based on read depth and quality
 #'
-#' A wrapper for the subset function. Use filtering paramaters to filter out
-#' high and low depth reads as well as low Genotype Quality as defined by GATK.
-#' All filters are optional but recommended.
-#'
+#' Use filtering paramaters to filter out high and low depth reads as well as
+#' low Genotype Quality as defined by GATK. All filters are optional but recommended.
 #'
 #' @param SNPset The data frame imported by \code{ImportFromGATK}
 #' @param RefAlleleFreq A numeric < 1. This will filter out SNPs with a
@@ -149,91 +147,125 @@ FilterSNPs <- function(SNPset,
     MinSampleDepth = NULL,
     MinGQ = 99,
     Verbose = TRUE) {
-
     org_count <- nrow(SNPset)
     count <- nrow(SNPset)
     # Filter by total reference allele frequency
     if (!is.null(RefAlleleFreq)) {
-        if(Verbose) {message(
-            "Filtering by reference allele frequency: ",
-            RefAlleleFreq,
-            " <= REF_FRQ <= ",
-            1 - RefAlleleFreq
-        )}
+        if (Verbose) {
+            message(
+                "Filtering by reference allele frequency: ",
+                RefAlleleFreq,
+                " <= REF_FRQ <= ",
+                1 - RefAlleleFreq
+            )
+        }
         SNPset <-
-            subset(SNPset,
-                REF_FRQ < 1 - RefAlleleFreq & REF_FRQ > RefAlleleFreq)
-        if(Verbose) {message("...Filtered ", count - nrow(SNPset), " SNPs")}
+            SNPset[SNPset$REF_FRQ < 1 - RefAlleleFreq &
+                    SNPset$REF_FRQ > RefAlleleFreq,]
+        if (Verbose) {
+            message("...Filtered ", count - nrow(SNPset), " SNPs")
+        }
         count <- nrow(SNPset)
     }
-
+    
     #Total read depth filtering
-
+    
     if (!missing(FilterAroundMedianDepth)) {
         # filter by Read depth for each SNP FilterByMAD MADs around the median
         madDP <-
-            mad(x = (SNPset$DP.HIGH + SNPset$DP.LOW),
-                constant = 1, na.rm = TRUE)
-        medianDP <- median(x = (SNPset$DP.HIGH + SNPset$DP.LOW), na.rm = TRUE)
+            mad(
+                x = (SNPset$DP.HIGH + SNPset$DP.LOW),
+                constant = 1,
+                na.rm = TRUE
+            )
+        medianDP <-
+            median(x = (SNPset$DP.HIGH + SNPset$DP.LOW),
+                na.rm = TRUE)
         maxDP <- medianDP + FilterAroundMedianDepth * madDP
         minDP <- medianDP - FilterAroundMedianDepth * madDP
-        SNPset <-
-            subset(
-                SNPset,
-                (DP.HIGH + DP.LOW) <= maxDP &
-                    (DP.HIGH + DP.LOW) >= minDP
-            )
-        if(Verbose) {message("Filtering by total read depth: ",
-            FilterAroundMedianDepth,
-            " MADs arround the median: ", minDP, " <= Total DP <= ", maxDP)
-        message("...Filtered ", count - nrow(SNPset), " SNPs")}
-        count <- nrow(SNPset)
+        SNPset <- SNPset[(SNPset$DP.HIGH + SNPset$DP.LOW) <= maxDP &
+                (SNPset$DP.HIGH + SNPset$DP.LOW) >= minDP, ]
+        
+if(Verbose) {message("Filtering by total read depth: ",
+    FilterAroundMedianDepth,
+    " MADs arround the median: ", minDP, " <= Total DP <= ", maxDP)
+    message("...Filtered ", count - nrow(SNPset), " SNPs")}
+count <- nrow(SNPset)
 
     }
-
+    
     if (!missing(MinTotalDepth)) {
         # Filter by minimum total SNP depth
-        if(Verbose) {message("Filtering by total sample read depth: Total DP >= ", MinTotalDepth)}
-        SNPset <- subset(SNPset, (DP.HIGH + DP.LOW) >= MinTotalDepth)
-        if(Verbose) {message("...Filtered ", count - nrow(SNPset), " SNPs")}
+        if (Verbose) {
+            message("Filtering by total sample read depth: Total DP >= ",
+                MinTotalDepth)
+        }
+        SNPset <-
+            SNPset[(SNPset$DP.HIGH + SNPset$DP.LOW) >= MinTotalDepth,]
+        if (Verbose) {
+            message("...Filtered ", count - nrow(SNPset), " SNPs")
+        }
         count <- nrow(SNPset)
     }
-
+    
     if (!missing(MaxTotalDepth)) {
         # Filter by maximum total SNP depth
-        if(Verbose) {message("Filtering by total sample read depth: Total DP <= ", MaxTotalDepth)}
-        SNPset <- subset(SNPset, (DP.HIGH + DP.LOW) <= MaxTotalDepth)
-        if(Verbose) {message("...Filtered ", count - nrow(SNPset), " SNPs")}
+        if (Verbose) {
+            message("Filtering by total sample read depth: Total DP <= ",
+                MaxTotalDepth)
+        }
+        SNPset <-
+            SNPset[(SNPset$DP.HIGH + SNPset$DP.LOW) <= MaxTotalDepth,]
+        if (Verbose) {
+            message("...Filtered ", count - nrow(SNPset), " SNPs")
+        }
         count <- nrow(SNPset)
     }
-
-
+    
+    
     # Read depth in each bulk should be greater than 40
     if (!missing(MinSampleDepth)) {
-        if(Verbose) {message("Filtering by per sample read depth: DP >= ", MinSampleDepth)}
+        if (Verbose) {
+            message("Filtering by per sample read depth: DP >= ",
+                MinSampleDepth)
+        }
         SNPset <-
-            subset(SNPset,
-                DP.HIGH >= MinSampleDepth & DP.LOW >= MinSampleDepth)
-        if(Verbose) {message("...Filtered ", count - nrow(SNPset), " SNPs")}
+            SNPset[SNPset$DP.HIGH >= MinSampleDepth &
+                    SNPset$DP.LOW >= MinSampleDepth, ]
+        if (Verbose) {
+            message("...Filtered ", count - nrow(SNPset), " SNPs")
+        }
         count <- nrow(SNPset)
     }
-
+    
     # Filter by LOW BULK Genotype Quality
     if (!is.null(MinGQ)) {
-        if(Verbose) {message("Filtering by Genotype Quality: GQ >= ", MinGQ)}
+        if (Verbose) {
+            message("Filtering by Genotype Quality: GQ >= ", MinGQ)
+        }
         SNPset <-
-            SNPset <-
-            subset(SNPset, GQ.LOW >= MinGQ & GQ.HIGH >= MinGQ)
-        if(Verbose) {message("...Filtered ", count - nrow(SNPset), " SNPs")}
+            SNPset[SNPset$GQ.LOW >= MinGQ & SNPset$GQ.HIGH >= MinGQ, ]
+        if (Verbose) {
+            message("...Filtered ", count - nrow(SNPset), " SNPs")
+        }
         count <- nrow(SNPset)
     }
-
+    
     # #Filter SNP Clusters
     # if (!is.null(SNPsInCluster) & !is.null(ClusterWin)) {
     #     tmp <- which(diff(SNPset$POS, SNPsInCluster-1) < ClusterWin)
     # message("...Filtered ", count - nrow(SNPset), " SNPs")
     # count <- nrow(SNPset)
     # }
-    if(Verbose) {message("Original SNP number: ",org_count,", Filtered: ",org_count - count, ", Remaining: ",count)}
+    if (Verbose) {
+        message(
+            "Original SNP number: ",
+            org_count,
+            ", Filtered: ",
+            org_count - count,
+            ", Remaining: ",
+            count
+        )
+    }
     return(SNPset)
 }
