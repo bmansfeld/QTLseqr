@@ -1,4 +1,28 @@
-plotQTL <-
+#' Plots different paramaters for QTL identification
+#'
+#' A wrapper for ggplot to plot genome wide distribution of parameters used to
+#' identify QTL.
+#'
+#' @param SNPset a data frame with SNPs and genotype fields as imported by
+#'   \code{ImportFromGATK} and after running \code{GetPrimeStats}
+#' @param subset a vector of chromosome names to use in plotting. Defaults to
+#' NULL and will plot all chromosomes in the SNPset
+#' @param var character. The paramater for plotting. Must be one of: "nSNPs", "deltaSNP", "Gprime", "negLogPval"
+#' @param line boolean. If TRUE will plot line graph. If FALSE will plot points. Plotting points will take more time.
+#' @param plotThreshold boolean. Should we plot the False Discovery Rate threshold (FDR). Only plots line if var is "Gprime" or "negLogPval"
+#' @param q numeric. The q-value to use as the FDR threshold. If too low, no line will be drawn and a warning will be given.
+#' @param ... arguments to pass to ggplot2::geom_line or ggplot2::geom_point for changing colors etc.
+#'
+#' @return Plots a ggplot graph for all chromosomes or those requested in \code{subset}.
+#' By setting \code{var} to "nSNPs" the distribution of SNPs used to calculate G' will be plotted.
+#' "deltaSNP" will plot a tri-cube weighted delta SNP-index for each SNP.
+#' "Gprime" will plot the tri-cube weighted G' value. Setting "neLogPval" will plot the -log10 of the p-value at each SNP.
+#' In Gprime and negLogPval plots, a FDR threshold of q can be drawn by setting "plotThreshold" to TRUE. The defualt is a red line. If you would like to plot a different line we suggest setting "plotThreshold" to FALSE and manually adding a line using ggplot2::geom_hline.
+#'
+#' @examples p <- plotQTLstats(df_filt_6Mb, var = "Gprime", plotThreshold = TRUE, q = 0.01, subset = c("Chr3","Chr4"))
+#' @export
+#'
+plotQTLstats <-
     function(SNPset,
         subset = NULL,
         var = "nSNPs",

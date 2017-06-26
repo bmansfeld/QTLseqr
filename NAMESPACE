@@ -3,3 +3,4 @@
 export(FilterSNPs)
 export(ImportFromGATK)
 export(ParGetPrimeStats)
+export(plotQTLstats)
