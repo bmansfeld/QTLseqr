@@ -116,7 +116,7 @@ ImportFromGATK <- function(filename,
 #'   is a VCF and how should I interpret it?}
 #' @param Verbose logical. If \code{TRUE} will report number of SNPs filtered in
 #'   each step.
-#' @return Returns a subset of the data frame suplied which meets the filtering
+#' @return Returns a subset of the data frame supplied which meets the filtering
 #'   conditions applied by the selected paramaters. If \code{Verbose} is
 #'   \code{TRUE} the function reports the number of SNPs filtered in each steps
 #'   as well as the initiatl number of SNPs, the total number of SNPs filtered
