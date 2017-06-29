@@ -33,7 +33,7 @@
 #' @examples p <- plotQTLstats(df_filt_6Mb, var = "Gprime", plotThreshold = TRUE, q = 0.01, subset = c("Chr3","Chr4"))
 #' @export plotQTLstats
 
-plotQTLstats <-
+plotQTLStats <-
     function(SNPset,
         subset = NULL,
         var = "nSNPs",
@@ -159,7 +159,7 @@ plotQTLstats <-
 #' @seealso \code{\link{GetPvals}} for how p-values are calculated.
 #' @export plotGprimedist
 
-plotGprimedist <- function(SNPset, ModeEstMethod = "hsm")
+plotGprimeDist <- function(SNPset, ModeEstMethod = "hsm")
 {
     # Non-parametric estimation of the null distribution of G'
     
