@@ -13,6 +13,9 @@ Imports:
     modeest (>= 2.1),
     ggplot2 (>= 2.2.0),
     S4Vectors
-Suggests: 
-    parallel
+Suggests:
+    parallel,
+    knitr,
+    rmarkdown
 RoxygenNote: 6.0.1
+VignetteBuilder: knitr

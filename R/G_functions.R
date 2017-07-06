@@ -292,8 +292,9 @@ ParGetPrimeStats <- function(SNPset,
 #' \code{\link[modeest]{mlv}}. The default is half sample method (hsm). See
 #' \code{\link[modeest]{mlv}} for other methods.
 #' @param ... Further arguments passed to \code{modeest::mlv}
-#'
-#'@export GetPvals
+#' 
+#' @export GetPvals
+
 
 GetPvals <- function(SNPset, ModeEstMethod = "hsm", ...) {
 

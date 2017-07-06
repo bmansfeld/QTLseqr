@@ -31,7 +31,7 @@
 #'   ggplot2::geom_hline.
 #'
 #' @examples p <- plotQTLstats(df_filt_6Mb, var = "Gprime", plotThreshold = TRUE, q = 0.01, subset = c("Chr3","Chr4"))
-#' @export plotQTLstats
+#' @export plotQTLStats
 
 plotQTLStats <-
     function(SNPset,
@@ -157,7 +157,7 @@ plotQTLStats <-
 #' @examples plotGprimedist(df_filt_6Mb, ModeEstMethod = "hsm")
 #'
 #' @seealso \code{\link{GetPvals}} for how p-values are calculated.
-#' @export plotGprimedist
+#' @export plotGprimeDist
 
 plotGprimeDist <- function(SNPset, ModeEstMethod = "hsm")
 {
