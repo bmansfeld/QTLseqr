@@ -73,6 +73,9 @@ ImportFromGATK <- function(filename,
     if (!is.null(ChromList)) {
         SNPset <- SNPset[SNPset$CHROM %in% ChromList, ]
     }
+    #arrange the chromosomes by natural order sort, eg Chr1, Chr10, Chr2 >>> Chr1, Chr2, Chr10
+    SNPset$CHROM <- factor(SNPset$CHROM, levels = gtools::mixedsort(unique(SNPset$CHROM)))
+    
     # Calculate some descriptors
     SNPset$REF_FRQ <-
         (SNPset$AD_REF.HIGH + SNPset$AD_REF.LOW) / (SNPset$DP.HIGH + SNPset$DP.LOW)
@@ -149,6 +152,7 @@ FilterSNPs <- function(SNPset,
     Verbose = TRUE) {
     org_count <- nrow(SNPset)
     count <- nrow(SNPset)
+    
     # Filter by total reference allele frequency
     if (!is.null(RefAlleleFreq)) {
         if (Verbose) {
@@ -159,10 +163,9 @@ FilterSNPs <- function(SNPset,
                 1 - RefAlleleFreq
             )
         }
-        SNPset <-
-            SNPset[SNPset$REF_FRQ < 1 - RefAlleleFreq &
-                    SNPset$REF_FRQ > RefAlleleFreq,]
-        if (Verbose) {
+        SNPset <- dplyr::filter(SNPset, SNPset$REF_FRQ < 1 - RefAlleleFreq &
+                SNPset$REF_FRQ > RefAlleleFreq)
+            if (Verbose) {
             message("...Filtered ", count - nrow(SNPset), " SNPs")
         }
         count <- nrow(SNPset)
@@ -183,15 +186,15 @@ FilterSNPs <- function(SNPset,
                 na.rm = TRUE)
         maxDP <- medianDP + FilterAroundMedianDepth * madDP
         minDP <- medianDP - FilterAroundMedianDepth * madDP
-        SNPset <- SNPset[(SNPset$DP.HIGH + SNPset$DP.LOW) <= maxDP &
-                (SNPset$DP.HIGH + SNPset$DP.LOW) >= minDP, ]
-        
-if(Verbose) {message("Filtering by total read depth: ",
-    FilterAroundMedianDepth,
-    " MADs arround the median: ", minDP, " <= Total DP <= ", maxDP)
-    message("...Filtered ", count - nrow(SNPset), " SNPs")}
-count <- nrow(SNPset)
+        SNPset <- dplyr::filter(SNPset, (DP.HIGH + DP.LOW) <= maxDP &
+                (DP.HIGH + DP.LOW) >= minDP)
 
+        if(Verbose) {message("Filtering by total read depth: ",
+            FilterAroundMedianDepth,
+            " MADs arround the median: ", minDP, " <= Total DP <= ", maxDP)
+            message("...Filtered ", count - nrow(SNPset), " SNPs")}
+        count <- nrow(SNPset)
+        
     }
     
     if (!missing(MinTotalDepth)) {
@@ -201,7 +204,8 @@ count <- nrow(SNPset)
                 MinTotalDepth)
         }
         SNPset <-
-            SNPset[(SNPset$DP.HIGH + SNPset$DP.LOW) >= MinTotalDepth,]
+            dplyr::filter(SNPset, (DP.HIGH + DP.LOW) >= MinTotalDepth)
+
         if (Verbose) {
             message("...Filtered ", count - nrow(SNPset), " SNPs")
         }
@@ -215,7 +219,7 @@ count <- nrow(SNPset)
                 MaxTotalDepth)
         }
         SNPset <-
-            SNPset[(SNPset$DP.HIGH + SNPset$DP.LOW) <= MaxTotalDepth,]
+            dplyr::filter(SNPset, (DP.HIGH + DP.LOW) <= MaxTotalDepth)
         if (Verbose) {
             message("...Filtered ", count - nrow(SNPset), " SNPs")
         }
@@ -230,8 +234,8 @@ count <- nrow(SNPset)
                 MinSampleDepth)
         }
         SNPset <-
-            SNPset[SNPset$DP.HIGH >= MinSampleDepth &
-                    SNPset$DP.LOW >= MinSampleDepth, ]
+            dplyr::filter(SNPset, DP.HIGH >= MinSampleDepth &
+                    SNPset$DP.LOW >= MinSampleDepth)
         if (Verbose) {
             message("...Filtered ", count - nrow(SNPset), " SNPs")
         }
@@ -244,7 +248,7 @@ count <- nrow(SNPset)
             message("Filtering by Genotype Quality: GQ >= ", MinGQ)
         }
         SNPset <-
-            SNPset[SNPset$GQ.LOW >= MinGQ & SNPset$GQ.HIGH >= MinGQ, ]
+            dplyr::filter(SNPset, GQ.LOW >= MinGQ & GQ.HIGH >= MinGQ)
         if (Verbose) {
             message("...Filtered ", count - nrow(SNPset), " SNPs")
         }

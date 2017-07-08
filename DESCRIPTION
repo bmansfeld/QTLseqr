@@ -12,7 +12,9 @@ LazyData: true
 Imports:
     modeest (>= 2.1),
     ggplot2 (>= 2.2.0),
-    S4Vectors
+    S4Vectors,
+    gtools,
+    dplyr
 Suggests:
     parallel,
     knitr,

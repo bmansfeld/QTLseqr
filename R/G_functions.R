@@ -148,7 +148,7 @@ GetPrimeStats <- function(SNPset, WinSize = 1e4, ...)
 
     }
     #calculate p- and q-values
-    message("#calculating p- and q-values")
+    message("#calculating p- and q-values... Utilizing the 'modeest' package:")
     SW <- GetPvals(SW, ...)
     SW
 }
