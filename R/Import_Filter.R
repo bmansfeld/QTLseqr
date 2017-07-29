@@ -80,15 +80,6 @@ ImportFromGATK <- function(filename,
     SNPset$REF_FRQ <-
         (SNPset$AD_REF.HIGH + SNPset$AD_REF.LOW) / (SNPset$DP.HIGH + SNPset$DP.LOW)
     SNPset$deltaSNP <- SNPset$SNPindex.HIGH - SNPset$SNPindex.LOW
-    
-    # calculate G Statistic
-    if (method != "two") {
-        message("Calculating G statistic using method 1")
-        SNPset$GStat <- GetGStat(SNPset)
-    } else {
-        message("Calculating G statistic using method 2")
-        SNPset$GStat <- GetGStat2(SNPset)
-    }
     return(SNPset)
 }
 
