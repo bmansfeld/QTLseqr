@@ -1,38 +1,8 @@
-# G functions - All functions the manipulate the G statistic
+#Functions for calculating and manipulating the G statistic
 
 #' Calculates the G statistic - method 1
 #'
-#' The function is used by \code{\link{ImportFromGATK}} to calculate the G statisic
-#'
-#' @param SNPset a data frame with SNPs and genotype fields as imported by ImportFromGATK
-#' G is defined by the equation:
-#' \deqn{G = 2*\sum_{i=1}^{4} n_{i}*ln\frac{obs(n_i)}{exp(n_i)}}{G = 2 * \sum n_i * ln(obs(n_i)/exp(n_i))}
-#' Where for each SNP, \eqn{n_i} from i = 1 to 4 corresponds to the reference and
-#' alternate allele depths for each bulk, as described in the following table:
-#' \tabular{rcc}{
-#' Allele \tab High Bulk \tab Low Bulk \cr
-#' Reference \tab \eqn{n_1} \tab \eqn{n_2} \cr
-#' Alternate \tab \eqn{n_3} \tab \eqn{n_4} \cr} ...and \eqn{obs(n_i)} are the observed allele depths as described in the data
-#' frame. In this method for calculating G, the expected values \eqn{exp(n_i)}
-#' are derived by dividing the read depth for the SNP in each bulk by 2. As we
-#' expect 50\% of those reads to support the reference allele.
-#' @seealso \code{\link{GetGStat2}}
-
-GetGStat <- function(SNPset) {
-    GStat <- apply(SNPset[, 5:ncol(SNPset)], 1, function(x) {
-        obs <-
-            c((x["AD_REF.LOW"]), (x["AD_REF.HIGH"]), (x["AD_ALT.LOW"]), (x["AD_ALT.HIGH"]))
-        exp <-
-            c(0.5 * (x["DP.LOW"]), 0.5 * (x["DP.HIGH"]), 0.5 * (x["DP.LOW"]), 0.5 * (x["DP.HIGH"]))
-        2 * sum(obs * log(obs / exp), na.rm = T)
-    })
-    GStat
-}
-
-
-#' Calculates the G statistic - method 2
-#'
-#' The function is used by \code{\link{ImportFromGATK}} to calculate the G statisic
+#' The function is used by \code{\link{runGprimeAnalysis}} to calculate the G statisic
 #'
 #' @param SNPset a data frame with SNPs and genotype fields as imported by ImportFromGATK
 #' G is defined by the equation:
@@ -44,21 +14,22 @@ GetGStat <- function(SNPset) {
 #' Reference \tab \eqn{n_1} \tab \eqn{n_2} \cr
 #' Alternate \tab \eqn{n_3} \tab \eqn{n_4} \cr} ...and \eqn{obs(n_i)} are the
 #' observed allele depths as described in the data
-#' frame. Method 2 calculates the G statistic using expected values assuming read depth
-#' is equal for all alleles in both bulks: \eqn{((n_1 + n_3)*(n_2 + n_4))/(n_1 + n_2 + n_3 + n_4)}
+#' frame. Method 1 calculates the G statistic using expected values assuming read depth
+#' is equal for all alleles in both bulks: \eqn{((n_1 + n_2)*(n_1 + n_3))/(n_1 + n_2 + n_3 + n_4)}
 #' @seealso \code{\link{GetGStat}}
 
-GetGStat2 <- function(SNPset) {
-    GStat2 <-
-        apply(SNPset[, 5:ncol(SNPset)], 1, function(x) {
-            obs <-
-                c((x["AD_REF.LOW"]), (x["AD_REF.HIGH"]), (x["AD_ALT.LOW"]), (x["AD_ALT.HIGH"]))
-            exp <-
-                rep((((x["AD_REF.LOW"]) + (x["AD_ALT.LOW"])) * ((x["AD_REF.HIGH"]) + (x["AD_ALT.HIGH"]))) / sum(obs), 4)
-            2 * sum(obs * log(obs / exp), na.rm = T)
-        })
-    GStat2
-
+getG <- function(LowRef, HighRef, LowAlt, HighAlt)
+{
+    exp <- c(
+        (LowRef+HighRef)*(LowRef+LowAlt)/(LowRef + HighRef + LowAlt + HighAlt),
+        (LowRef+HighRef)*(HighRef+HighAlt)/(LowRef + HighRef + LowAlt + HighAlt),
+        (LowRef+LowAlt)*(LowAlt+HighAlt)/(LowRef + HighRef + LowAlt + HighAlt),
+        (LowAlt+HighAlt)*(HighRef+HighAlt)/(LowRef + HighRef + LowAlt + HighAlt)
+    )
+    obs <- c(LowRef, HighRef, LowAlt, HighAlt)
+    
+    G <- 2 * (rowSums(obs * log(matrix(obs, ncol = 4) / matrix(exp, ncol = 4))))
+    return(G)
 }
 
 #' Calculate tricube weighted statistics for each SNP
@@ -341,18 +312,18 @@ GetPvals <- function(SNPset, ModeEstMethod = "hsm", ...) {
 
 GetSigRegions <- function(SNPset, alpha = 0.05)
 {
-    if ("qval" %in% colnames(SNPset))
+    if ("qvalue" %in% colnames(SNPset))
     {
         SigRegions <- list()
         for (x in levels(as.factor(SNPset$CHROM))) {
             chr <- as.data.frame(subset(SNPset, CHROM == x))
 
-            runs <- S4Vectors::Rle(chr$qval <= alpha)
+            runs <- S4Vectors::Rle(chr$qvalue <= alpha)
             runvals <- S4Vectors::runValue(runs)
             starts <- S4Vectors::start(runs)
             ends <- S4Vectors::end(runs)
 
-            for (i in 1:nrun(runs)) {
+            for (i in 1:S4Vectors::nrun(runs)) {
                 SigRegions[[length(SigRegions) + 1]] <- if (runvals[i]) {
                     chr[starts[i]:ends[i],]
                 }
