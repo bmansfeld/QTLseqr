@@ -1,22 +1,29 @@
 #Functions for calculating and manipulating the G statistic
 
 #' Calculates the G statistic - method 1
-#'
-#' The function is used by \code{\link{runGprimeAnalysis}} to calculate the G statisic
-#'
-#' @param SNPset a data frame with SNPs and genotype fields as imported by ImportFromGATK
-#' G is defined by the equation:
-#' \deqn{G = 2*\sum_{i=1}^{4} n_{i}*ln\frac{obs(n_i)}{exp(n_i)}}{G = 2 * \sum n_i * ln(obs(n_i)/exp(n_i))}
-#' Where for each SNP, \eqn{n_i} from i = 1 to 4 corresponds to the reference and
-#' alternate allele depths for each bulk, as described in the following table:
-#' \tabular{rcc}{
-#' Allele \tab High Bulk \tab Low Bulk \cr
-#' Reference \tab \eqn{n_1} \tab \eqn{n_2} \cr
-#' Alternate \tab \eqn{n_3} \tab \eqn{n_4} \cr} ...and \eqn{obs(n_i)} are the
-#' observed allele depths as described in the data
-#' frame. Method 1 calculates the G statistic using expected values assuming read depth
-#' is equal for all alleles in both bulks: \eqn{((n_1 + n_2)*(n_1 + n_3))/(n_1 + n_2 + n_3 + n_4)}
-#' @seealso \code{\link{GetGStat}}
+#' 
+#' The function is used by \code{\link{runGprimeAnalysis}} to calculate the G
+#' statisic G is defined by the equation: \deqn{G = 2*\sum_{i=1}^{4}
+#' n_{i}*ln\frac{obs(n_i)}{exp(n_i)}}{G = 2 * \sum n_i * ln(obs(n_i)/exp(n_i))} 
+#' Where for each SNP, \eqn{n_i} from i = 1 to 4 corresponds to the reference
+#' and alternate allele depths for each bulk, as described in the following
+#' table: \tabular{rcc}{ Allele \tab High Bulk \tab Low Bulk \cr Reference \tab
+#' \eqn{n_1} \tab \eqn{n_2} \cr Alternate \tab \eqn{n_3} \tab \eqn{n_4} \cr}
+#' ...and \eqn{obs(n_i)} are the observed allele depths as described in the data
+#' frame. Method 1 calculates the G statistic using expected values assuming
+#' read depth is equal for all alleles in both bulks: \deqn{exp(n_1) = ((n_1 +
+#' n_2)*(n_1 + n_3))/(n_1 + n_2 + n_3 + n_4)} \deqn{exp(n_2) = ((n_2 + n_1)*(n_2
+#' + n_4))/(n_1 + n_2 + n_3 + n_4)} etc...
+#' 
+#' @param LowRef A vector of the reference allele depth in the low bulk 
+#' @param HighRef A vector of the reference allele depth in the high bulk
+#' @param LowAlt A vector of the alternate allele depth in the low bulk
+#' @param HighAlt A vector of the alternate allele depth in the high bulk
+#' 
+#' @return A vector of G statistic values with the same length as 
+#'   
+#' @seealso \href{https://doi.org/10.1371/journal.pcbi.1002255}{The Statistics
+#'   of Bulk Segregant Analysis Using Next Generation Sequencing}
 
 getG <- function(LowRef, HighRef, LowAlt, HighAlt)
 {
@@ -59,191 +66,13 @@ getG <- function(LowRef, HighRef, LowAlt, HighAlt)
 #' @examples df_filt_4mb <- GetPrimeStats(df_filt, WinSize = 4e6)
 #' @seealso \code{\link{GetPvals}} for how p-values are calculated.
 
-GetPrimeStats <- function(SNPset, WinSize = 1e4, ...)
+
+
+tricubeGStat <- function(POS, GStat, windowSize = 2e6)
 {
-    # Create empty dataframe to rebuild SNPset
-    SW <- data.frame()
-
-    # Calculte half the tricube kernel weights for WinSize
-    Dvector <- abs(seq(
-        from = 0,
-        to = 1,
-        length = (WinSize + 1) / 2
-    ))
-    KNum <- (1 - Dvector ^ 3) ^ 3
-
-    # Calculate G' for each SNP within each chromosome
-    for (x in levels(as.factor(SNPset$CHROM))) {
-        chr <- as.data.frame(subset(SNPset, CHROM == x))
-
-        message("Calculating G' for Chr: ", x, "...")
-
-        # create sliding window step bins around each SNP
-        bin <-
-            data.frame(
-                start = chr$POS - (WinSize / 2),
-                end = chr$POS + (WinSize / 2),
-                focal = chr$POS
-            )
-
-        SWdata <- apply(
-            X = bin,
-            MARGIN = 1,
-            FUN = function(y) {
-                # the distance from the focal SNP is calculated for each SNP in the window. One (1) is added as an index
-                dfromFocal <-
-                    abs(chr[y["start"] < chr$POS &
-                            chr$POS <= y["end"], "POS"] - y["focal"]) + 1
-
-                # A Kernel weight is given to each SNP including the focal SNP
-                KNumWeight <- KNum[dfromFocal]
-                Kweight <- KNumWeight / sum(KNumWeight)
-
-                # The wighted G stat is calculated by multiplying by the Kernel Weight
-                weightedStats <-
-                    chr[y["start"] < chr$POS &
-                            chr$POS <= y["end"], c("GStat", "deltaSNP")] * Kweight
-
-                # Calculate G' for the focal SNP
-                c(
-                    Gprime = sum(weightedStats$GStat),
-                    deltaSNPprime = sum(weightedStats$deltaSNP),
-                    nSNPs = nrow(weightedStats)
-                )
-
-            }
-        )
-        SWdata <- t(as.data.frame(SWdata))
-        chr <- cbind(chr, SWdata)
-        SW <- rbind(SW, chr)
-
-    }
-    #calculate p- and q-values
-    message("#calculating p- and q-values... Utilizing the 'modeest' package:")
-    SW <- GetPvals(SW, ...)
-    SW
+    stats::predict(locfit::locfit(GStat ~ locfit::lp(POS, h = windowSize, deg = 0)), POS)
 }
 
-
-#' Calculate tricube weighted statistics for each SNP - Parallelized version
-#'
-#' Needs the paralle package to work!
-#' For each SNP calculates statistics, weighted average of across neighboring
-#' SNPs. To account for Linkage disequilibrium (LD) Stats are calculated over a
-#' window of WinSize and weighted with a tricube kernel where weights are
-#' defined by physical distance away from the focal SNP
-#' @return Returns the supplied SNPset data frame with 5 new columns added:
-#' @return \code{Gprime} The weighted G statistic caluculted with a tricube
-#'   smoothing kernel
-#' @return \code{nSNPs} The number of SNPs in the window used to calculate
-#'   Gprime
-#' @return \code{deltaSNPprime} The weighted delta SNP statistic calculated with
-#'   a tricube smooting kernel
-#' @return \code{pval} The p-value calculated by Non-parametric estimation of
-#'   the null distribution of G'
-#' @return \code{qval} The adjusted q-value after Benjamini-Hochberg adjustment
-#'
-#' @param SNPset a data frame with SNPs and genotype fields as imported by
-#'   \code{ImportFromGATK}
-#' @param WinSize the window size (in base pairs) bracketing each SNP for which
-#'   to calculate the statitics. Magwene et. al recommend a window size of ~24
-#'   cM.
-#' @param n_cores the number of cores to be used for the process. Defults to
-#'   NULL which will then use the number of available cores - 1.
-#' @param ... Further arguments passed to \code{modeest::mlv} via
-#'   \code{GetPvals}
-#' @examples df_filt_4mb <- ParGetPrimeStats(df_filt, WinSize = 4e6, n_cores = 3)
-#' @seealso \code{\link{GetPvals}} for how p-values are calculated.
-#' @export ParGetPrimeStats
-
-ParGetPrimeStats <- function(SNPset,
-    WinSize = 1e6,
-    n_cores = NULL,
-    ...)
-
-{
-    if (!requireNamespace("parallel", quietly = T)) {
-        stop(
-            "The package 'parallel' needs to be installed for this to run.
-            Please install it or use the GetWeightedStats function instead.",
-            call. = F
-        )
-    }
-    # Calculate the number of cores
-    if (is.null(n_cores)) {
-        n_cores <- parallel::detectCores() - 1
-    }
-    # Initiate cluster
-    cl <- parallel::makeCluster(n_cores)
-    message("Using ", n_cores, " cores")
-
-    # Create empty dataframe to rebuild SNPset
-    SW <- data.frame()
-
-    # Calculte half the tricube kernel weights for WinSize
-    Dvector <- abs(seq(
-        from = 0,
-        to = 1,
-        length = (WinSize + 1) / 2
-    ))
-    KNum <- (1 - Dvector ^ 3) ^ 3
-
-    # Calculate G' for each SNP within each chromosome
-    for (x in levels(as.factor(SNPset$CHROM))) {
-        chr <- as.data.frame(subset(SNPset, CHROM == x))
-
-        message("Calculating G' for Chr: ", x, "...")
-
-        # create sliding window step bins around each SNP
-        bin <-
-            data.frame(
-                start = chr$POS - (WinSize / 2),
-                end = chr$POS + (WinSize / 2),
-                focal = chr$POS
-            )
-
-        SWdata <-
-            parallel::parApply(
-                cl = cl,
-                X = bin,
-                MARGIN = 1,
-                FUN = function(y) {
-                    # the distance from the focal SNP is calculated for each SNP in the window.
-                    # One (1) is added because the focal SNP is stored in the first value of the vector
-                    dfromFocal <-
-                        abs(chr[y["start"] < chr$POS &
-                                chr$POS <= y["end"], "POS"] - y["focal"]) + 1
-
-                    # A Kernel weight is given to each SNP including the focal SNP
-                    KNumWeight <- KNum[dfromFocal]
-                    Kweight <- KNumWeight / sum(KNumWeight)
-
-                    # The wighted G stat is calculated by multiplying by the Kernel Weight
-                    weightedStats <-
-                        chr[y["start"] < chr$POS &
-                                chr$POS <= y["end"], c("GStat", "deltaSNP")] * Kweight
-
-                    # Calculate G' for the focal SNP
-                    c(
-                        Gprime = sum(weightedStats$GStat),
-                        deltaSNPprime = sum(weightedStats$deltaSNP),
-                        nSNPs = nrow(weightedStats)
-                    )
-
-                }
-            )
-        SWdata <- t(as.data.frame(SWdata))
-        chr <- cbind(chr, SWdata)
-        SW <- rbind(SW, chr)
-
-    }
-    parallel::stopCluster(cl)
-
-    #Calculate p- and q-values
-    message("Calculating p- and q-values")
-    SW <- GetPvals(SW, ...)
-    SW
-}
 
 #' Non-parametric estimation of the null distribution of G'
 #'
