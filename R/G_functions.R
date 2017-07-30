@@ -74,7 +74,7 @@ tricubeGStat <- function(POS, GStat, windowSize = 2e6)
 #' 
 #' The function is used by \code{\link{runGprimeAnalysis}} to estimate p-values for the
 #' weighted G' statistic based on the non-parametric estimation method described
-#' in Magwene et al. 2013. Breifly, using the natural log of Gprime a median 
+#' in Magwene et al. 2011. Breifly, using the natural log of Gprime a median 
 #' absolute deviation (MAD) is calculated. The Gprime set is trimmed to exclude 
 #' outlier regions (i.e. QTL) based on Hampel's rule. An alternate method for
 #' filtering out QTL is proposed using absolute delta SNP indeces greater than
