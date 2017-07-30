@@ -3,7 +3,6 @@
 export(FilterSNPs)
 export(GetSigRegions)
 export(ImportFromGATK)
-export(ParGetPrimeStats)
 export(plotGprimeDist)
 export(plotQTLStats)
 export(runGprimeAnalysis)
