@@ -41,28 +41,32 @@ getG <- function(LowRef, HighRef, LowAlt, HighAlt)
 }
 
 #' Calculate tricube weighted statistics for each SNP
-#'
-#' Uses local regression to predict a tricube smoothed version of the G statistc
-#' for each SNP. This works as a weighted average across neighboring SNPs 
-#' that accounts for Linkage disequilibrium (LD) while minizing noise attributed 
-#' to SNP calling errors. G values for neighboring SNPs within the window are 
-#' weighted by physical distance from the focal SNP.
 #' 
-#' @return Returns a vector of the weighted G statistic caluculted with a tricube
-#'   smoothing kernel
-#'
+#' Uses local regression (wrapper for \code{\link[locfit]{locfit}}) to predict a 
+#' tricube smoothed version of the G statistc for each SNP. This works as a
+#' weighted average across neighboring SNPs that accounts for Linkage
+#' disequilibrium (LD) while minizing noise attributed to SNP calling errors. G
+#' values for neighboring SNPs within the window are weighted by physical
+#' distance from the focal SNP.
+#' 
+#' @return Returns a vector of the weighted G statistic caluculted with a
+#'   tricube smoothing kernel
+#'   
 #' @param POS A vector of genomic positions for each SNP
 #' @param GStat A vector of G statistics for each SNP
-#' @param WinSize the window size (in base pairs) bracketing each SNP for which
-#'   to calculate the statitics. Magwene et. al recommend a window size of ~25
+#' @param WinSize the window size (in base pairs) bracketing each SNP for which 
+#'   to calculate the statitics. Magwene et. al recommend a window size of ~25 
 #'   cM, but also recommend optionally trying several window sizes to test if 
 #'   peaks are over- or undersmoothed.
 #' @examples df_filt_4mb$Gprime <- tricubeGStat(POS, GStat, WinSize = 4e6)
 #' @seealso \code{\link{getG}} for G statistic calculation
+#' @seealso \code{\link[locfit]{locfit}} for local regression
 
 tricubeGStat <- function(POS, GStat, windowSize = 2e6)
 {
-    stats::predict(locfit::locfit(GStat ~ locfit::lp(POS, h = windowSize, deg = 0)), POS)
+    stats::predict(
+        locfit::locfit(GStat ~ locfit::lp(POS, h = windowSize, deg = 0)), POS
+        )
 }
 
 
