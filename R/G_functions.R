@@ -24,6 +24,7 @@
 #'   
 #' @seealso \href{https://doi.org/10.1371/journal.pcbi.1002255}{The Statistics
 #'   of Bulk Segregant Analysis Using Next Generation Sequencing}
+#'   \code{\link{tricubeGStat}} for G prime calculation
 
 getG <- function(LowRef, HighRef, LowAlt, HighAlt)
 {
@@ -41,32 +42,23 @@ getG <- function(LowRef, HighRef, LowAlt, HighAlt)
 
 #' Calculate tricube weighted statistics for each SNP
 #'
-#' For each SNP calculates statistics, weighted average of across neighboring
-#' SNPs. To account for Linkage disequilibrium (LD) Stats are calculated over a
-#' window of WinSize and weighted with a tricube kernel where weights are
-#' defined by physical distance away from the focal SNP
-#' @return Returns the supplied SNPset data frame with 5 new columns added:
-#' @return \code{Gprime} The weighted G statistic caluculted with a tricube
+#' Uses local regression to predict a tricube smoothed version of the G statistc
+#' for each SNP. This works as a weighted average across neighboring SNPs 
+#' that accounts for Linkage disequilibrium (LD) while minizing noise attributed 
+#' to SNP calling errors. G values for neighboring SNPs within the window are 
+#' weighted by physical distance from the focal SNP.
+#' 
+#' @return Returns a vector of the weighted G statistic caluculted with a tricube
 #'   smoothing kernel
-#' @return \code{nSNPs} The number of SNPs in the window used to calculate
-#'   Gprime
-#' @return \code{deltaSNPprime} The weighted delta SNP statistic calculated with
-#'   a tricube smooting kernel
-#' @return \code{pval} The p-value calculated by Non-parametric estimation of
-#'   the null distribution of G'
-#' @return \code{qval} The adjusted q-value after Benjamini-Hochberg adjustment
 #'
-#' @param SNPset a data frame with SNPs and genotype fields as imported by
-#'   \code{ImportFromGATK}
+#' @param POS A vector of genomic positions for each SNP
+#' @param GStat A vector of G statistics for each SNP
 #' @param WinSize the window size (in base pairs) bracketing each SNP for which
-#'   to calculate the statitics. Magwene et. al recommend a window size of ~24
-#'   cM.
-#' @param ... Further arguments passed to \code{modeest::mlv} via
-#'   \code{GetPvals}
-#' @examples df_filt_4mb <- GetPrimeStats(df_filt, WinSize = 4e6)
-#' @seealso \code{\link{GetPvals}} for how p-values are calculated.
-
-
+#'   to calculate the statitics. Magwene et. al recommend a window size of ~25
+#'   cM, but also recommend optionally trying several window sizes to test if 
+#'   peaks are over- or undersmoothed.
+#' @examples df_filt_4mb$Gprime <- tricubeGStat(POS, GStat, WinSize = 4e6)
+#' @seealso \code{\link{getG}} for G statistic calculation
 
 tricubeGStat <- function(POS, GStat, windowSize = 2e6)
 {
@@ -75,60 +67,58 @@ tricubeGStat <- function(POS, GStat, windowSize = 2e6)
 
 
 #' Non-parametric estimation of the null distribution of G'
-#'
-#' The function is used by \code{GetPrimeStats} to estimate p-values for the weighted G' statistic based on the
-#' non-parametric estimation method described in Magwene et al. 2013. Breifly,
-#' using the natural log of Gprime a median absolute deviation (MAD) is
-#' calculated. The Gprime set is trimmed to exclude outlier regions (i.e. QTL)
-#' based on Hampel's rule. An estimation of the mode of the trimmed set is
-#' calculated using the \code{\link[modeest]{mlv}} function from the package modeest. Finally, the mean
-#' and variance of the set are estimated using the median and mode and p-values
-#' are estimated from a log normal distribution. Adjusted p-values (q-values)
-#' are assigned using the \code{\link[stats]{p.adjust}} function.
-#'
-#' @param SNPset a data frame with SNPs and genotype fields as imported by
-#'   \code{ImportFromGATK} and after running \code{GetPrimeStats}
-#' @param ModeEstMethod String. The method for estimation of the mode. Passed on to
-#' \code{\link[modeest]{mlv}}. The default is half sample method (hsm). See
-#' \code{\link[modeest]{mlv}} for other methods.
-#' @param ... Further arguments passed to \code{modeest::mlv}
 #' 
-#' @export GetPvals
+#' The function is used by \code{\link{runGprimeAnalysis}} to estimate p-values for the
+#' weighted G' statistic based on the non-parametric estimation method described
+#' in Magwene et al. 2013. Breifly, using the natural log of Gprime a median 
+#' absolute deviation (MAD) is calculated. The Gprime set is trimmed to exclude 
+#' outlier regions (i.e. QTL) based on Hampel's rule. An alternate method for
+#' filtering out QTL is proposed using absolute delta SNP indeces greater than
+#' 0.1 to filter out potential QTL.An estimation of the mode of the trimmed set
+#' is calculated using the \code{\link[modeest]{mlv}} function from the package
+#' modeest. Finally, the mean and variance of the set are estimated using the
+#' median and mode and p-values are estimated from a log normal distribution.
+#' 
+#' @param Gprime a vector of G prime values (tricube weighted G statistics)
+#' @param deltaSNP a vector of delta SNP values for use for QTL region filtering
+#' @param outlierFilter one of either "deltaSNP" or "Hampel". Method for 
+#'   filtering outlier (ie QTL) regions for p-value estimation
+#'   
 
-
-GetPvals <- function(SNPset, ModeEstMethod = "hsm", ...) {
-
-    lnGprime <- log(SNPset$Gprime)
-
-    # calculate left median absolute deviation for the trimmed G' prime set
-    MAD <-
-        median(abs(lnGprime[lnGprime <= median(lnGprime)] - median(lnGprime)))
-
-    # Trim the G prime set to exclude outlier regions (i.e. QTL) using Hampel's rule
-    trimGprime <-
-        SNPset$Gprime[lnGprime - median(lnGprime) <= 5.2 * median(MAD)]
-
+getPvals <- function(Gprime, deltaSNP = NULL, outlierFilter = c("deltaSNP", "Hampel"))
+{
+    if(outlierFilter == "deltaSNP") {
+        trimGprime <- Gprime[abs(deltaSNP) < 0.1]
+    } else {
+        lnGprime <- log(Gprime)
+        
+        medianLogGprime <- median(lnGprime)
+        
+        # calculate left median absolute deviation for the trimmed G' prime set
+        MAD <- median(medianLogGprime - lnGprime[lnGprime <= medianLogGprime])
+        
+        # Trim the G prime set to exclude outlier regions (i.e. QTL) using Hampel's rule
+        trimGprime <-
+            Gprime[lnGprime - median(lnGprime) <= 5.2 * MAD]
+    }
+    
     medianTrimGprime <- median(trimGprime)
-
+    
     # estimate the mode of the trimmed G' prime set using the half-sample method
+    message("Estimating the mode of a trimmed G 
+        prime set using the 'modeest' package")
     modeTrimGprime <-
-        modeest::mlv(x = trimGprime, bw = 0.5, method = ModeEstMethod, ...)$M
-
+        modeest::mlv(x = trimGprime, bw = 0.5, method = "hsm")$M
+    
     muE <- log(medianTrimGprime)
     varE <- abs(muE - log(modeTrimGprime))
-
-    SNPset$pval <-
-        1 - plnorm(q = SNPset$Gprime,
+    #use the log normal distribution to get pvals
+    pval <-
+        1 - plnorm(q = Gprime,
             meanlog = muE,
             sdlog = sqrt(varE))
-
-    SNPset$negLogPval <- -log10(SNPset$pval)
-
-    SNPset$qval <- p.adjust(p = SNPset$pval, method = "BH")
-
-
-    return(SNPset)
-
+    
+    return(pval)
 }
 
 #' Return SNPs in significant regions
