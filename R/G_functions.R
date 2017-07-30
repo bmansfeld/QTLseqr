@@ -131,7 +131,7 @@ getPvals <- function(Gprime, deltaSNP = NULL, outlierFilter = c("deltaSNP", "Ham
 #' containing all SNPs with q-values below a set alpha. Each entry in the list
 #' is a SNP set data frame in a contiguous region with
 #'
-#'@export GetSigRegions
+#' @export GetSigRegions
 
 GetSigRegions <- function(SNPset, alpha = 0.05)
 {
