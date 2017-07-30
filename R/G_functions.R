@@ -159,3 +159,13 @@ GetSigRegions <- function(SNPset, alpha = 0.05)
     }
 
 }
+
+
+getFDRThreshold <- function(SNPset, alpha = 0.01)
+{
+    pVals <- SNPset$pvalue
+    pVals <- sort(pVals,decreasing = FALSE)
+    pAdj <- p.adjust(pVals, method = "BH")
+    fdrThreshold <- pVals[max(which(pAdj < alpha))]
+    return(fdrThreshold)
+}
