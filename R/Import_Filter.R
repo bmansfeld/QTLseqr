@@ -30,9 +30,9 @@
 #'   is a VCF and how should I interpret it?} for more information on GATK
 #'   Fields and Genotype Fields
 #' @examples df <-  ImportFromGATK(filename = file.table,
-#'     HighBulk = HighBulkSampleName,
-#'     LowBulk = LowBulkSampleName,
-#'     ChromList = c("Chr1","Chr4","Chr7"))
+#'     highBulk = highBulkSampleName,
+#'     lowBulk = lowBulkSampleName,
+#'     chromList = c("Chr1","Chr4","Chr7"))
 #' @export importFromGATK
 
 importFromGATK <- function(filename,
@@ -49,25 +49,25 @@ importFromGATK <- function(filename,
     SNPset <- VarTable[, 1:4]
     
     # High Bulk data
-    SNPset$DP.HIGH <- VarTable[, paste0(HighBulk, ".DP")]
+    SNPset$DP.HIGH <- VarTable[, paste0(highBulk, ".DP")]
     SNPset$AD_REF.HIGH <-
-        as.numeric(gsub(",.*$", "", x = VarTable[, paste0(HighBulk, ".AD")]))
+        as.numeric(gsub(",.*$", "", x = VarTable[, paste0(highBulk, ".AD")]))
     SNPset$AD_ALT.HIGH <- SNPset$DP.HIGH - SNPset$AD_REF.HIGH
-    SNPset$GQ.HIGH <- VarTable[, paste0(HighBulk, ".GQ")]
+    SNPset$GQ.HIGH <- VarTable[, paste0(highBulk, ".GQ")]
     # Calculate SNP index
     SNPset$SNPindex.HIGH <- SNPset$AD_ALT.HIGH / SNPset$DP.HIGH
     
     # Low Bulk data
-    SNPset$DP.LOW <- VarTable[, paste0(LowBulk, ".DP")]
+    SNPset$DP.LOW <- VarTable[, paste0(lowBulk, ".DP")]
     SNPset$AD_REF.LOW <-
-        as.numeric(gsub(",.*$", "", x = VarTable[, paste0(LowBulk, ".AD")]))
+        as.numeric(gsub(",.*$", "", x = VarTable[, paste0(lowBulk, ".AD")]))
     SNPset$AD_ALT.LOW <- SNPset$DP.LOW - SNPset$AD_REF.LOW
-    SNPset$GQ.LOW <- VarTable[, paste0(LowBulk, ".GQ")]
+    SNPset$GQ.LOW <- VarTable[, paste0(lowBulk, ".GQ")]
     SNPset$SNPindex.LOW <- SNPset$AD_ALT.LOW / SNPset$DP.LOW
     
     #Keep only wanted chromosomes
-    if (!is.null(ChromList)) {
-        SNPset <- SNPset[SNPset$CHROM %in% ChromList, ]
+    if (!is.null(chromList)) {
+        SNPset <- SNPset[SNPset$CHROM %in% chromList, ]
     }
     #arrange the chromosomes by natural order sort, eg Chr1, Chr10, Chr2 >>> Chr1, Chr2, Chr10
     SNPset$CHROM <- factor(SNPset$CHROM, levels = gtools::mixedsort(unique(SNPset$CHROM)))
