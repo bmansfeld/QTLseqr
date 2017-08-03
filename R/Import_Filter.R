@@ -1,4 +1,4 @@
-#' Imports SNP data from GATK VarToTable output
+#' Imports SNP data from GATK VariablesToTable output
 #'
 #' Imports SNP data from the output of the
 #' \href{https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_variantutils_VariantsToTable.php}{VariantsToTable}
@@ -11,14 +11,12 @@
 #' fields are REF (Reference allele) and ALT (Alternative allele) Recommended
 #' Genotype feilds are PL (Phred-scaled likelihoods)
 #'
-#' @param filename The name of the GATK VarToTable output .table file which the
+#' @param filename The name of the GATK VariablesToTable output .table file which the
 #'   data are to be read from.
 #' @param HighBulk The sample name of the High Bulk
 #' @param LowBulk The sample name of the Low Bulk
 #' @param ChromList a string vector of the chromosomes to be used in the
 #'   analysis. Useful for filtering out unwanted contigs etc.
-#' @param method either "one" (default) or "two". The method for calculation G
-#'   statistic. In method two equal coverage is assumed for both bulks.
 #' @return Returns a data frame containing columns for Read depth (DP),
 #'   Reference Allele Depth (AD.REF) and Alternative Allele Depth (AD.ALT),
 #'   Genoytype Quality (GQ) and SNPindex for each bulk (indicated by .HIGH and
@@ -34,15 +32,13 @@
 #' @examples df <-  ImportFromGATK(filename = file.table,
 #'     HighBulk = HighBulkSampleName,
 #'     LowBulk = LowBulkSampleName,
-#'     ChromList = c("Chr1","Chr4","Chr7"),
-#'     method = "one")
-#' @export ImportFromGATK
+#'     ChromList = c("Chr1","Chr4","Chr7"))
+#' @export importFromGATK
 
-ImportFromGATK <- function(filename,
+importFromGATK <- function(filename,
     HighBulk = character(),
     LowBulk = character(),
-    ChromList = NULL,
-    method = "one") {
+    ChromList = NULL) {
     message("Importing SNPs from file")
     VarTable <-
         read.table(file = filename,
