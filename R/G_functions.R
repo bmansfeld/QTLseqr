@@ -166,9 +166,8 @@ GetSigRegions <- function(SNPset, alpha = 0.05)
 #' @param pvalues 
 #' @param alpha 
 #'
-#' @return
+#' @return The p-value threshold that corresponds to the Benjamini-Hochberg adjusted p-value at the FDR set by alpha.
 #' 
-#' @examples
 
 getFDRThreshold <- function(pvalues, alpha = 0.01)
 {
