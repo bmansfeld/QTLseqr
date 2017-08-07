@@ -4,12 +4,12 @@
 \alias{getPvals}
 \title{Non-parametric estimation of the null distribution of G'}
 \usage{
-getPvals(deltaSNP, Gprime, outlierFilter = c("deltaSNP", "Hampel"))
+getPvals(Gprime, deltaSNP = NULL, outlierFilter = c("deltaSNP", "Hampel"))
 }
 \arguments{
-\item{deltaSNP}{a vector of delta SNP values for use for QTL region filtering}
-
 \item{Gprime}{a vector of G prime values (tricube weighted G statistics)}
+
+\item{deltaSNP}{a vector of delta SNP values for use for QTL region filtering}
 
 \item{outlierFilter}{one of either "deltaSNP" or "Hampel". Method for 
 filtering outlier (ie QTL) regions for p-value estimation}
