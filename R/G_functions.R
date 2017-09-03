@@ -131,9 +131,9 @@ getPvals <- function(Gprime, deltaSNP = NULL, outlierFilter = c("deltaSNP", "Ham
 #' containing all SNPs with q-values below a set alpha. Each entry in the list
 #' is a SNP set data frame in a contiguous region with
 #'
-#' @export GetSigRegions
+#' @export getSigRegions
 
-GetSigRegions <- function(SNPset, alpha = 0.05)
+getSigRegions <- function(SNPset, alpha = 0.05)
 {
     if ("qvalue" %in% colnames(SNPset))
     {
@@ -254,7 +254,7 @@ runGprimeAnalysis <- function(SNPset, windowSize = 1e6, outlierFilter = "deltaSN
         ) %>% 
         dplyr::ungroup() %>% 
         dplyr::mutate(
-            pvalue = getPvals(deltaSNP, Gprime, outlierFilter), 
+            pvalue = getPvals(Gprime = Gprime, deltaSNP = deltaSNP, outlierFilter = outlierFilter), 
             negLog10Pval = -log10(pvalue),
             qvalue = p.adjust(p = pvalue, method = "BH")
         )
