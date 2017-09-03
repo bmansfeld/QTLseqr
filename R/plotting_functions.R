@@ -43,8 +43,7 @@ plotQTLStats <-
         ...) {
         #get fdr threshold by ordering snps by pval then getting the last pval
         #with a qval < q
-        tmp <- SNPset[order(SNPset$pval, decreasing = F), ]
-        fdrT <- tmp[sum(tmp$qval <= q), var]
+        fdrT <- getFDRThreshold(SNPset$pvalue, alpha = q)
         
         if (length(fdrT) == 0) {
             warning("The q threshold is too low. No line will be drawn")
