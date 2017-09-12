@@ -9,7 +9,7 @@
 #'   chromosomes of interest. Defaults to
 #'   NULL and will plot all chromosomes in the SNPset
 #' @param var character. The paramater for plotting. Must be one of: "nSNPs",
-#'   "deltaSNP", "Gprime", "negLogPval"
+#'   "deltaSNP", "Gprime", "negLog10Pval"
 #' @param line boolean. If TRUE will plot line graph. If FALSE will plot points.
 #'   Plotting points will take more time.
 #' @param plotThreshold boolean. Should we plot the False Discovery Rate
@@ -44,6 +44,8 @@ plotQTLStats <-
         #get fdr threshold by ordering snps by pval then getting the last pval
         #with a qval < q
         fdrT <- getFDRThreshold(SNPset$pvalue, alpha = q)
+        logFdrT <- -log10(fdrT)
+        GprimeT <- SNPset[which(SNPset$pvalue == fdrT), "Gprime"]
         
         if (length(fdrT) == 0) {
             warning("The q threshold is too low. No line will be drawn")
@@ -55,9 +57,9 @@ plotQTLStats <-
             stop(paste0("The following are not true chromosome names: ", whichnot))
         }
         
-        if (!var %in% c("nSNPs", "deltaSNP", "Gprime", "negLogPval"))
+        if (!var %in% c("nSNPs", "deltaSNP", "Gprime", "negLog10Pval"))
             stop(
-                "Please choose one of the following variables to plot: \"nSNPs\", \"deltaSNP\", \"Gprime\", \"negLogPval\""
+                "Please choose one of the following variables to plot: \"nSNPs\", \"deltaSNP\", \"Gprime\", \"negLog10Pval\""
             )
         
         #don't plot threshold lines in deltaSNPprime or number of SNPs as they are not relevant
@@ -86,10 +88,12 @@ plotQTLStats <-
             ))
         
         if (var == "Gprime") {
+            threshold <- GprimeT
             p <- p + ggplot2::ylab("G' value")
         }
         
-        if (var == "negLogPval") {
+        if (var == "negLog10Pval") {
+            threshold <- logFdrT
             p <-
                 p + ggplot2::ylab(expression("-" * log[10] * '(p-value)'))
         }
@@ -110,7 +114,7 @@ plotQTLStats <-
         
         if (line) {
             p <-
-                p + ggplot2::geom_line(ggplot2::aes_string(x = "POS", y = var), size = 2, ...)
+                p + ggplot2::geom_line(ggplot2::aes_string(x = "POS", y = var), ...)
         }
         
         if (!line) {
@@ -120,9 +124,9 @@ plotQTLStats <-
         if (plotThreshold == TRUE)
             p <-
             p + ggplot2::geom_hline(
-                yintercept = fdrT,
+                yintercept = threshold,
                 color = "red",
-                size = 2,
+                size = 1,
                 alpha = 0.4
             )
         p
