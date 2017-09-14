@@ -235,7 +235,8 @@ getFDRThreshold <- function(pvalues, alpha = 0.01)
 #' @export runGprimeAnalysis
 #'   
 #' @examples df_filt <- runGprimeAnalysis(df_filt,windowSize = 2e6,outlierFilter = "deltaSNP")
-
+#' @useDynLib QTLseqr
+#' @importFrom Rcpp sourceCpp
 
 runGprimeAnalysis <- function(SNPset, windowSize = 1e6, outlierFilter = "deltaSNP")
 {
@@ -244,6 +245,7 @@ runGprimeAnalysis <- function(SNPset, windowSize = 1e6, outlierFilter = "deltaSN
     SNPset <- SNPset %>%
         dplyr::group_by(CHROM) %>%
         dplyr::mutate(
+            nSNPs = countSNPs_cpp(POS = POS, windowSize = windowSize),
             G = getG(
                 LowRef = AD_REF.LOW,
                 HighRef = AD_REF.HIGH,

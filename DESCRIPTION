@@ -14,9 +14,11 @@ Imports:
     ggplot2 (>= 2.2.0),
     S4Vectors,
     gtools,
-    dplyr
+    dplyr,
+    Rcpp
 Suggests:
     knitr,
     rmarkdown
 RoxygenNote: 6.0.1
 VignetteBuilder: knitr
+LinkingTo: Rcpp
