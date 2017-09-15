@@ -124,7 +124,11 @@ plotQTLStats <-
         if (plotThreshold == TRUE)
             p <-
             p + ggplot2::geom_hline(
+<<<<<<< HEAD
                 ggplot2::aes_string(yintercept = "threshold"),
+=======
+                yintercept = threshold,
+>>>>>>> f00c231dc627ac9d6732c94b2dabbf0986b99618
                 color = "red",
                 size = 1,
                 alpha = 0.4
