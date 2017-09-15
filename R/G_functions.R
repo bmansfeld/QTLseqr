@@ -62,11 +62,11 @@ getG <- function(LowRef, HighRef, LowAlt, HighAlt)
 #' @seealso \code{\link{getG}} for G statistic calculation
 #' @seealso \code{\link[locfit]{locfit}} for local regression
 
-tricubeGStat <- function(POS, GStat, windowSize = 2e6)
+tricubeStat <- function(POS, Stat, windowSize = 2e6)
 {
-    if (windowSize <= 0) stop("A positive smoothing window ")
+    if (windowSize <= 0) stop("A positive smoothing window is required")
     stats::predict(
-        locfit::locfit(GStat ~ locfit::lp(POS, h = windowSize, deg = 0)), POS
+        locfit::locfit(Stat ~ locfit::lp(POS, h = windowSize, deg = 0)), POS
         )
 }
 
@@ -240,11 +240,14 @@ getFDRThreshold <- function(pvalues, alpha = 0.01)
 
 runGprimeAnalysis <- function(SNPset, windowSize = 1e6, outlierFilter = "deltaSNP")
 {
-    message("Calculating G and G' statistics")
+    message("Counting SNPs in window...")
+    message("Calculating smoothed delta SNP index...")
+    message("Calculating G and G' statistics...")
     
     SNPset <- SNPset %>%
         dplyr::group_by(CHROM) %>%
         dplyr::mutate(
+            tricubeDeltaSNP = tricubeStat(POS = POS, Stat = deltaSNP, windowSize),
             nSNPs = countSNPs_cpp(POS = POS, windowSize = windowSize),
             G = getG(
                 LowRef = AD_REF.LOW,
@@ -252,7 +255,7 @@ runGprimeAnalysis <- function(SNPset, windowSize = 1e6, outlierFilter = "deltaSN
                 LowAlt = AD_ALT.LOW,
                 HighAlt = AD_ALT.HIGH
             ),
-            Gprime = tricubeGStat(POS, G, windowSize)
+            Gprime = tricubeStat(POS = POS, Stat = G, windowSize = windowSize)
         ) %>% 
         dplyr::ungroup() %>% 
         dplyr::mutate(

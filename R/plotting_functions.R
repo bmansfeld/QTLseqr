@@ -103,7 +103,7 @@ plotQTLStats <-
         }
         
         if (var == "deltaSNP") {
-            var <- "deltaSNPprime"
+            var <- "tricubeDeltaSNP"
             p <-
                 p + ggplot2::ylab(expression(Delta * 'SNP-index')) +
                 ggplot2::ylim(-0.55, 0.55) +
@@ -124,7 +124,7 @@ plotQTLStats <-
         if (plotThreshold == TRUE)
             p <-
             p + ggplot2::geom_hline(
-                yintercept = threshold,
+                ggplot2::aes_string(yintercept = "threshold"),
                 color = "red",
                 size = 1,
                 alpha = 0.4
