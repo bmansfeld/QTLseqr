@@ -117,6 +117,7 @@ getPvals <- function(Gprime, deltaSNP = NULL, outlierFilter = c("deltaSNP", "Ham
     muE <- log(medianTrimGprime)
     varE <- abs(muE - log(modeTrimGprime))
     #use the log normal distribution to get pvals
+    message("Calculating p-values...")
     pval <-
         1 - plnorm(q = Gprime,
             meanlog = muE,
@@ -240,15 +241,20 @@ getFDRThreshold <- function(pvalues, alpha = 0.01)
 
 runGprimeAnalysis <- function(SNPset, windowSize = 1e6, outlierFilter = "deltaSNP")
 {
-    message("Counting SNPs in window...")
-    message("Calculating smoothed delta SNP index...")
-    message("Calculating G and G' statistics...")
-    
+    message("Counting SNPs in each window...")
     SNPset <- SNPset %>%
         dplyr::group_by(CHROM) %>%
         dplyr::mutate(
-            tricubeDeltaSNP = tricubeStat(POS = POS, Stat = deltaSNP, windowSize),
-            nSNPs = countSNPs_cpp(POS = POS, windowSize = windowSize),
+            nSNPs = countSNPs_cpp(POS = POS, windowSize = windowSize))
+    
+    message("Calculating tricube smoothed delta SNP index...")
+    SNPset <- SNPset %>%
+        dplyr::mutate(
+            tricubeDeltaSNP = tricubeStat(POS = POS, Stat = deltaSNP, windowSize))
+    
+    message("Calculating G and G' statistics...")
+    SNPset <- SNPset %>%
+        dplyr::mutate(
             G = getG(
                 LowRef = AD_REF.LOW,
                 HighRef = AD_REF.HIGH,
