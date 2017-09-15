@@ -239,36 +239,46 @@ getFDRThreshold <- function(pvalues, alpha = 0.01)
 #' @useDynLib QTLseqr
 #' @importFrom Rcpp sourceCpp
 
-runGprimeAnalysis <- function(SNPset, windowSize = 1e6, outlierFilter = "deltaSNP")
-{
-    message("Counting SNPs in each window...")
-    SNPset <- SNPset %>%
-        dplyr::group_by(CHROM) %>%
-        dplyr::mutate(
-            nSNPs = countSNPs_cpp(POS = POS, windowSize = windowSize))
-    
-    message("Calculating tricube smoothed delta SNP index...")
-    SNPset <- SNPset %>%
-        dplyr::mutate(
-            tricubeDeltaSNP = tricubeStat(POS = POS, Stat = deltaSNP, windowSize))
-    
-    message("Calculating G and G' statistics...")
-    SNPset <- SNPset %>%
-        dplyr::mutate(
-            G = getG(
-                LowRef = AD_REF.LOW,
-                HighRef = AD_REF.HIGH,
-                LowAlt = AD_ALT.LOW,
-                HighAlt = AD_ALT.HIGH
-            ),
-            Gprime = tricubeStat(POS = POS, Stat = G, windowSize = windowSize)
-        ) %>% 
-        dplyr::ungroup() %>% 
-        dplyr::mutate(
-            pvalue = getPvals(Gprime = Gprime, deltaSNP = deltaSNP, outlierFilter = outlierFilter), 
-            negLog10Pval = -log10(pvalue),
-            qvalue = p.adjust(p = pvalue, method = "BH")
-        )
-    
-    return(SNPset)
-}
+
+runGprimeAnalysis <-
+    function(SNPset,
+        windowSize = 1e6,
+        outlierFilter = "deltaSNP")
+    {
+        message("Counting SNPs in each window...")
+        SNPset <- SNPset %>%
+            dplyr::group_by(CHROM) %>%
+            dplyr::mutate(nSNPs = countSNPs_cpp(POS = POS, windowSize = windowSize))
+        
+        message("Calculating tricube smoothed delta SNP index...")
+        SNPset <- SNPset %>%
+            dplyr::mutate(tricubeDeltaSNP = tricubeStat(POS = POS, Stat = deltaSNP, windowSize))
+        
+        message("Calculating G and G' statistics...")
+        SNPset <- SNPset %>%
+            dplyr::mutate(
+                G = getG(
+                    LowRef = AD_REF.LOW,
+                    HighRef = AD_REF.HIGH,
+                    LowAlt = AD_ALT.LOW,
+                    HighAlt = AD_ALT.HIGH
+                ),
+                Gprime = tricubeStat(
+                    POS = POS,
+                    Stat = G,
+                    windowSize = windowSize
+                )
+            ) %>%
+            dplyr::ungroup() %>%
+            dplyr::mutate(
+                pvalue = getPvals(
+                    Gprime = Gprime,
+                    deltaSNP = deltaSNP,
+                    outlierFilter = outlierFilter
+                ),
+                negLog10Pval = -log10(pvalue),
+                qvalue = p.adjust(p = pvalue, method = "BH")
+            )
+        
+        return(SNPset)
+    }
