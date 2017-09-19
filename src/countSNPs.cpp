@@ -1,16 +1,13 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-// This is a simple example of exporting a C++ function to R. You can
-// source this function into an R session using the Rcpp::sourceCpp 
-// function (or via the Source button on the editor toolbar). Learn
-// more about Rcpp at:
-//
-//   http://www.rcpp.org/
-//   http://adv-r.had.co.nz/Rcpp.html
-//   http://gallery.rcpp.org/
-//
-
+//' Count number of SNPs within a sliding window
+//' 
+//' For each SNP returns how many SNPs are bracketing it within the set window size
+//' 
+//' @param POS A numeric vector of genomic positions for each SNP
+//' @param windowSize The required window size
+//' @export countSNPs_cpp
 // [[Rcpp::export]]
 NumericVector countSNPs_cpp(NumericVector POS, double windowSize) {
     unsigned int nout=POS.size(), i, left=0, right=0;
