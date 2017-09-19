@@ -230,8 +230,6 @@ getFDRThreshold <- function(pvalues, alpha = 0.01)
 #'   
 #' 
 #' @importFrom magrittr %>%
-#' @name %>%
-#' @rdname pipe
 #'    
 #' @export runGprimeAnalysis
 #'   
