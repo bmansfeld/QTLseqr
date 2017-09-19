@@ -5,7 +5,3 @@ countSNPs_cpp <- function(POS, windowSize) {
     .Call('_QTLseqr_countSNPs_cpp', PACKAGE = 'QTLseqr', POS, windowSize)
 }
 
-timesTwo <- function(x) {
-    .Call('_QTLseqr_timesTwo', PACKAGE = 'QTLseqr', x)
-}
-
