@@ -1,0 +1,66 @@
+---
+title: "Next-generation sequencing bulk segregant analysis with QTLseqr"
+author: "Ben N. Mansfeld and Rebecca Grumet"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Next-generation sequencing bulk segregant analysis with QTLseqr}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Introduction
+QTL-seq is a relatively new and rapid way for performing bulk segregant analysis using next-generation sequencing data. However, no easy-to-use and multi-system compatible algorithms for performing this analysis are readily available. We developed the QTLseqr R package to allow for quick import and filtering of SNP data from two leading variant callers. QTLseqr allows for quick identification of genomic regions associated with traits of interest by combining two methods for bulk segregant analysis. Plotting of data is implemented in ggplot2 which allows for high-quality and customizable figures.
+
+## Bulk Segregant Analysis Overview
+
+Originally developed in the early 1990’s, Bulk Segregant Analysis (BSA) has since been an extremely useful tool for rapidly identifying markers in a genomic region associated with a trait of interest (Giovannoni et al., 1991; Michelmore et al., 1991).  The procedure is performed by phenotyping a segregating populating and establishing pools, or bulks, of individuals with either high or low values for the trait of interest.  DNA from these individuals is extracted and pooled in equimolar amounts and screened for markers that differentiate the two bulks.  In genomic regions, un-linked to the trait of interest, the individuals within each bulk should segregate randomly between the two parental alleles.  Individuals should share markers in regions of the genome which contribute to the phenotype of interest.  Furthermore, markers within these regions should be polymorphic between the two bulks.
+
+Though originally developed to be used with restriction fragment length polymorphism (RFLP) and random amplified polymorphic DNA (RAPD) markers, BSA is amenable to any codominant markers, including single nucleotide polymorphism (SNP) markers.  This fact has allowed for the adaptation of this technology for use with next generation sequencing reads.  The recent reduction of cost of such sequencing approaches has further contributed to the increased the use and development of this and similar methods [thoroughly reviewed by Schneeberger (2014)].  The general method remains the same as described above, but the pooled DNA of the bulks is subject to Next Generation Sequencing (NGS), thus mitigating the need to develop marker sets in advance.  The resulting reads are aligned to the reference parent and SNPs are detected using an algorithm of choice.  Due to their random segregation, SNPs detected in reads derived from regions not linked to the trait of interest should be present in about 50% of the reads.  However, SNPs in reads aligning to genomic regions closely linked to the trait should be over- or under-represented depending on the bulk.  Thus, comparing relative allele depths, or SNP-indices, defined as the number of reads supporting a SNP divided by the total sequencing depth at that SNP, between the bulks can allow QTL identification.
+
+## Methods
+
+QTLseq combines and implements two methods for NGS-BSA, $G'$ and $\Delta SNP-index$, described by Magwene et al. (2011) and Tagaki et al. (2013), respectively. These complimentary methods allow for quick identification of QTL.
+
+### Definitions and equations 
+
+We will breifly define and explain the calculation behind these two parameters
+
+
+
+
+The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
+
+    output: 
+      rmarkdown::html_vignette:
+        css: mystyles.css
+
+## Figures
+
+The figure sizes have been customised so that you can easily put two images side-by-side. 
+
+```{r, fig.show='hold'}
+plot(1:10)
+plot(10:1)
+```
+
+You can enable figure captions by `fig_caption: yes` in YAML:
+
+    output:
+      rmarkdown::html_vignette:
+        fig_caption: yes
+
+Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
+
+## More Examples
+
+You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
+
+```{r, echo=FALSE, results='asis'}
+knitr::kable(head(mtcars, 10))
+```
+
+Also a quote using `>`:
+
+> "He who gives up [code] safety for [code] speed deserves neither."
+([via](https://twitter.com/hadleywickham/status/504368538874703872))
