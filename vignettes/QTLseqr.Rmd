@@ -68,14 +68,23 @@ plotQTLStats(df_filt, var = "Gprime", plotThreshold = TRUE, q = 0.01)
 
 ## Input data
 
-QTLseqr currently only supports table format SNP data exported from the VariantsToTable function built in to GATK. We hope to support import from SAMtools/BCFtools aswell as a simple table format, soon.
+QTLseqr currently only supports table format SNP data exported from the VariantsToTable function built in to GATK. We hope to support import from SAMtools/BCFtools as well as a simple table format, soon.
 
 ### Import from GATK
-We highly recommend reading [What is a VCF and how should I interpret it?](http://gatkforums.broadinstitute.org/gatk/discussion/1268/what-is-a-vcf-and-how-should-i-interpret-it) for more information on GATK Fields and Genotype Fields
+Working directly with the [GATK best practices guide](https://software.broadinstitute.org/gatk/best-practices/bp_3step.php?case=GermShortWGS) for whole genome sequence should result in a VCF that is compatible with QTLseqr. In general the workflow suggested by GATK is per-sample variant calling followed by joint genotyping across samples. This will produce a VCF file that includes **BOTH** bulks, each with a different sample name, one SNP for example:
+
+|CHROM|POS|ID|REF|ALT|QUAL|FILTER|INFO|FORMAT|**LowBulk**|**HighBulk**|
+|-----|---|--|---|---|----|------|----|------|---------|---------|
+|Chr1|31071|.|A|G|1390.44|PASS|.......|GT:AD:DP:GQ:PL|0/1:34,36:70:99:897,0,855|0/1:26,22:48:99:522,0,698|
+*\*info column removed for brevity*
+
+GATK have provided a fast VCF parser, the VariantsToTable tool, that extracts the necessary fields for easy use in downstream analysis. 
+
+We highly recommend reading [What is a VCF and how should I interpret it?](http://gatkforums.broadinstitute.org/gatk/discussion/1268/what-is-a-vcf-and-how-should-i-interpret-it) for more information on GATK VCF Fields and Genotype Fields
 
 Though the use of GATK's VariantsToTable function is out of the scope of this vignette, the syntax for use with QTLseqr should look something like this:
 
-```
+```bash
 java -jar GenomeAnalysisTK.jar \
 -T VariantsToTable \
 -R ${REF} \
@@ -86,7 +95,7 @@ java -jar GenomeAnalysisTK.jar \
 ```
 Where `${REF}` is the reference genome file and `${NAME}` is VCF file you wish to parse.
 
-To run QTLseqr succesfully, the required fields `(-F)` are CHROM (Chromosome) and POS (Position). the required Genotype fields `(-GF)` are AD (Allele Depth), DP (Depth), GQ (Genotype Quality). Recommended fields are REF (Reference allele) and ALT (Alternative allele) Recommended Genotype fields are PL (Phred-scaled likelihoods)
+To run QTLseqr successfully, the required VCF fields `(-F)` are CHROM (Chromosome) and POS (Position). the required Genotype fields `(-GF)` are AD (Allele Depth), DP (Depth), GQ (Genotype Quality). Recommended fields are REF (Reference allele) and ALT (Alternative allele) Recommended Genotype fields are PL (Phred-scaled likelihoods)
 
 
 
