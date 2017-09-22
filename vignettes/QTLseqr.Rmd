@@ -3,28 +3,91 @@ title: "Next-generation sequencing bulk segregant analysis with QTLseqr"
 author: "Ben N. Mansfeld and Rebecca Grumet"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
+abstract: > 
+  Originally developed in the early 1990’s, Bulk Segregant Analysis (BSA) has since been an extremely useful tool for rapidly identifying markers in a genomic region associated with a trait of interest.QTL-seq is a relatively new and rapid way for performing bulk segregant analysis using next-generation sequencing data. However, no easy-to-use and multi-system compatible algorithms for performing this analysis are readily available.We developed the QTLseqr R package to allow for quick identification of genomic regions associated with traits of interest by combining two methods for bulk segregant analysis, $G'$ and $\Delta SNP-index$, described by Magwene et al. (2011) and Tagaki et al. (2013), respectively.Plotting of data is implemented in ggplot2 which allows for high-quality and customizable figures. QTLseqr package  version `r packageVersion("QTLseqr")` 
 vignette: >
   %\VignetteIndexEntry{Next-generation sequencing bulk segregant analysis with QTLseqr}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-# Introduction
-QTL-seq is a relatively new and rapid way for performing bulk segregant analysis using next-generation sequencing data. However, no easy-to-use and multi-system compatible algorithms for performing this analysis are readily available. We developed the QTLseqr R package to allow for quick import and filtering of SNP data from two leading variant callers. QTLseqr allows for quick identification of genomic regions associated with traits of interest by combining two methods for bulk segregant analysis. Plotting of data is implemented in ggplot2 which allows for high-quality and customizable figures.
+# Standard workflow
 
-## Bulk Segregant Analysis Overview
+**If you use QTLseqr in published research, please cite:**
 
-Originally developed in the early 1990’s, Bulk Segregant Analysis (BSA) has since been an extremely useful tool for rapidly identifying markers in a genomic region associated with a trait of interest (Giovannoni et al., 1991; Michelmore et al., 1991).  The procedure is performed by phenotyping a segregating populating and establishing pools, or bulks, of individuals with either high or low values for the trait of interest.  DNA from these individuals is extracted and pooled in equimolar amounts and screened for markers that differentiate the two bulks.  In genomic regions, un-linked to the trait of interest, the individuals within each bulk should segregate randomly between the two parental alleles.  Individuals should share markers in regions of the genome which contribute to the phenotype of interest.  Furthermore, markers within these regions should be polymorphic between the two bulks.
+> Mansfeld B.N. and Grumet R,
+> QTLseqr: An R package for bulk segregant analysis with next-generation sequencing
+> *Journal* 2017, **other info**
 
-Though originally developed to be used with restriction fragment length polymorphism (RFLP) and random amplified polymorphic DNA (RAPD) markers, BSA is amenable to any codominant markers, including single nucleotide polymorphism (SNP) markers.  This fact has allowed for the adaptation of this technology for use with next generation sequencing reads.  The recent reduction of cost of such sequencing approaches has further contributed to the increased the use and development of this and similar methods [thoroughly reviewed by Schneeberger (2014)].  The general method remains the same as described above, but the pooled DNA of the bulks is subject to Next Generation Sequencing (NGS), thus mitigating the need to develop marker sets in advance.  The resulting reads are aligned to the reference parent and SNPs are detected using an algorithm of choice.  Due to their random segregation, SNPs detected in reads derived from regions not linked to the trait of interest should be present in about 50% of the reads.  However, SNPs in reads aligning to genomic regions closely linked to the trait should be over- or under-represented depending on the bulk.  Thus, comparing relative allele depths, or SNP-indices, defined as the number of reads supporting a SNP divided by the total sequencing depth at that SNP, between the bulks can allow QTL identification.
+## Quick Start
+Here are the basic steps required to run and plot QTLseq and G' analysis
 
-## Methods
+```{r quickStart, eval=FALSE}
 
-QTLseq combines and implements two methods for NGS-BSA, $G'$ and $\Delta SNP-index$, described by Magwene et al. (2011) and Tagaki et al. (2013), respectively. These complimentary methods allow for quick identification of QTL.
+#load the package
+library("QTLseqr")
 
-### Definitions and equations 
+#Set sample and file names
+HighBulk <- "SRR834931"
+LowBulk <- "SRR834927"
+file <- "SNPs_from_GATK.table"
+#Choose which chromosomes will be included in the analysis (i.e. exclude smaller contigs)
+Chroms <- paste0(rep("Chr", 12), 1:12)
 
-We will breifly define and explain the calculation behind these two parameters
+#Import SNP data from file
+df <-
+    importFromGATK(
+        filename = file,
+        highBulk = HighBulk,
+        lowBulk = LowBulk,
+        chromList = Chroms
+     )
+
+#Filter SNPs based on some criteria
+df_filt <-
+    filterSNPs(
+        df,
+        refAlleleFreq = 0.20,
+        minTotalDepth = 100,
+        maxTotalDepth = 400,
+        minSampleDepth = 40,
+        minGQ = 99
+    )
+
+
+#Run G' analysis
+df_filt <- runGprimeAnalysis(
+    df_filt,
+    windowSize = 1e6,
+    outlierFilter = "deltaSNP")
+
+#Plot
+plotQTLStats(df_filt, var = "deltaSNP", plotThreshold = TRUE, q = 0.01)
+plotQTLStats(df_filt, var = "Gprime", plotThreshold = TRUE, q = 0.01)
+```
+
+## Input data
+
+QTLseqr currently only supports table format SNP data exported from the VariantsToTable function built in to GATK. We hope to support import from SAMtools/BCFtools aswell as a simple table format, soon.
+
+### Import from GATK
+We highly recommend reading [What is a VCF and how should I interpret it?](http://gatkforums.broadinstitute.org/gatk/discussion/1268/what-is-a-vcf-and-how-should-i-interpret-it) for more information on GATK Fields and Genotype Fields
+
+Though the use of GATK's VariantsToTable function is out of the scope of this vignette, the syntax for use with QTLseqr should look something like this:
+
+```
+java -jar GenomeAnalysisTK.jar \
+-T VariantsToTable \
+-R ${REF} \
+-V ${NAME} \
+-F CHROM -F POS -F REF -F ALT \
+-GF AD -GF DP -GF GQ -GF PL \
+-o ${NAME}.table
+```
+Where `${REF}` is the reference genome file and `${NAME}` is VCF file you wish to parse.
+
+To run QTLseqr succesfully, the required fields `(-F)` are CHROM (Chromosome) and POS (Position). the required Genotype fields `(-GF)` are AD (Allele Depth), DP (Depth), GQ (Genotype Quality). Recommended fields are REF (Reference allele) and ALT (Alternative allele) Recommended Genotype fields are PL (Phred-scaled likelihoods)
+
 
 
 
