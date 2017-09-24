@@ -1,6 +1,6 @@
 #Functions for calculating and manipulating the G statistic
 
-#' Calculates the G statistic - method 1
+#' Calculates the G statistic
 #' 
 #' The function is used by \code{\link{runGprimeAnalysis}} to calculate the G
 #' statisic G is defined by the equation: \deqn{G = 2*\sum_{i=1}^{4}
