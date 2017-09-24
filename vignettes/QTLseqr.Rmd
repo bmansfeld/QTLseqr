@@ -4,7 +4,7 @@ author: "Ben N. Mansfeld and Rebecca Grumet"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 abstract: > 
-  Originally developed in the early 1990’s, Bulk Segregant Analysis (BSA) has since been an extremely useful tool for rapidly identifying markers in a genomic region associated with a trait of interest.QTL-seq is a relatively new and rapid way for performing bulk segregant analysis using next-generation sequencing data. However, no easy-to-use and multi-system compatible algorithms for performing this analysis are readily available.We developed the QTLseqr R package to allow for quick identification of genomic regions associated with traits of interest by combining two methods for bulk segregant analysis, $G'$ and $\Delta SNP-index$, described by Magwene et al. (2011) and Tagaki et al. (2013), respectively.Plotting of data is implemented in ggplot2 which allows for high-quality and customizable figures. QTLseqr package  version `r packageVersion("QTLseqr")` 
+  Originally developed in the early 1990’s, Bulk Segregant Analysis (BSA) has since been an extremely useful tool for rapidly identifying markers in a genomic region associated with a trait of interest. QTL-seq is a relatively new and rapid way for performing bulk segregant analysis using next-generation sequencing data. However, no easy-to-use and multi-system compatible algorithms for performing this analysis are readily available.We developed the QTLseqr R package to allow for quick identification of genomic regions associated with traits of interest by combining two methods for bulk segregant analysis, $G'$ and $\Delta SNP-index$, described by Magwene et al. (2011) and Tagaki et al. (2013), respectively.Plotting of data is implemented in ggplot2 which allows for high-quality and customizable figures. QTLseqr package  version `r packageVersion("QTLseqr")` 
 vignette: >
   %\VignetteIndexEntry{Next-generation sequencing bulk segregant analysis with QTLseqr}
   %\VignetteEngine{knitr::rmarkdown}
@@ -70,15 +70,16 @@ plotQTLStats(df_filt, var = "Gprime", plotThreshold = TRUE, q = 0.01)
 
 QTLseqr currently only supports table format SNP data exported from the VariantsToTable function built in to GATK. We hope to support import from SAMtools/BCFtools as well as a simple table format, soon.
 
-### Import from GATK
-Working directly with the [GATK best practices guide](https://software.broadinstitute.org/gatk/best-practices/bp_3step.php?case=GermShortWGS) for whole genome sequence should result in a VCF that is compatible with QTLseqr. In general the workflow suggested by GATK is per-sample variant calling followed by joint genotyping across samples. This will produce a VCF file that includes **BOTH** bulks, each with a different sample name, one SNP for example:
+## Importing SNPs from GATK
 
-|CHROM|POS|ID|REF|ALT|QUAL|FILTER|INFO|FORMAT|**LowBulk**|**HighBulk**|
+Working directly with the [GATK best practices guide](https://software.broadinstitute.org/gatk/best-practices/bp_3step.php?case=GermShortWGS) for whole genome sequence should result in a VCF that is compatible with QTLseqr. In general the workflow suggested by GATK is per-sample variant calling followed by joint genotyping across samples. This will produce a VCF file that includes **BOTH** bulks, each with a different sample name (here SRR834927 and SRR834931), one SNP for example:
+
+|CHROM|POS|ID|REF|ALT|QUAL|FILTER|INFO|FORMAT|SRR834927|SRR834931|
 |-----|---|--|---|---|----|------|----|------|---------|---------|
 |Chr1|31071|.|A|G|1390.44|PASS|.......|GT:AD:DP:GQ:PL|0/1:34,36:70:99:897,0,855|0/1:26,22:48:99:522,0,698|
 *\*info column removed for brevity*
 
-GATK have provided a fast VCF parser, the VariantsToTable tool, that extracts the necessary fields for easy use in downstream analysis. 
+GATK have provided a fast VCF parser, the [VariantsToTable](https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_variantutils_VariantsToTable.php) tool, that extracts the necessary fields for easy use in downstream analysis. 
 
 We highly recommend reading [What is a VCF and how should I interpret it?](http://gatkforums.broadinstitute.org/gatk/discussion/1268/what-is-a-vcf-and-how-should-i-interpret-it) for more information on GATK VCF Fields and Genotype Fields
 
@@ -97,6 +98,33 @@ Where `${REF}` is the reference genome file and `${NAME}` is VCF file you wish t
 
 To run QTLseqr successfully, the required VCF fields `(-F)` are CHROM (Chromosome) and POS (Position). the required Genotype fields `(-GF)` are AD (Allele Depth), DP (Depth), GQ (Genotype Quality). Recommended fields are REF (Reference allele) and ALT (Alternative allele) Recommended Genotype fields are PL (Phred-scaled likelihoods)
 
+### Import function
+
+The `importFromGATK` function imports SNP data from the output of the VariantsToTable function in GATK. After importing the data, the function then calculates total reference allele frequency for both bulks together, the SNP index for each bulk, and the delta SNP index.
+
+To demonstrate the use of this function we will load the Yang et al. (2013) data file.
+```r
+rawData <- system.file("extdata", "Yang_et_al_2013.table", package = "QTLseqr", mustWork = TRUE)
+```
+We define the sample name for each of the bulks. This should corrispond to the sample names in the VCF returned by GATK. We also define a vector of the chromosomes to be included in the analysis (i.e. exclude smaller contigs), In this case, Chr1, Chr2 ... Chr12.
+```r
+HighBulk <- "SRR834931"
+LowBulk <- "SRR834927"
+Chroms <- paste0(rep("Chr", 12), 1:12)
+```
+We then use the `importFromGATK` function to import the raw data.
+```r
+df <-
+    importFromGATK(
+        filename = rawData,
+        highBulk = HighBulk,
+        lowBulk = LowBulk,
+        chromList = Chroms
+     )
+
+```
+
+## Filtering SNPs
 
 
 
