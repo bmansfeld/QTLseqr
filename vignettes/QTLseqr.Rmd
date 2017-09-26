@@ -2,14 +2,24 @@
 title: "Next-generation sequencing bulk segregant analysis with QTLseqr"
 author: "Ben N. Mansfeld and Rebecca Grumet"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output:
+  rmarkdown::html_document:
+    highlight: pygments
+    toc: true
+    fig_width: 5
 abstract: > 
-  Originally developed in the early 1990’s, Bulk Segregant Analysis (BSA) has since been an extremely useful tool for rapidly identifying markers in a genomic region associated with a trait of interest. QTL-seq is a relatively new and rapid way for performing bulk segregant analysis using next-generation sequencing data. However, no easy-to-use and multi-system compatible algorithms for performing this analysis are readily available.We developed the QTLseqr R package to allow for quick identification of genomic regions associated with traits of interest by combining two methods for bulk segregant analysis, $G'$ and $\Delta SNP-index$, described by Magwene et al. (2011) and Tagaki et al. (2013), respectively.Plotting of data is implemented in ggplot2 which allows for high-quality and customizable figures. QTLseqr package  version `r packageVersion("QTLseqr")` 
+  Originally developed in the early 1990’s, Bulk Segregant Analysis (BSA) has since been an extremely useful tool for rapidly identifying markers in a genomic region associated with a trait of interest. QTL-seq is a relatively new and rapid way for performing bulk segregant analysis using next-generation sequencing data. However, no easy-to-use and multi-system compatible algorithms for performing this analysis are readily available.We developed the QTLseqr R package to allow for quick identification of genomic regions associated with traits of interest by combining two methods for bulk segregant analysis, $G'$ and $\Delta SNP\text{-}index$, described by Magwene et al. (2011) and Tagaki et al. (2013), respectively.Plotting of data is implemented in ggplot2 which allows for high-quality and customizable figures. QTLseqr package  version `r packageVersion("QTLseqr")` 
 vignette: >
   %\VignetteIndexEntry{Next-generation sequencing bulk segregant analysis with QTLseqr}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
+
+```{r setup, echo=FALSE, results="hide"}
+knitr::opts_chunk$set(tidy=FALSE, cache=TRUE,
+                      dev="png",
+                      message=FALSE, error=FALSE, warning=TRUE)
+```	
 
 # Standard workflow
 
@@ -76,8 +86,9 @@ Working directly with the [GATK best practices guide](https://software.broadinst
 
 |CHROM|POS|ID|REF|ALT|QUAL|FILTER|INFO|FORMAT|SRR834927|SRR834931|
 |-----|---|--|---|---|----|------|----|------|---------|---------|
-|Chr1|31071|.|A|G|1390.44|PASS|.......|GT:AD:DP:GQ:PL|0/1:34,36:70:99:897,0,855|0/1:26,22:48:99:522,0,698|
+|Chr1|31071|.|A|G|1390.44|PASS|..\*...|GT:AD:DP:GQ:PL|0/1:34,36:70:99:897,0,855|0/1:26,22:48:99:522,0,698|
 *\*info column removed for brevity*
+
 
 GATK have provided a fast VCF parser, the [VariantsToTable](https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_variantutils_VariantsToTable.php) tool, that extracts the necessary fields for easy use in downstream analysis. 
 
@@ -85,7 +96,7 @@ We highly recommend reading [What is a VCF and how should I interpret it?](http:
 
 Though the use of GATK's VariantsToTable function is out of the scope of this vignette, the syntax for use with QTLseqr should look something like this:
 
-```bash
+```{bash, eval=FALSE}
 java -jar GenomeAnalysisTK.jar \
 -T VariantsToTable \
 -R ${REF} \
@@ -103,17 +114,31 @@ To run QTLseqr successfully, the required VCF fields `(-F)` are CHROM (Chromosom
 The `importFromGATK` function imports SNP data from the output of the VariantsToTable function in GATK. After importing the data, the function then calculates total reference allele frequency for both bulks together, the SNP index for each bulk, and the delta SNP index.
 
 To demonstrate the use of this function we will load the Yang et al. (2013) data file.
-```r
+```{r}
+library("QTLseqr")
 rawData <- system.file("extdata", "Yang_et_al_2013.table", package = "QTLseqr", mustWork = TRUE)
 ```
+If you have your own data you can simply refer to it directly:
+```{r, eval = FALSE}
+rawData <- "C:/PATH/TO/MY/DIR/My_BSA_data.table"
+```
+
 We define the sample name for each of the bulks. This should corrispond to the sample names in the VCF returned by GATK. We also define a vector of the chromosomes to be included in the analysis (i.e. exclude smaller contigs), In this case, Chr1, Chr2 ... Chr12.
-```r
+```{r}
 HighBulk <- "SRR834931"
 LowBulk <- "SRR834927"
 Chroms <- paste0(rep("Chr", 12), 1:12)
 ```
-We then use the `importFromGATK` function to import the raw data.
-```r
+We then use the `importFromGATK` function to import the raw data. After importing the data, the function then calculates total reference allele frequency for both bulks together, the $SNP\text{-}index$ for each SNP in each bulk and the $\Delta SNP\text{-}index$ and returns a data frame.
+
+$$Reference\ allele\ frequency = \frac{Ref\ allele\ depth_{HighBulk} + Ref\ allele\ depth_{LowBulk}}{Total\ read\ depth\ for\ both\ bulks}$$
+
+$$SNP\text{-}index_{per\ bulk} = \frac{Alternate\ allele\ depth}{Total\ read\ depth}$$
+$$\Delta SNP\text{-}index = SNP \text{-} index_{High Bulk} - SNP\text{-}index_{Low Bulk}$$
+
+Let's import 
+```{r, cache = TRUE}
+#import data
 df <-
     importFromGATK(
         filename = rawData,
@@ -121,13 +146,83 @@ df <-
         lowBulk = LowBulk,
         chromList = Chroms
      )
+```
+
+### Loaded data frame
+The loaded data frame should look like this:
+```{r}
+head(df)
+```
+
+Let's review the column headers:
+
+* CHROM - The chromosome this SNP is in
+* POS - The position on the chromosome in nt
+* REF - The reference allele at that position
+* ALT - The alternate allele
+* DP.HIGH - The read depth at that position in the high bulk
+* AD_REF.HIGH - The allele depth of the reference allele in the high bulk
+* AD_ALT.HIGH - The alternate allele depth in the the high bulk
+* GQ.HIGH - The genotype quality score, (how confident we are in the genotyping)
+* SNPindex.HIGH - The calculated SNP-index for the high bulk
+* Same as above for the low bulk
+* REF_FRQ - The reference allele frequency as defined above
+* deltaSNP - The $\Delta SNP\text{-}index$ as defined above
+
+## Filtering SNPs
+Now that we have loaded the data into R we can start cleaning it up by filtering some of the low confidence SNPs.
+While GATK has its own filtering tools, QTLseqr offers some options for filtering that may help reduce noise and improve results. Filtering is mainly based on read depth for each SNP, such that we can try to elliminate SNPs with low confidence, due to low coverage, and SNPs that may be in repetitive regions and thus have inflated read depth. 
+
+### Read depth histograms
+
+One way to assess filtering thresholds is by plotting histograms of the read depths. We can get an idea of where to draw our thresholds. We'll use the ggplot2 package for this purpose, but you could use base R to plot as well.
+
+Lets look at total read depth for example:
+```{r, warning = FALSE}
+library("ggplot2")
+ggplot(data = df) + 
+    geom_histogram(aes(x = DP.HIGH + DP.LOW)) + 
+    xlim(0,1000)
 
 ```
 
-## Filtering SNPs
+...or look at total reference allele frequency:
+```{r, warning=FALSE}
+ggplot(data = df) +
+    geom_histogram(aes(x = REF_FRQ))
+```
 
+### Using the filterSNPs function
+Now that we have an idea about our read depth distribution we can filter out low confidence SNPS. In general we recommend filtering extremely low and high coverage SNPs, either in both bulks (`minTotalDepth/maxTotalDepth`) or in each bulk separately (`minSampleDepth`). We have the option to filter based on reference allele frequency (`refAlleleFreq`), this removes SNPs that for some reason are over- or under-represented in *BOTH* bulks. We can also use the GATK GQ score (Genotype Quality) to filter out low confidence SNPs. If the `verbose` paramater is set to `TRUE` (default) the function will report the numbers of SNPs filtered in each step.
+```{r filtSNPs-source, eval = FALSE, message = FALSE}
+df_filt <-
+    filterSNPs(
+        SNPset = df,
+        refAlleleFreq = 0.20,
+        minTotalDepth = 100,
+        maxTotalDepth = 400,
+        minSampleDepth = 40,
+        minGQ = 99,
+        verbose = TRUE
+    )
+```
 
+```{r filtSNPs-msgs, message = TRUE, warning = FALSE, collapse = TRUE, echo = FALSE}
+df_filt <-
+    filterSNPs(
+        SNPset = df,
+        refAlleleFreq = 0.20,
+        minTotalDepth = 100,
+        maxTotalDepth = 400,
+        minSampleDepth = 40,
+        minGQ = 99,
+        verbose = TRUE
+    )
+```
 
+This step is quick and we can go back and plot some histograms to see if we are happy with the results, and we can quickly re-run the filtering step if not.
+
+## Running the analysis
 
 The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
 
