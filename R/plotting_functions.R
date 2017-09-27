@@ -73,13 +73,12 @@ plotQTLStats <-
             if (is.null(subset)) {
                 SNPset
             } else {
-                SNPset[SNPset$CHROM == subset, ]
+                SNPset[SNPset$CHROM %in% subset, ]
             }
         
         p <- ggplot2::ggplot(data = SNPset) +
             ggplot2::facet_grid( ~ CHROM, scales = "free_x") +
-            ggplot2::scale_x_continuous(labels = format_genomic(),
-                name = "Genomic Position") +
+            ggplot2::scale_x_continuous(labels = format_genomic(), name = "Genomic Position (Mb)") +
             ggplot2::theme(plot.margin = ggplot2::margin(
                 b = 10,
                 l = 20,
