@@ -87,7 +87,7 @@ Working directly with the [GATK best practices guide](https://software.broadinst
 |CHROM|POS|ID|REF|ALT|QUAL|FILTER|INFO|FORMAT|SRR834927|SRR834931|
 |-----|---|--|---|---|----|------|----|------|---------|---------|
 |Chr1|31071|.|A|G|1390.44|PASS|..\*...|GT:AD:DP:GQ:PL|0/1:34,36:70:99:897,0,855|0/1:26,22:48:99:522,0,698|
-*\*info column removed for brevity*
+Table :*\*info column removed for brevity*
 
 
 GATK have provided a fast VCF parser, the [VariantsToTable](https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_variantutils_VariantsToTable.php) tool, that extracts the necessary fields for easy use in downstream analysis. 
@@ -223,6 +223,84 @@ df_filt <-
 This step is quick and we can go back and plot some histograms to see if we are happy with the results, and we can quickly re-run the filtering step if not.
 
 ## Running the analysis
+
+The analysis in QTLseqr is an implementation of both pipelines for bulk segregant analysis, $G'$ and $\Delta SNP\text{-}index$, described by Magwene et al. (2011) and Tagaki et al. (2013), respectively. We recommend reading both papers to fully understand the conciderations and math behind the analysis. 
+Here, we will breifly summarize the steps performed by the main analysis function, `runGprimeAnalysis`.
+
+The following steps are performed:
+
+1. First the number of SNPs within the sliding window are counted.
+
+1. A tricube-smoothed $\Delta SNP\text{-}index$ is calculated within the set window size.
+
+1. Genome-wide G statistics are calculated by `getG`.
+$G$ is defined by the equation:
+
+$$G = 2 * ∑ n_i * ln(\frac{obs(n_i)}{exp(n_i)})$$
+
+Where for each SNP, $n_i$ from i = 1 to 4 corresponds to the reference and alternate allele depths for each bulk, as described in the following table:
+
+|Allele|High Bulk|Low Bulk|
+|------|---------|--------|
+|Reference| $n_1$	| $n_2$ |
+|Alternate| $n_3$	| $n_4$ |
+
+...and $obs(n_i)$ are the observed allele depths as described in the data frame. `getG` calculates the G statistic using expected values assuming read depth is equal for all alleles in both bulks:
+$$
+exp(n_1) = \frac{(n_1 + n_2)*(n_1 + n_3)}{(n_1 + n_2 + n_3 + n_4)}
+$$ 
+$$
+exp(n_2) = \frac{(n_2 + n_1)*(n_2 + n_4)}{(n_1 + n_2 + n_3 + n_4)}
+$$
+$$
+exp(n_3) = \frac{(n_3 + n_1)*(n_3 + n_4)}{(n_1 + n_2 + n_3 + n_4)}
+$$
+$$
+exp(n_4) = \frac{(n_4 + n_2)*(n_4 + n_3)}{(n_1 + n_2 + n_3 + n_4)}
+$$
+
+1. G' - A tricube-smoothed G statistic is predicted by constant local regression within each chromosome using the `tricubeStat` function. This works as a weighted average across neighboring SNPs that accounts for Linkage disequilibrium (LD) while minizing noise attributed to SNP calling errors. G values for neighboring SNPs within the window are weighted by physical distance from the focal SNP. 
+
+1. P-values are estimated based using the non-parametric method described by Magwene et al. 2011 with the function `getPvals`. Breifly, using the natural log of $G'$ a median absolute deviation (MAD) is calculated. The $G'$ set is trimmed to exclude outlier regions (i.e. QTL) based on Hampel's rule. An alternate method for filtering out QTL that we propose is using absolute $\Delta SNP\text{-}index$ values greater than 0.1 to filter out potential QTL. An estimation of the mode of the trimmed set is calculated using the `mlv` function from the package modeest. Finally, the mean and variance of the set are estimated using the median and mode and p-values are estimated from a log normal distribution. 
+
+1. Negative Log10- and Benjamini-Hochberg adjusted p-values are calculated using `p.adjust`.
+
+Let's run the function:
+
+```{r gprimeanalysis-src, eval = FALSE}
+df_filt <- runGprimeAnalysis(df_filt,
+    windowSize = 1e6,
+    outlierFilter = "deltaSNP")
+```
+```{r gprimeanalysis-msg, message = TRUE, warning = FALSE, collapse = TRUE, echo = FALSE}
+df_filt <- runGprimeAnalysis(df_filt,
+    windowSize = 1e6,
+    outlierFilter = "deltaSNP")
+```
+As this is window is using a tricube-smoothing kernel the window size *can* be much larger than you might expect. We however choose a window size of 1Mb for the sliding window analysis, for a discussion about window size we recommend reading Magwene et al. (2011). In general larger windows will produced smoother data. The functions making these calculations are rather fast, so we recommend testing several window sizes for your data, and deciding on the optimal size.
+
+Some additional columns are added to the filtered data frame:
+```{r}
+head(df_filt)
+```
+
+* nSNPs - the number of SNPs braketing the focal SNP within the set sliding window
+* tricubeDeltaSNP - the tricube-smoothed $\Delta SNP\text{-}index$
+* G - the G value for the SNP
+* Gprime - the tricube-smoothed G value
+* pvalue - the p-value calculated by non-parametric estimation
+* negLog10Pval - the $-log_{10}(p-value)$ 
+* qvalue - Benjamini-Hochberg adjusted p-values
+
+## Plotting the data
+
+
+
+### G' distribution plots
+
+### QTL analysis plots
+
+
 
 The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
 
