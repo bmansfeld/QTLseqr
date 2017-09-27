@@ -141,9 +141,6 @@ plotQTLStats <-
 #'
 #' @param SNPset a data frame with SNPs and genotype fields as imported by
 #'   \code{ImportFromGATK} and after running \code{GetPrimeStats}
-#' @param ModeEstMethod String. The method for estimation of the mode. Passed on to
-#' \code{\link[modeest]{mlv}}. The default is half sample method (hsm). See
-#' \code{\link[modeest]{mlv}} for other methods.
 #'
 #' @return Plots a ggplot histogram of the G' value distribution. It will then
 #' overlay an estimated log normal distribution with the same mean and variance
@@ -157,13 +154,16 @@ plotQTLStats <-
 #' and variance of the set are estimated using the median and mode are
 #' estimated and used to plot the log normal distribution.
 #'
-#' @examples plotGprimedist(df_filt_6Mb, ModeEstMethod = "hsm")
+#' @examples plotGprimedist(df_filt_6Mb, outlierFilter = "deltaSNP")
 #'
 #' @seealso \code{\link{GetPvals}} for how p-values are calculated.
 #' @export plotGprimeDist
 
-plotGprimeDist <- function(SNPset, ModeEstMethod = "hsm")
+plotGprimeDist <- function(SNPset, outlierFilter = c("deltaSNP", "Hampel"))
 {
+    if(outlierFilter == "deltaSNP") {
+        trimGprime <- SNPset$Gprime[abs(SNPset$deltaSNP) < 0.1]
+    } else {
     # Non-parametric estimation of the null distribution of G'
     
     lnGprime <- log(SNPset$Gprime)
@@ -175,12 +175,12 @@ plotGprimeDist <- function(SNPset, ModeEstMethod = "hsm")
     # Trim the G prime set to exclude outlier regions (i.e. QTL) using Hampel's rule
     trimGprime <-
         SNPset$Gprime[lnGprime - median(lnGprime) <= 5.2 * median(MAD)]
-    
+    }
     medianTrimGprime <- median(trimGprime)
     
     # estimate the mode of the trimmed G' prime set using the half-sample method
     modeTrimGprime <-
-        modeest::mlv(x = trimGprime, bw = 0.5, method = ModeEstMethod)$M
+        modeest::mlv(x = trimGprime, bw = 0.5, method = "hsm")$M
     
     muE <- log(medianTrimGprime)
     varE <- abs(muE - log(modeTrimGprime))
@@ -189,12 +189,16 @@ plotGprimeDist <- function(SNPset, ModeEstMethod = "hsm")
     p <- ggplot2::ggplot(SNPset) +
         ggplot2::xlim(0, max(SNPset$Gprime) + 1) +
         ggplot2::xlab("G' value") +
-        ggplot2::geom_histogram(ggplot2::aes(x = Gprime, y = ..density..), binwidth = 0.5)  +
+        ggplot2::geom_density(ggplot2::aes(x = Gprime, color = "Data")) +
         ggplot2::stat_function(
             fun = dlnorm,
             size = 1,
-            color = 'blue',
-            args = c(meanlog = muE, sdlog = sqrt(varE))
-        )
+            args = c(meanlog = muE, sdlog = sqrt(varE)),
+            aes(color = "Null distribution")
+        ) +
+        ggplot2::scale_colour_manual("Distribution", values = c("black", "blue")) +
+        ggplot2::geom_text(aes(x = 0.5*max(SNPset$Gprime), y = 0.3), 
+            label = paste0("G' ~ lnN(", round(muE, 2), ",",round(varE, 2), ")"),
+            color = "blue")
     return(p)
 }
