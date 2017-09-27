@@ -141,12 +141,14 @@ plotQTLStats <-
 #'
 #' @param SNPset a data frame with SNPs and genotype fields as imported by
 #'   \code{ImportFromGATK} and after running \code{GetPrimeStats}
-#'
-#' @return Plots a ggplot histogram of the G' value distribution. It will then
+#' @param outlierFilter one of either "deltaSNP" or "Hampel". Method for 
+#'   filtering outlier (ie QTL) regions for p-value estimation
+#'   
+#' @return Plots a ggplot density estimate of the G' value distribution. It will then
 #' overlay an estimated log normal distribution with the same mean and variance
-#' as your G' distribution. This will allow to verify if after filtering your G'
+#' as the null G' distribution. This will allow to verify if after filtering your G'
 #' value appear to be close to log normally and thus can be used to estimate
-#' p-values using the non-parametric estimation method described in Magwene et al. (2013). Breifly,
+#' p-values using the non-parametric estimation method described in Magwene et al. (2011). Breifly,
 #' using the natural log of Gprime a median absolute deviation (MAD) is
 #' calculated. The Gprime set is trimmed to exclude outlier regions (i.e. QTL)
 #' based on Hampel's rule. An estimation of the mode of the trimmed set is
