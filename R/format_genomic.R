@@ -15,7 +15,7 @@ format_genomic <- function(...) {
 
       function(x) {
             limits <- c(1e0,   1e3, 1e6)
-            prefix <- c("","Kb","Mb")
+            #prefix <- c("","Kb","Mb")
 
             # Vector with array indices according to position in intervals
             i <- findInterval(abs(x), limits)
@@ -24,7 +24,8 @@ format_genomic <- function(...) {
             i <- ifelse(i==0, which(limits == 1e0), i)
 
             paste(format(round(x/limits[i], 1),
-                         trim=TRUE, scientific=FALSE, ...),
-                  prefix[i])
+                         trim=TRUE, scientific=FALSE, ...)
+                #  ,prefix[i]
+            )
       }
 }
