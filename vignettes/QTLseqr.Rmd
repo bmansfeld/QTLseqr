@@ -137,7 +137,7 @@ $$SNP\text{-}index_{per\ bulk} = \frac{Alternate\ allele\ depth}{Total\ read\ de
 $$\Delta SNP\text{-}index = SNP \text{-} index_{High Bulk} - SNP\text{-}index_{Low Bulk}$$
 
 Let's import 
-```{r, cache = TRUE}
+```{r import, cache=TRUE}
 #import data
 df <-
     importFromGATK(
@@ -150,7 +150,7 @@ df <-
 
 ### Loaded data frame
 The loaded data frame should look like this:
-```{r}
+```{r viewdf}
 head(df)
 ```
 
@@ -178,7 +178,7 @@ While GATK has its own filtering tools, QTLseqr offers some options for filterin
 One way to assess filtering thresholds is by plotting histograms of the read depths. We can get an idea of where to draw our thresholds. We'll use the ggplot2 package for this purpose, but you could use base R to plot as well.
 
 Lets look at total read depth for example:
-```{r, warning = FALSE}
+```{r plothist1, warning = FALSE, fig.align="center", fig.width=4, fig.height=4}
 library("ggplot2")
 ggplot(data = df) + 
     geom_histogram(aes(x = DP.HIGH + DP.LOW)) + 
@@ -187,7 +187,7 @@ ggplot(data = df) +
 ```
 
 ...or look at total reference allele frequency:
-```{r, warning=FALSE}
+```{r plothist2, warning=FALSE, fig.align="center", fig.width=4, fig.height=4}
 ggplot(data = df) +
     geom_histogram(aes(x = REF_FRQ))
 ```
@@ -289,7 +289,7 @@ head(df_filt)
 * G - the G value for the SNP
 * Gprime - the tricube-smoothed G value
 * pvalue - the p-value calculated by non-parametric estimation
-* negLog10Pval - the $-log_{10}(p-value)$ 
+* negLog10Pval - the $-log_{10}(p\text{-}value)$ 
 * qvalue - Benjamini-Hochberg adjusted p-values
 
 ## Plotting the data
@@ -300,47 +300,57 @@ QTLseqr offers two main plotting functions to check the validity of the G' analy
 
 Due to the fact that p-values are estimated from the null distribution of G', an important check is to see if G' values are close to log normally distributed. For this purpose we use the `plotGprimeDist` function, which plots the G' density estimates alongside the lognormal null distribution. We can also use this to test which filtering method (Hampel or DeltaSNP) estimates a more accurate null distribution.
 
-```{r gprimedist, message = FALSE, warning = FALSE}
-plotGprimeDist(df_filt, outlierFilter = "Hampel")
-plotGprimeDist(df_filt, outlierFilter = "deltaSNP")
+```{r gprimedist hampel, message = FALSE, warning = FALSE, fig.align = "center"}
+plotGprimeDist(SNPset = df_filt, outlierFilter = "Hampel")
+
+```
+
+```{r gprimedist deltaSNP, message=FALSE, warning = FALSE, fig.align = "center"}
+plotGprimeDist(SNPset =df_filt, outlierFilter = "deltaSNP")
 ```
 
 ### QTL analysis plots
+Now that we are happy with our filtered data and it seems that the G' distribution is close to lognormal, we can finally plot some genome-wide figures and try to identify QTL.
 
+Let's start by plotting the SNP/window distribution:
+```{r plotnSNPs, fig.align="center", fig.width=12, fig.height=4}
+p1 <- plotQTLStats(SNPset = df_filt, var = "nSNPs")
+p1
+```
+This is informative as we can assess if there are regions with extremely low SNP density.
 
+More importantly lets identify some QTL by plotting the smoothed $\Delta SNP\text{-}index$ and $G'$ values.
 
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
+```{r plotdeltaSNP, fig.align="center", fig.width=12, fig.height=4}
+p2 <- plotQTLStats(SNPset = df_filt, var = "deltaSNP")
+p2
+```
+We can see that there are some regions that have $|\Delta SNP\text{-}index| > 0.3$ these may be QTL. The directionality of the $\Delta SNP\text{-}index$ is also important. If the allele contributing to the trait is from the reference parent the $\Delta SNP\text{-}index$ should be less than 0. However, if the $\Delta SNP\text{-}index > 0$ then the contributing parent is the one with the alternate alleles. 
 
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+Let's look at the $G'$ values to see if these regions are significant and pass the FDR (q) of 0.01.
+```{r plotGprime, fig.align="center", fig.width=12, fig.height=4}
+p3 <- plotQTLStats(SNPset = df_filt, var = "Gprime", plotThreshold = TRUE, q = 0.01)
+p3
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
+Great! It looks like there are QTL identified on Chromosomes 1, 2, 5, 8 and 10.
+Based on the $\Delta SNP\text{-}index$ and $G'$ plots the QTL from Chr1 originates from the reference parent (Nipponbare rice, in this case) and the QTL on Chr8 was contributed by the other parent, for example.
 
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
+We can also use the `plotQTLStats` function to the $-log_{10}(p\text{-}value)$. While this number is a direct dirivitive of $G'$ it can be more self explanitory for some. We can use the subset paramater to plot one or a few of the chomosomes, say for a close up figure of a QTL of interest.
 
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
-
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+```{r subsetlogpval, fig.align="center", fig.width=4, fig.height=4}
+QTLplots <- plotQTLStats(SNPset = df_filt, var = "negLog10Pval", plotThreshold = TRUE, q = 0.01, subset = c("Chr1", "Chr8"))
+QTLplots
 ```
 
-Also a quote using `>`:
+## Extracting QTL data
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+Now that we've plotted and identified some putative QTL we can extract the data using two functions `getSigRegions` and `getQTLtable`.
+
+The `getSigRegions` function will produce a list in which each element represents a QTL region. The elements are subseted from the orignal data frame you supplied. Any contiguous region above with an adjusted p-value above the set alpha will be returned. If there is a dip below the alpha this region will be split to two elements. 
+
+Let's examine the `head` of the first QTL:
+```{r getsigreg}
+QTL <- getSigRegions(SNPset = df_filt, alpha = 0.01)
+head(QTL[[1]])
+```

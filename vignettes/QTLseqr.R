@@ -58,7 +58,7 @@ HighBulk <- "SRR834931"
 LowBulk <- "SRR834927"
 Chroms <- paste0(rep("Chr", 12), 1:12)
 
-## ---- cache = TRUE-------------------------------------------------------
+## ----import, cache=TRUE--------------------------------------------------
 #import data
 df <-
     importFromGATK(
@@ -68,17 +68,17 @@ df <-
         chromList = Chroms
      )
 
-## ------------------------------------------------------------------------
+## ----viewdf--------------------------------------------------------------
 head(df)
 
-## ---- warning = FALSE----------------------------------------------------
+## ----plothist1, warning = FALSE, fig.align="center", fig.width=4, fig.height=4----
 library("ggplot2")
 ggplot(data = df) + 
     geom_histogram(aes(x = DP.HIGH + DP.LOW)) + 
     xlim(0,1000)
 
 
-## ---- warning=FALSE------------------------------------------------------
+## ----plothist2, warning=FALSE, fig.align="center", fig.width=4, fig.height=4----
 ggplot(data = df) +
     geom_histogram(aes(x = REF_FRQ))
 
@@ -119,10 +119,29 @@ df_filt <- runGprimeAnalysis(df_filt,
 ## ------------------------------------------------------------------------
 head(df_filt)
 
-## ---- fig.show='hold'----------------------------------------------------
-plot(1:10)
-plot(10:1)
+## ----gprimedist hampel, message = FALSE, warning = FALSE, fig.align = "center"----
+plotGprimeDist(SNPset = df_filt, outlierFilter = "Hampel")
 
-## ---- echo=FALSE, results='asis'-----------------------------------------
-knitr::kable(head(mtcars, 10))
+
+## ----gprimedist deltaSNP, message=FALSE, warning = FALSE, fig.align = "center"----
+plotGprimeDist(SNPset =df_filt, outlierFilter = "deltaSNP")
+
+## ----plotnSNPs, fig.align="center", fig.width=12, fig.height=4-----------
+p1 <- plotQTLStats(SNPset = df_filt, var = "nSNPs")
+p1
+
+## ----plotdeltaSNP, fig.align="center", fig.width=12, fig.height=4--------
+p2 <- plotQTLStats(SNPset = df_filt, var = "deltaSNP")
+p2
+
+## ----plotGprime, fig.align="center", fig.width=12, fig.height=4----------
+p3 <- plotQTLStats(SNPset = df_filt, var = "Gprime", plotThreshold = TRUE, q = 0.01)
+p3
+
+## ----subsetlogpval, fig.align="center", fig.width=4, fig.height=4--------
+Chr8 <- plotQTLStats(SNPset = df_filt, var = "negLog10Pval", plotThreshold = TRUE, q = 0.01, subset = "Chr8")
+
+## ----getsigreg-----------------------------------------------------------
+QTL <- getSigRegions(SNPset = df_filt, alpha = 0.01)
+head(QTL[[1]])
 
