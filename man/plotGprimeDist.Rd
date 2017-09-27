@@ -4,15 +4,11 @@
 \alias{plotGprimeDist}
 \title{Plots Gprime distribution}
 \usage{
-plotGprimeDist(SNPset, ModeEstMethod = "hsm")
+plotGprimeDist(SNPset, outlierFilter = c("deltaSNP", "Hampel"))
 }
 \arguments{
 \item{SNPset}{a data frame with SNPs and genotype fields as imported by
 \code{ImportFromGATK} and after running \code{GetPrimeStats}}
-
-\item{ModeEstMethod}{String. The method for estimation of the mode. Passed on to
-\code{\link[modeest]{mlv}}. The default is half sample method (hsm). See
-\code{\link[modeest]{mlv}} for other methods.}
 }
 \value{
 Plots a ggplot histogram of the G' value distribution. It will then
@@ -32,7 +28,7 @@ Plots a ggplot histogram of the distribution of Gprime with a log normal
 distribution overlay
 }
 \examples{
-plotGprimedist(df_filt_6Mb, ModeEstMethod = "hsm")
+plotGprimedist(df_filt_6Mb, outlierFilter = "deltaSNP")
 
 }
 \seealso{

@@ -194,11 +194,11 @@ plotGprimeDist <- function(SNPset, outlierFilter = c("deltaSNP", "Hampel"))
             fun = dlnorm,
             size = 1,
             args = c(meanlog = muE, sdlog = sqrt(varE)),
-            aes(color = "Null distribution")
+            aes(color = paste0("Null distribution \n G' ~ lnN(", round(muE, 2), ",",round(varE, 2), ")"))
         ) +
-        ggplot2::scale_colour_manual("Distribution", values = c("black", "blue")) +
-        ggplot2::geom_text(aes(x = 0.5*max(SNPset$Gprime), y = 0.3), 
-            label = paste0("G' ~ lnN(", round(muE, 2), ",",round(varE, 2), ")"),
-            color = "blue")
+        ggplot2::scale_colour_manual("Distribution", values = c("black", "blue"))# +
+        #ggplot2::annotate(x = 10, y = 0.325, geom="text",  
+        #    label = paste0("G' ~ lnN(", round(muE, 2), ",",round(varE, 2), ")"),
+        #    color = "blue")
     return(p)
 }
