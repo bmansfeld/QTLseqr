@@ -2,7 +2,7 @@
 % Please edit documentation in R/G_functions.R
 \name{getG}
 \alias{getG}
-\title{Calculates the G statistic - method 1}
+\title{Calculates the G statistic}
 \usage{
 getG(LowRef, HighRef, LowAlt, HighAlt)
 }
