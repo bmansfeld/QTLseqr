@@ -278,5 +278,5 @@ runGprimeAnalysis <-
                 qvalue = p.adjust(p = pvalue, method = "BH")
             )
         
-        return(SNPset)
+        return(as.data.frame(SNPset))
     }
