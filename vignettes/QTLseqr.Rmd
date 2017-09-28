@@ -338,14 +338,14 @@ Based on the $\Delta SNP\text{-}index$ and $G'$ plots the QTL from Chr1 originat
 
 We can also use the `plotQTLStats` function to the $-log_{10}(p\text{-}value)$. While this number is a direct dirivitive of $G'$ it can be more self explanitory for some. We can use the subset paramater to plot one or a few of the chomosomes, say for a close up figure of a QTL of interest.
 
-```{r subsetlogpval, fig.align="center", fig.width=4, fig.height=4}
+```{r subsetlogpval, fig.align="center", fig.width=6, fig.height=4}
 QTLplots <- plotQTLStats(SNPset = df_filt, var = "negLog10Pval", plotThreshold = TRUE, q = 0.01, subset = c("Chr1", "Chr8"))
 QTLplots
 ```
 
 ## Extracting QTL data
 
-Now that we've plotted and identified some putative QTL we can extract the data using two functions `getSigRegions` and `getQTLtable`.
+Now that we've plotted and identified some putative QTL we can extract the data using two functions `getSigRegions` and `getQTLTable`.
 
 The `getSigRegions` function will produce a list in which each element represents a QTL region. The elements are subseted from the orignal data frame you supplied. Any contiguous region above with an adjusted p-value above the set alpha will be returned. If there is a dip below the alpha this region will be split to two elements. 
 
