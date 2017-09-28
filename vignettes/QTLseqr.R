@@ -138,8 +138,9 @@ p2
 p3 <- plotQTLStats(SNPset = df_filt, var = "Gprime", plotThreshold = TRUE, q = 0.01)
 p3
 
-## ----subsetlogpval, fig.align="center", fig.width=4, fig.height=4--------
-Chr8 <- plotQTLStats(SNPset = df_filt, var = "negLog10Pval", plotThreshold = TRUE, q = 0.01, subset = "Chr8")
+## ----subsetlogpval, fig.align="center", fig.width=6, fig.height=4--------
+QTLplots <- plotQTLStats(SNPset = df_filt, var = "negLog10Pval", plotThreshold = TRUE, q = 0.01, subset = c("Chr1", "Chr8"))
+QTLplots
 
 ## ----getsigreg-----------------------------------------------------------
 QTL <- getSigRegions(SNPset = df_filt, alpha = 0.01)

@@ -300,12 +300,12 @@ QTLseqr offers two main plotting functions to check the validity of the G' analy
 
 Due to the fact that p-values are estimated from the null distribution of G', an important check is to see if G' values are close to log normally distributed. For this purpose we use the `plotGprimeDist` function, which plots the G' density estimates alongside the lognormal null distribution. We can also use this to test which filtering method (Hampel or DeltaSNP) estimates a more accurate null distribution.
 
-```{r gprimedist hampel, message = FALSE, warning = FALSE, fig.align = "center"}
+```{r gprimedist hampel, message = FALSE, warning = FALSE, fig.align = "center", fig.height=4 }
 plotGprimeDist(SNPset = df_filt, outlierFilter = "Hampel")
 
 ```
 
-```{r gprimedist deltaSNP, message=FALSE, warning = FALSE, fig.align = "center"}
+```{r gprimedist deltaSNP, message=FALSE, warning = FALSE, fig.align = "center", fig.height=4}
 plotGprimeDist(SNPset =df_filt, outlierFilter = "deltaSNP")
 ```
 
