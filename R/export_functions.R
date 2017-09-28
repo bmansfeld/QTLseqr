@@ -21,7 +21,7 @@ getSigRegions <- function(SNPset, alpha = 0.05)
             
             for (i in 1:S4Vectors::nrun(runs)) {
                 SigRegions[[length(SigRegions) + 1]] <- if (runvals[i]) {
-                    chr[starts[i]:ends[i],]
+                    chr[starts[i]:ends[i], ]
                 }
             }
         }
@@ -37,8 +37,8 @@ getSigRegions <- function(SNPset, alpha = 0.05)
 
 #' Export
 #'
-#' @param SNPset 
-#' @param alpha 
+#' @param SNPset
+#' @param alpha
 #' @param export
 #' @param fileName
 #'
@@ -46,30 +46,37 @@ getSigRegions <- function(SNPset, alpha = 0.05)
 #' @export getQTLTable
 #'
 #' @examples
-getQTLTable <- function(SNPset, alpha = 0.05, export = FALSE, fileName = "QTL.csv")
-{
-    QTL <- getSigRegions(SNPset = SNPset, alpha = alpha)
-    fdrT <- getFDRThreshold(SNPset$pvalue, alpha = alpha)
-    GprimeT <- SNPset[which(SNPset$pvalue == fdrT), "Gprime"]
-    table <- t(
-        sapply(
-            X = QTL,
-            FUN = dplyr::summarise,
-            Chromosome = unique(as.character(CHROM)),
-            start = min(POS),
-            end = max(POS),
-            length = max(POS) - min(POS),
-            nSNPs = length(POS),
-            avgSNPs_Mb = round(length(POS) / (max(POS) - min(POS)) * 1e6),
-            meanGprime = mean(Gprime),
-            sdGprime = sd(Gprime),
-            AUCaT = sum(diff(POS)*(((head(Gprime, -1) + tail(Gprime, -1)) / 2) - GprimeT)),
-            meanPval = mean(pvalue),
-            meanQval = mean(qvalue)
-        )
-    )
-    if (export) {
-        write.csv(file = fileName, x = table, row.names = FALSE)
+getQTLTable <-
+    function(SNPset,
+        alpha = 0.05,
+        export = FALSE,
+        fileName = "QTL.csv")
+    {
+        QTL <- getSigRegions(SNPset = SNPset, alpha = alpha)
+        fdrT <- getFDRThreshold(SNPset$pvalue, alpha = alpha)
+        GprimeT <- SNPset[which(SNPset$pvalue == fdrT), "Gprime"]
+        table <- as.data.frame(t(
+            sapply(
+                X = QTL,
+                FUN = dplyr::summarise,
+                Chromosome = unique(as.character(CHROM)),
+                start = min(POS),
+                end = max(POS),
+                length = max(POS) - min(POS),
+                nSNPs = length(POS),
+                avgSNPs_Mb = round(length(POS) / (max(POS) - min(POS)) * 1e6),
+                meanGprime = mean(Gprime),
+                sdGprime = sd(Gprime),
+                AUCaT = sum(diff(POS) * (((head(Gprime,-1) + tail(Gprime,-1)) / 2
+                ) - GprimeT)),
+                meanPval = mean(pvalue),
+                meanQval = mean(qvalue)
+            )
+        ))
+        if (export) {
+            write.csv(file = fileName,
+                x = table,
+                row.names = FALSE)
+        }
+        return(table)
     }
-    return(table)
-}
