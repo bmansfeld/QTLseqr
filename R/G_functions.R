@@ -126,41 +126,6 @@ getPvals <- function(Gprime, deltaSNP = NULL, outlierFilter = c("deltaSNP", "Ham
     return(pval)
 }
 
-#' Return SNPs in significant regions
-#'
-#' The function takes a SNP set after calculation of p- and q-values and returns a list
-#' containing all SNPs with q-values below a set alpha. Each entry in the list
-#' is a SNP set data frame in a contiguous region with
-#'
-#' @export getSigRegions
-
-getSigRegions <- function(SNPset, alpha = 0.05)
-{
-    if ("qvalue" %in% colnames(SNPset))
-    {
-        SigRegions <- list()
-        for (x in levels(as.factor(SNPset$CHROM))) {
-            chr <- as.data.frame(subset(SNPset, CHROM == x))
-
-            runs <- S4Vectors::Rle(chr$qvalue <= alpha)
-            runvals <- S4Vectors::runValue(runs)
-            starts <- S4Vectors::start(runs)
-            ends <- S4Vectors::end(runs)
-
-            for (i in 1:S4Vectors::nrun(runs)) {
-                SigRegions[[length(SigRegions) + 1]] <- if (runvals[i]) {
-                    chr[starts[i]:ends[i],]
-                }
-            }
-        }
-        return(SigRegions)
-    } else {
-        stop("Please first run GetPrimeStats or ParGetPrimeStats to ",
-            "calculate q-values")
-    }
-
-}
-
 
 #' Find false discovery rate threshold
 #'
