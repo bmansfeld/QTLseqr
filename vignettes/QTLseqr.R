@@ -12,6 +12,7 @@ knitr::opts_chunk$set(tidy=FALSE, cache=TRUE,
 #  HighBulk <- "SRR834931"
 #  LowBulk <- "SRR834927"
 #  file <- "SNPs_from_GATK.table"
+#  
 #  #Choose which chromosomes will be included in the analysis (i.e. exclude smaller contigs)
 #  Chroms <- paste0(rep("Chr", 12), 1:12)
 #  
@@ -27,7 +28,7 @@ knitr::opts_chunk$set(tidy=FALSE, cache=TRUE,
 #  #Filter SNPs based on some criteria
 #  df_filt <-
 #      filterSNPs(
-#          df,
+#          SNPset = df,
 #          refAlleleFreq = 0.20,
 #          minTotalDepth = 100,
 #          maxTotalDepth = 400,
@@ -38,13 +39,16 @@ knitr::opts_chunk$set(tidy=FALSE, cache=TRUE,
 #  
 #  #Run G' analysis
 #  df_filt <- runGprimeAnalysis(
-#      df_filt,
+#      SNPset = df_filt,
 #      windowSize = 1e6,
 #      outlierFilter = "deltaSNP")
 #  
 #  #Plot
-#  plotQTLStats(df_filt, var = "deltaSNP", plotThreshold = TRUE, q = 0.01)
-#  plotQTLStats(df_filt, var = "Gprime", plotThreshold = TRUE, q = 0.01)
+#  plotQTLStats(SNPset = df_filt, var = "deltaSNP", plotThreshold = TRUE, q = 0.01)
+#  plotQTLStats(SNPset = df_filt, var = "Gprime", plotThreshold = TRUE, q = 0.01)
+#  
+#  #export summary CSV
+#  getQTLTable(SNPset = df_filt, alpha = 0.01, export = TRUE, fileName = "my_BSA_QTL.csv")
 
 ## ------------------------------------------------------------------------
 library("QTLseqr")
@@ -119,11 +123,11 @@ df_filt <- runGprimeAnalysis(df_filt,
 ## ------------------------------------------------------------------------
 head(df_filt)
 
-## ----gprimedist hampel, message = FALSE, warning = FALSE, fig.align = "center"----
+## ----gprimedist hampel, message = FALSE, warning = FALSE, fig.align = "center", fig.height=4----
 plotGprimeDist(SNPset = df_filt, outlierFilter = "Hampel")
 
 
-## ----gprimedist deltaSNP, message=FALSE, warning = FALSE, fig.align = "center"----
+## ----gprimedist deltaSNP, message=FALSE, warning = FALSE, fig.align = "center", fig.height=4----
 plotGprimeDist(SNPset =df_filt, outlierFilter = "deltaSNP")
 
 ## ----plotnSNPs, fig.align="center", fig.width=12, fig.height=4-----------
@@ -145,4 +149,8 @@ QTLplots
 ## ----getsigreg-----------------------------------------------------------
 QTL <- getSigRegions(SNPset = df_filt, alpha = 0.01)
 head(QTL[[1]])
+
+## ----QTLtable------------------------------------------------------------
+results <- getQTLTable(SNPset = df_filt, alpha = 0.01, export = FALSE)
+results
 

@@ -8,7 +8,7 @@ output:
     toc: true
     fig_width: 5
 abstract: > 
-  Originally developed in the early 1990’s, Bulk Segregant Analysis (BSA) has since been an extremely useful tool for rapidly identifying markers in a genomic region associated with a trait of interest. QTL-seq is a relatively new and rapid way for performing bulk segregant analysis using next-generation sequencing data. However, no easy-to-use and multi-system compatible algorithms for performing this analysis are readily available.We developed the QTLseqr R package to allow for quick identification of genomic regions associated with traits of interest by combining two methods for bulk segregant analysis, $G'$ and $\Delta SNP\text{-}index$, described by Magwene et al. (2011) and Tagaki et al. (2013), respectively.Plotting of data is implemented in ggplot2 which allows for high-quality and customizable figures. QTLseqr package  version `r packageVersion("QTLseqr")` 
+  Originally developed in the early 1990’s, Bulk Segregant Analysis (BSA) has since been an extremely useful tool for rapidly identifying markers in a genomic region associated with a trait of interest. QTL-seq is a relatively new and rapid way for performing bulk segregant analysis using next-generation sequencing data. However, no easy-to-use and multi-system compatible algorithms for performing this analysis are readily available.We developed the QTLseqr R package to allow for quick identification of genomic regions associated with traits of interest by combining two methods for bulk segregant analysis, $G'$ and $\Delta SNP\text{-}index$, described by Magwene et al. (2011) and Tagaki et al. (2013), respectively. Plotting of data is implemented in ggplot2 which allows for high-quality and customizable figures. QTLseqr package  version `r packageVersion("QTLseqr")` 
 vignette: >
   %\VignetteIndexEntry{Next-generation sequencing bulk segregant analysis with QTLseqr}
   %\VignetteEngine{knitr::rmarkdown}
@@ -41,6 +41,7 @@ library("QTLseqr")
 HighBulk <- "SRR834931"
 LowBulk <- "SRR834927"
 file <- "SNPs_from_GATK.table"
+
 #Choose which chromosomes will be included in the analysis (i.e. exclude smaller contigs)
 Chroms <- paste0(rep("Chr", 12), 1:12)
 
@@ -56,7 +57,7 @@ df <-
 #Filter SNPs based on some criteria
 df_filt <-
     filterSNPs(
-        df,
+        SNPset = df,
         refAlleleFreq = 0.20,
         minTotalDepth = 100,
         maxTotalDepth = 400,
@@ -67,14 +68,18 @@ df_filt <-
 
 #Run G' analysis
 df_filt <- runGprimeAnalysis(
-    df_filt,
+    SNPset = df_filt,
     windowSize = 1e6,
     outlierFilter = "deltaSNP")
 
 #Plot
-plotQTLStats(df_filt, var = "deltaSNP", plotThreshold = TRUE, q = 0.01)
-plotQTLStats(df_filt, var = "Gprime", plotThreshold = TRUE, q = 0.01)
+plotQTLStats(SNPset = df_filt, var = "deltaSNP", plotThreshold = TRUE, q = 0.01)
+plotQTLStats(SNPset = df_filt, var = "Gprime", plotThreshold = TRUE, q = 0.01)
+
+#export summary CSV
+getQTLTable(SNPset = df_filt, alpha = 0.01, export = TRUE, fileName = "my_BSA_QTL.csv")
 ```
+
 
 ## Input data
 
@@ -336,7 +341,7 @@ p3
 Great! It looks like there are QTL identified on Chromosomes 1, 2, 5, 8 and 10.
 Based on the $\Delta SNP\text{-}index$ and $G'$ plots the QTL from Chr1 originates from the reference parent (Nipponbare rice, in this case) and the QTL on Chr8 was contributed by the other parent, for example.
 
-We can also use the `plotQTLStats` function to the $-log_{10}(p\text{-}value)$. While this number is a direct dirivitive of $G'$ it can be more self explanitory for some. We can use the subset paramater to plot one or a few of the chomosomes, say for a close up figure of a QTL of interest.
+We can also use the `plotQTLStats` function to the $-log_{10}(p\text{-}value)$. While this number is a direct dirivitive of $G'$ it can be more self explanitory for some. We can use the subset paramater to plot one or a few of the chomosomes, say for a close up figure of a QTL of interest. Here we look at the $-log_{10}(p\text{-}value)$ plots of Chromosomes 1 and 8:
 
 ```{r subsetlogpval, fig.align="center", fig.width=6, fig.height=4}
 QTLplots <- plotQTLStats(SNPset = df_filt, var = "negLog10Pval", plotThreshold = TRUE, q = 0.01, subset = c("Chr1", "Chr8"))
@@ -347,6 +352,7 @@ QTLplots
 
 Now that we've plotted and identified some putative QTL we can extract the data using two functions `getSigRegions` and `getQTLTable`.
 
+### Extracting significant regions
 The `getSigRegions` function will produce a list in which each element represents a QTL region. The elements are subseted from the orignal data frame you supplied. Any contiguous region above with an adjusted p-value above the set alpha will be returned. If there is a dip below the alpha this region will be split to two elements. 
 
 Let's examine the `head` of the first QTL:
@@ -354,3 +360,29 @@ Let's examine the `head` of the first QTL:
 QTL <- getSigRegions(SNPset = df_filt, alpha = 0.01)
 head(QTL[[1]])
 ```
+
+### Output QTL summary
+
+While `getSigRegions` is useful for examining every SNP within each QTL and perhaps for some downstream analysis, the `getQTLTable` will summarize those results and can output a CSV by setting `export = TRUE` and `fileName = "MyQTLsummary.csv"`.
+
+Here is the summary for significant regions with a FDR of 0.01:
+```{r QTLtable}
+results <- getQTLTable(SNPset = df_filt, alpha = 0.01, export = FALSE)
+results
+```
+
+The columns are:
+
+* Chromosome - The chromosome on which the region was identified
+* start - the start position on that chromosome, i.e. the position of the first SNP that passes the FDR threshold
+* end - the end position
+* length - the length in basepairs from start to end of the region
+* nSNPs - the number of SNPs in the region
+* avgSNPs_Mb - the average number of SNPs/Mb within that region
+* meanGprime - the average $G'$ score of that region
+* sdGprime - the standard deviation of $G'$ within the region
+* AUCaT - the **A**rea **U**nder the **C**urve but **a**bove the **T**hreshold line, an indicator of how significant the peak is
+* meanPval - the average p-value in the region
+* meanQval - the average adjusted p-value in the region
+
+
