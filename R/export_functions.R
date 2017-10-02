@@ -4,6 +4,9 @@
 #' containing all SNPs with q-values below a set alpha. Each entry in the list
 #' is a SNP set data frame in a contiguous region with
 #'
+#' @param SNPset
+#' @param alpha
+#'
 #' @export getSigRegions
 
 getSigRegions <- function(SNPset, alpha = 0.05)
@@ -21,7 +24,7 @@ getSigRegions <- function(SNPset, alpha = 0.05)
             
             for (i in 1:S4Vectors::nrun(runs)) {
                 SigRegions[[length(SigRegions) + 1]] <- if (runvals[i]) {
-                    chr[starts[i]:ends[i], ]
+                    chr[starts[i]:ends[i],]
                 }
             }
         }
@@ -45,7 +48,10 @@ getSigRegions <- function(SNPset, alpha = 0.05)
 #' @return
 #' @export getQTLTable
 #'
+#'
+#' @importFrom dplyr %>%
 #' @examples
+
 getQTLTable <-
     function(SNPset,
         alpha = 0.05,
@@ -55,24 +61,27 @@ getQTLTable <-
         QTL <- getSigRegions(SNPset = SNPset, alpha = alpha)
         fdrT <- getFDRThreshold(SNPset$pvalue, alpha = alpha)
         GprimeT <- SNPset[which(SNPset$pvalue == fdrT), "Gprime"]
-        table <- as.data.frame(t(
-            sapply(
-                X = QTL,
-                FUN = dplyr::summarise,
-                Chromosome = unique(as.character(CHROM)),
-                start = min(POS),
-                end = max(POS),
-                length = max(POS) - min(POS),
-                nSNPs = length(POS),
-                avgSNPs_Mb = round(length(POS) / (max(POS) - min(POS)) * 1e6),
-                meanGprime = mean(Gprime),
-                sdGprime = sd(Gprime),
-                AUCaT = sum(diff(POS) * (((head(Gprime,-1) + tail(Gprime,-1)) / 2
-                ) - GprimeT)),
-                meanPval = mean(pvalue),
-                meanQval = mean(qvalue)
-            )
-        ))
+        merged_QTL <- dplyr::bind_rows(QTL, .id = "id")
+        table <- as.data.frame(
+            merged_QTL %>%
+                dplyr::group_by(id) %>%
+                dplyr::summarise(
+                    Chromosome = unique(as.character(CHROM)),
+                    start = min(POS),
+                    end = max(POS),
+                    length = max(POS) - min(POS),
+                    nSNPs = length(POS),
+                    avgSNPs_Mb = round(length(POS) / (max(POS) - min(POS)) * 1e6),
+                    meanGprime = mean(Gprime),
+                    sdGprime = sd(Gprime),
+                    AUCaT = sum(diff(POS) * (((head(Gprime, -1) + tail(Gprime, -1)) / 2
+                    ) - GprimeT)),
+                    meanPval = mean(pvalue),
+                    meanQval = mean(qvalue)
+                )
+        )
+        
+        
         if (export) {
             write.csv(file = fileName,
                 x = table,
