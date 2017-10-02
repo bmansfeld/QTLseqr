@@ -194,7 +194,7 @@ getFDRThreshold <- function(pvalues, alpha = 0.01)
 #'   plotting} \item{qvalue - the Benajamini-Hochberg adjusted p-value}}
 #'   
 #' 
-#' @importFrom magrittr %>%
+#' @importFrom dplyr %>%
 #'    
 #' @export runGprimeAnalysis
 #'   
