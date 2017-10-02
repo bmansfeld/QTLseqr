@@ -6,6 +6,9 @@
 \usage{
 getSigRegions(SNPset, alpha = 0.05)
 }
+\arguments{
+\item{alpha}{}
+}
 \description{
 The function takes a SNP set after calculation of p- and q-values and returns a list
 containing all SNPs with q-values below a set alpha. Each entry in the list
