@@ -43,22 +43,22 @@ getG <- function(LowRef, HighRef, LowAlt, HighAlt)
 #' Calculate tricube weighted statistics for each SNP
 #' 
 #' Uses local regression (wrapper for \code{\link[locfit]{locfit}}) to predict a 
-#' tricube smoothed version of the G statistc for each SNP. This works as a
+#' tricube smoothed version of the statistic supplied for each SNP. This works as a
 #' weighted average across neighboring SNPs that accounts for Linkage
-#' disequilibrium (LD) while minizing noise attributed to SNP calling errors. G
-#' values for neighboring SNPs within the window are weighted by physical
+#' disequilibrium (LD) while minizing noise attributed to SNP calling errors.
+#' Values for neighboring SNPs within the window are weighted by physical
 #' distance from the focal SNP.
 #' 
-#' @return Returns a vector of the weighted G statistic caluculted with a
+#' @return Returns a vector of the weighted statistic caluculted with a
 #'   tricube smoothing kernel
 #'   
 #' @param POS A vector of genomic positions for each SNP
-#' @param GStat A vector of G statistics for each SNP
+#' @param Stat A vector of values for a given statistic for each SNP
 #' @param WinSize the window size (in base pairs) bracketing each SNP for which 
 #'   to calculate the statitics. Magwene et. al recommend a window size of ~25 
 #'   cM, but also recommend optionally trying several window sizes to test if 
 #'   peaks are over- or undersmoothed.
-#' @examples df_filt_4mb$Gprime <- tricubeGStat(POS, GStat, WinSize = 4e6)
+#' @examples df_filt_4mb$Gprime <- tricubeStat(POS, Stat = GStat, WinSize = 4e6)
 #' @seealso \code{\link{getG}} for G statistic calculation
 #' @seealso \code{\link[locfit]{locfit}} for local regression
 
@@ -79,7 +79,7 @@ tricubeStat <- function(POS, Stat, windowSize = 2e6)
 #' absolute deviation (MAD) is calculated. The Gprime set is trimmed to exclude 
 #' outlier regions (i.e. QTL) based on Hampel's rule. An alternate method for
 #' filtering out QTL is proposed using absolute delta SNP indeces greater than
-#' 0.1 to filter out potential QTL.An estimation of the mode of the trimmed set
+#' a set threshold to filter out potential QTL. An estimation of the mode of the trimmed set
 #' is calculated using the \code{\link[modeest]{mlv}} function from the package
 #' modeest. Finally, the mean and variance of the set are estimated using the
 #' median and mode and p-values are estimated from a log normal distribution.
@@ -88,12 +88,13 @@ tricubeStat <- function(POS, Stat, windowSize = 2e6)
 #' @param deltaSNP a vector of delta SNP values for use for QTL region filtering
 #' @param outlierFilter one of either "deltaSNP" or "Hampel". Method for 
 #'   filtering outlier (ie QTL) regions for p-value estimation
+#' @param filterThreshold The absolute delta SNP index to use to filter out putative QTL
 #'   
 
-getPvals <- function(Gprime, deltaSNP = NULL, outlierFilter = c("deltaSNP", "Hampel"))
+getPvals <- function(Gprime, deltaSNP = NULL, outlierFilter = c("deltaSNP", "Hampel"), filterThreshold)
 {
     if(outlierFilter == "deltaSNP") {
-        trimGprime <- Gprime[abs(deltaSNP) < 0.1]
+        trimGprime <- Gprime[abs(deltaSNP) < filterThreshold]
     } else {
         lnGprime <- log(Gprime)
         
@@ -128,9 +129,13 @@ getPvals <- function(Gprime, deltaSNP = NULL, outlierFilter = c("deltaSNP", "Ham
 
 
 #' Find false discovery rate threshold
+#' 
+#' Given a vector of p-values and a set false discovery rate alpha the function 
+#' returns the lowest p-value in the vector for which the Benjamini-Hochberg 
+#' adjusted p-value (ie q-value) is less than that alpha. 
 #'
-#' @param pvalues 
-#' @param alpha 
+#' @param pvalues a vector of p-values
+#' @param alpha the required false discovery rate alpha
 #'
 #' @return The p-value threshold that corresponds to the Benjamini-Hochberg adjusted p-value at the FDR set by alpha.
 #' 
@@ -185,7 +190,8 @@ getFDRThreshold <- function(pvalues, alpha = 0.01)
 #'   peaks are over- or undersmoothed.
 #' @param outlierFilter one of either "deltaSNP" or "Hampel". Method for 
 #'   filtering outlier (ie QTL) regions for p-value estimation
-#'   
+#' @param filterThreshold The absolute delta SNP index to use to filter out putative QTL (default = 0.1)
+#'    
 #' @return The supplied SNP set tibble after G' analysis. Includes five new 
 #'   columns: \itemize{\item{G - The G statistic for each SNP} \item{Gprime - 
 #'   The tricube smoothed G statistic based on the supplied window size} 
@@ -206,7 +212,8 @@ getFDRThreshold <- function(pvalues, alpha = 0.01)
 runGprimeAnalysis <-
     function(SNPset,
         windowSize = 1e6,
-        outlierFilter = "deltaSNP")
+        outlierFilter = "deltaSNP",
+        filterThreshold = 0.1)
     {
         message("Counting SNPs in each window...")
         SNPset <- SNPset %>%
@@ -237,7 +244,8 @@ runGprimeAnalysis <-
                 pvalue = getPvals(
                     Gprime = Gprime,
                     deltaSNP = deltaSNP,
-                    outlierFilter = outlierFilter
+                    outlierFilter = outlierFilter,
+                    filterThreshold = filterThreshold
                 ),
                 negLog10Pval = -log10(pvalue),
                 qvalue = p.adjust(p = pvalue, method = "BH")
