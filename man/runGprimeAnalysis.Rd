@@ -4,7 +4,8 @@
 \alias{runGprimeAnalysis}
 \title{Identify QTL using a smoothed G statistic}
 \usage{
-runGprimeAnalysis(SNPset, windowSize = 1e+06, outlierFilter = "deltaSNP")
+runGprimeAnalysis(SNPset, windowSize = 1e+06, outlierFilter = "deltaSNP",
+  filterThreshold = 0.1)
 }
 \arguments{
 \item{SNPset}{Data frame SNP set containing previously filtered SNPs}
@@ -16,6 +17,8 @@ peaks are over- or undersmoothed.}
 
 \item{outlierFilter}{one of either "deltaSNP" or "Hampel". Method for 
 filtering outlier (ie QTL) regions for p-value estimation}
+
+\item{filterThreshold}{The absolute delta SNP index to use to filter out putative QTL (default = 0.1)}
 }
 \value{
 The supplied SNP set tibble after G' analysis. Includes five new 

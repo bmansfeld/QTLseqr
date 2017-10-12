@@ -198,7 +198,7 @@ ggplot(data = df) +
 ```
 
 ### Using the filterSNPs function
-Now that we have an idea about our read depth distribution we can filter out low confidence SNPS. In general we recommend filtering extremely low and high coverage SNPs, either in both bulks (`minTotalDepth/maxTotalDepth`) or in each bulk separately (`minSampleDepth`). We have the option to filter based on reference allele frequency (`refAlleleFreq`), this removes SNPs that for some reason are over- or under-represented in *BOTH* bulks. We can also use the GATK GQ score (Genotype Quality) to filter out low confidence SNPs. If the `verbose` paramater is set to `TRUE` (default) the function will report the numbers of SNPs filtered in each step.
+Now that we have an idea about our read depth distribution we can filter out low confidence SNPS. In general we recommend filtering extremely low and high coverage SNPs, either in both bulks (`minTotalDepth/maxTotalDepth`) and/or in each bulk separately (`minSampleDepth`). We have the option to filter based on reference allele frequency (`refAlleleFreq`), this removes SNPs that for some reason are over- or under-represented in *BOTH* bulks. We can also use the GATK GQ score (Genotype Quality) to filter out low confidence SNPs. If the `verbose` paramater is set to `TRUE` (default) the function will report the numbers of SNPs filtered in each step.
 ```{r filtSNPs-source, eval = FALSE, message = FALSE}
 df_filt <-
     filterSNPs(
@@ -266,7 +266,7 @@ $$
 
 1. G' - A tricube-smoothed G statistic is predicted by constant local regression within each chromosome using the `tricubeStat` function. This works as a weighted average across neighboring SNPs that accounts for Linkage disequilibrium (LD) while minizing noise attributed to SNP calling errors. G values for neighboring SNPs within the window are weighted by physical distance from the focal SNP. 
 
-1. P-values are estimated based using the non-parametric method described by Magwene et al. 2011 with the function `getPvals`. Breifly, using the natural log of $G'$ a median absolute deviation (MAD) is calculated. The $G'$ set is trimmed to exclude outlier regions (i.e. QTL) based on Hampel's rule. An alternate method for filtering out QTL that we propose is using absolute $\Delta SNP\text{-}index$ values greater than 0.1 to filter out potential QTL. An estimation of the mode of the trimmed set is calculated using the `mlv` function from the package modeest. Finally, the mean and variance of the set are estimated using the median and mode and p-values are estimated from a log normal distribution. 
+1. P-values are estimated based using the non-parametric method described by Magwene et al. 2011 with the function `getPvals`. Breifly, using the natural log of $G'$ a median absolute deviation (MAD) is calculated. The $G'$ set is trimmed to exclude outlier regions (i.e. QTL) based on Hampel's rule. An alternate method for filtering out QTL that we propose is using absolute $\Delta SNP\text{-}index$ values greater than a set threshold (default = 0.1) to filter out potential QTL. An estimation of the mode of the trimmed set is calculated using the `mlv` function from the package modeest. Finally, the mean and variance of the set are estimated using the median and mode and p-values are estimated from a log normal distribution. 
 
 1. Negative Log10- and Benjamini-Hochberg adjusted p-values are calculated using `p.adjust`.
 
@@ -275,12 +275,14 @@ Let's run the function:
 ```{r gprimeanalysis-src, eval = FALSE}
 df_filt <- runGprimeAnalysis(df_filt,
     windowSize = 1e6,
-    outlierFilter = "deltaSNP")
+    outlierFilter = "deltaSNP",
+    filterThreshold = 0.1)
 ```
 ```{r gprimeanalysis-msg, message = TRUE, warning = FALSE, collapse = TRUE, echo = FALSE}
 df_filt <- runGprimeAnalysis(df_filt,
     windowSize = 1e6,
-    outlierFilter = "deltaSNP")
+    outlierFilter = "deltaSNP",
+    filterTheshold = 0.1)
 ```
 As this is window is using a tricube-smoothing kernel the window size *can* be much larger than you might expect. We however choose a window size of 1Mb for the sliding window analysis, for a discussion about window size we recommend reading Magwene et al. (2011). In general larger windows will produced smoother data. The functions making these calculations are rather fast, so we recommend testing several window sizes for your data, and deciding on the optimal size.
 
@@ -385,4 +387,6 @@ The columns are:
 * meanPval - the average p-value in the region
 * meanQval - the average adjusted p-value in the region
 
+## Summary
 
+We've reviewed how to load SNP data 

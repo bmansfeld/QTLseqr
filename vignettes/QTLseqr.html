@@ -11,7 +11,7 @@
 
 <meta name="author" content="Ben N. Mansfeld and Rebecca Grumet" />
 
-<meta name="date" content="2017-09-28" />
+<meta name="date" content="2017-10-11" />
 
 <title>Next-generation sequencing bulk segregant analysis with QTLseqr</title>
 
@@ -157,7 +157,7 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">Next-generation sequencing bulk segregant analysis with QTLseqr</h1>
 <h4 class="author"><em>Ben N. Mansfeld and Rebecca Grumet</em></h4>
-<h4 class="date"><em>2017-09-28</em></h4>
+<h4 class="date"><em>2017-10-11</em></h4>
 <div class="abstract">
 <p class="abstract">Abstract</p>
 <p>Originally developed in the early 1990’s, Bulk Segregant Analysis (BSA) has since been an extremely useful tool for rapidly identifying markers in a genomic region associated with a trait of interest. QTL-seq is a relatively new and rapid way for performing bulk segregant analysis using next-generation sequencing data. However, no easy-to-use and multi-system compatible algorithms for performing this analysis are readily available.We developed the QTLseqr R package to allow for quick identification of genomic regions associated with traits of interest by combining two methods for bulk segregant analysis, <span class="math inline">\(G'\)</span> and <span class="math inline">\(\Delta SNP\text{-}index\)</span>, described by Magwene et al. (2011) and Tagaki et al. (2013), respectively. Plotting of data is implemented in ggplot2 which allows for high-quality and customizable figures. QTLseqr package version 0.3.0</p>
@@ -187,6 +187,7 @@ $(document).ready(function () {
 <li><a href="#extracting-significant-regions">Extracting significant regions</a></li>
 <li><a href="#output-qtl-summary">Output QTL summary</a></li>
 </ul></li>
+<li><a href="#summary">Summary</a></li>
 </ul></li>
 </ul>
 </div>
@@ -396,7 +397,7 @@ df &lt;-
 </div>
 <div id="using-the-filtersnps-function" class="section level3">
 <h3>Using the filterSNPs function</h3>
-<p>Now that we have an idea about our read depth distribution we can filter out low confidence SNPS. In general we recommend filtering extremely low and high coverage SNPs, either in both bulks (<code>minTotalDepth/maxTotalDepth</code>) or in each bulk separately (<code>minSampleDepth</code>). We have the option to filter based on reference allele frequency (<code>refAlleleFreq</code>), this removes SNPs that for some reason are over- or under-represented in <em>BOTH</em> bulks. We can also use the GATK GQ score (Genotype Quality) to filter out low confidence SNPs. If the <code>verbose</code> paramater is set to <code>TRUE</code> (default) the function will report the numbers of SNPs filtered in each step.</p>
+<p>Now that we have an idea about our read depth distribution we can filter out low confidence SNPS. In general we recommend filtering extremely low and high coverage SNPs, either in both bulks (<code>minTotalDepth/maxTotalDepth</code>) and/or in each bulk separately (<code>minSampleDepth</code>). We have the option to filter based on reference allele frequency (<code>refAlleleFreq</code>), this removes SNPs that for some reason are over- or under-represented in <em>BOTH</em> bulks. We can also use the GATK GQ score (Genotype Quality) to filter out low confidence SNPs. If the <code>verbose</code> paramater is set to <code>TRUE</code> (default) the function will report the numbers of SNPs filtered in each step.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df_filt &lt;-
 <span class="st">    </span><span class="kw">filterSNPs</span>(
         <span class="dt">SNPset =</span> df,
@@ -594,16 +595,16 @@ QTLplots</code></pre></div>
 <p>Here is the summary for significant regions with a FDR of 0.01:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">results &lt;-<span class="st"> </span><span class="kw">getQTLTable</span>(<span class="dt">SNPset =</span> df_filt, <span class="dt">alpha =</span> <span class="fl">0.01</span>, <span class="dt">export =</span> <span class="ot">FALSE</span>)
 results</code></pre></div>
-<pre><code>##   Chromosome    start      end  length nSNPs avgSNPs_Mb meanGprime
-## 1       Chr1 25842439 34556923 8714484 20263       2325   21.29574
-## 2       Chr2  9575918 19411590 9835672 24267       2467   16.44684
-## 3       Chr8 17427057 27196250 9769193 20529       2101   18.89438
-## 4      Chr10 18619373 19792840 1173467  3590       3059    14.6847
-##    sdGprime    AUCaT     meanPval    meanQval
-## 1  2.676885 60704186 0.0002362947 0.005050808
-## 2 0.6348595 22256830 0.0006525797 0.007346565
-## 3  4.636893 46533829 0.0005309317  0.00660607
-## 4 0.2098474 577793.3  0.001125822 0.008877309</code></pre>
+<pre><code>##   id Chromosome    start      end  length nSNPs avgSNPs_Mb meanGprime
+## 1  1       Chr1 25842439 34556923 8714484 20263       2325   21.29574
+## 2  2       Chr2  9575918 19411590 9835672 24267       2467   16.44684
+## 3  3       Chr8 17427057 27196250 9769193 20529       2101   18.89438
+## 4  4      Chr10 18619373 19792840 1173467  3590       3059   14.68470
+##    sdGprime      AUCaT     meanPval    meanQval
+## 1 2.6768852 60704185.7 0.0002362947 0.005050808
+## 2 0.6348595 22256829.6 0.0006525797 0.007346565
+## 3 4.6368929 46533829.4 0.0005309317 0.006606070
+## 4 0.2098474   577793.3 0.0011258224 0.008877309</code></pre>
 <p>The columns are:</p>
 <ul>
 <li>Chromosome - The chromosome on which the region was identified</li>
@@ -619,6 +620,10 @@ results</code></pre></div>
 <li>meanQval - the average adjusted p-value in the region</li>
 </ul>
 </div>
+</div>
+<div id="summary" class="section level2">
+<h2>Summary</h2>
+<p>We’ve reviewed how to load SNP data</p>
 </div>
 </div>
 
