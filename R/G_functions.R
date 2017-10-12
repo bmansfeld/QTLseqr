@@ -159,7 +159,11 @@ getFDRThreshold <- function(pvalues, alpha = 0.01)
 {
     sortedPvals <- sort(pvalues, decreasing = FALSE)
     pAdj <- p.adjust(sortedPvals, method = "BH")
-    fdrThreshold <- pVals[max(which(pAdj < alpha))]
+    if (!any(sortedPvals < alpha)) {
+        fdrThreshold <- NA
+    } else {
+    fdrThreshold <- sortedPvals[max(which(sortedPvals < alpha))]
+    }
     return(fdrThreshold)
 }
 
