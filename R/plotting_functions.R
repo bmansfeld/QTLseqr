@@ -200,7 +200,7 @@ plotGprimeDist <-
                 fun = dlnorm,
                 size = 1,
                 args = c(meanlog = muE, sdlog = sqrt(varE)),
-                aes(
+                ggplot2::aes(
                     color = paste0(
                         "Null distribution \n G' ~ lnN(",
                         round(muE, 2),
