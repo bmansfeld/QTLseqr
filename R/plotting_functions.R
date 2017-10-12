@@ -73,11 +73,11 @@ plotQTLStats <-
             if (is.null(subset)) {
                 SNPset
             } else {
-                SNPset[SNPset$CHROM %in% subset, ]
+                SNPset[SNPset$CHROM %in% subset,]
             }
         
         p <- ggplot2::ggplot(data = SNPset) +
-            ggplot2::facet_grid( ~ CHROM, scales = "free_x") +
+            ggplot2::facet_grid(~ CHROM, scales = "free_x") +
             ggplot2::scale_x_continuous(labels = format_genomic(), name = "Genomic Position (Mb)") +
             ggplot2::theme(plot.margin = ggplot2::margin(
                 b = 10,
@@ -117,7 +117,8 @@ plotQTLStats <-
         }
         
         if (!line) {
-            p <- p + ggplot2::geom_point(ggplot2::aes_string(x = "POS", y = var), ...)
+            p <-
+                p + ggplot2::geom_point(ggplot2::aes_string(x = "POS", y = var), ...)
         }
         
         if (plotThreshold == TRUE)
@@ -140,9 +141,10 @@ plotQTLStats <-
 #'
 #' @param SNPset a data frame with SNPs and genotype fields as imported by
 #'   \code{ImportFromGATK} and after running \code{GetPrimeStats}
-#' @param outlierFilter one of either "deltaSNP" or "Hampel". Method for 
+#' @param outlierFilter one of either "deltaSNP" or "Hampel". Method for
 #'   filtering outlier (ie QTL) regions for p-value estimation
-#'   
+#' @param filterThreshold The absolute delta SNP index to use to filter out putative QTL (default = 0.1)
+#'
 #' @return Plots a ggplot density estimate of the G' value distribution. It will then
 #' overlay an estimated log normal distribution with the same mean and variance
 #' as the null G' distribution. This will allow to verify if after filtering your G'
@@ -160,46 +162,57 @@ plotQTLStats <-
 #' @seealso \code{\link{GetPvals}} for how p-values are calculated.
 #' @export plotGprimeDist
 
-plotGprimeDist <- function(SNPset, outlierFilter = c("deltaSNP", "Hampel"))
-{
-    if(outlierFilter == "deltaSNP") {
-        trimGprime <- SNPset$Gprime[abs(SNPset$deltaSNP) < 0.1]
-    } else {
-    # Non-parametric estimation of the null distribution of G'
-    
-    lnGprime <- log(SNPset$Gprime)
-    
-    # calculate left median absolute deviation for the trimmed G' prime set
-    MAD <-
-        median(abs(lnGprime[lnGprime <= median(lnGprime)] - median(lnGprime)))
-    
-    # Trim the G prime set to exclude outlier regions (i.e. QTL) using Hampel's rule
-    trimGprime <-
-        SNPset$Gprime[lnGprime - median(lnGprime) <= 5.2 * median(MAD)]
-    }
-    medianTrimGprime <- median(trimGprime)
-    
-    # estimate the mode of the trimmed G' prime set using the half-sample method
-    modeTrimGprime <-
-        modeest::mlv(x = trimGprime, bw = 0.5, method = "hsm")$M
-    
-    muE <- log(medianTrimGprime)
-    varE <- abs(muE - log(modeTrimGprime))
-    
-    #plot Gprime distrubtion
-    p <- ggplot2::ggplot(SNPset) +
-        ggplot2::xlim(0, max(SNPset$Gprime) + 1) +
-        ggplot2::xlab("G' value") +
-        ggplot2::geom_density(ggplot2::aes(x = Gprime, color = "Data")) +
-        ggplot2::stat_function(
-            fun = dlnorm,
-            size = 1,
-            args = c(meanlog = muE, sdlog = sqrt(varE)),
-            aes(color = paste0("Null distribution \n G' ~ lnN(", round(muE, 2), ",",round(varE, 2), ")"))
-        ) +
-        ggplot2::scale_colour_manual("Distribution", values = c("black", "blue"))# +
-        #ggplot2::annotate(x = 10, y = 0.325, geom="text",  
+plotGprimeDist <-
+    function(SNPset,
+        outlierFilter = c("deltaSNP", "Hampel"),
+        filterThreshold = 0.1)
+    {
+        if (outlierFilter == "deltaSNP") {
+            trimGprime <- SNPset$Gprime[abs(SNPset$deltaSNP) < filterThreshold]
+        } else {
+            # Non-parametric estimation of the null distribution of G'
+            
+            lnGprime <- log(SNPset$Gprime)
+            
+            # calculate left median absolute deviation for the trimmed G' prime set
+            MAD <-
+                median(abs(lnGprime[lnGprime <= median(lnGprime)] - median(lnGprime)))
+            
+            # Trim the G prime set to exclude outlier regions (i.e. QTL) using Hampel's rule
+            trimGprime <-
+                SNPset$Gprime[lnGprime - median(lnGprime) <= 5.2 * median(MAD)]
+        }
+        medianTrimGprime <- median(trimGprime)
+        
+        # estimate the mode of the trimmed G' prime set using the half-sample method
+        modeTrimGprime <-
+            modeest::mlv(x = trimGprime, bw = 0.5, method = "hsm")$M
+        
+        muE <- log(medianTrimGprime)
+        varE <- abs(muE - log(modeTrimGprime))
+        
+        #plot Gprime distrubtion
+        p <- ggplot2::ggplot(SNPset) +
+            ggplot2::xlim(0, max(SNPset$Gprime) + 1) +
+            ggplot2::xlab("G' value") +
+            ggplot2::geom_density(ggplot2::aes(x = Gprime, color = "Data")) +
+            ggplot2::stat_function(
+                fun = dlnorm,
+                size = 1,
+                args = c(meanlog = muE, sdlog = sqrt(varE)),
+                aes(
+                    color = paste0(
+                        "Null distribution \n G' ~ lnN(",
+                        round(muE, 2),
+                        ",",
+                        round(varE, 2),
+                        ")"
+                    )
+                )
+            ) +
+            ggplot2::scale_colour_manual("Distribution", values = c("black", "blue"))# +
+        #ggplot2::annotate(x = 10, y = 0.325, geom="text",
         #    label = paste0("G' ~ lnN(", round(muE, 2), ",",round(varE, 2), ")"),
         #    color = "blue")
-    return(p)
-}
+        return(p)
+    }
