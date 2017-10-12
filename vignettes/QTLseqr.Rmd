@@ -282,7 +282,7 @@ df_filt <- runGprimeAnalysis(df_filt,
 df_filt <- runGprimeAnalysis(df_filt,
     windowSize = 1e6,
     outlierFilter = "deltaSNP",
-    filterTheshold = 0.1)
+    filterThreshold = 0.1)
 ```
 As this is window is using a tricube-smoothing kernel the window size *can* be much larger than you might expect. We however choose a window size of 1Mb for the sliding window analysis, for a discussion about window size we recommend reading Magwene et al. (2011). In general larger windows will produced smoother data. The functions making these calculations are rather fast, so we recommend testing several window sizes for your data, and deciding on the optimal size.
 
@@ -313,7 +313,7 @@ plotGprimeDist(SNPset = df_filt, outlierFilter = "Hampel")
 ```
 
 ```{r gprimedist deltaSNP, message=FALSE, warning = FALSE, fig.align = "center", fig.height=4}
-plotGprimeDist(SNPset =df_filt, outlierFilter = "deltaSNP")
+plotGprimeDist(SNPset =df_filt, outlierFilter = "deltaSNP", filterThreshold = 0.1)
 ```
 
 ### QTL analysis plots
@@ -389,4 +389,4 @@ The columns are:
 
 ## Summary
 
-We've reviewed how to load SNP data 
+We've reviewed how to load SNP data from GATK and filter the data to contain high confidence SNPs. We then performed $\Delta SNP\text{-}index$ and $G'$ analysis and calculate p-values and q-values based on the tricube-smoothed $G'$ values. The QTL regions that pass our defined threshold can be stored as a list for further analysis or summarized as a table for publication.
