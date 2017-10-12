@@ -106,7 +106,7 @@ getPvals <-
                 stop("filterThreshold should be less than 0.5")
             }
             
-            message("Using deltaSNP-index to filter outlier regions with a thershold of ", filterThreshold)
+            message("Using deltaSNP-index to filter outlier regions with a threshold of ", filterThreshold)
             trimGprime <- Gprime[abs(deltaSNP) < abs(filterThreshold)]
         } else {
             message("Using Hampel's rule to filter outlier regions")
