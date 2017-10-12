@@ -7,13 +7,15 @@
 getFDRThreshold(pvalues, alpha = 0.01)
 }
 \arguments{
-\item{pvalues}{}
+\item{pvalues}{a vector of p-values}
 
-\item{alpha}{}
+\item{alpha}{the required false discovery rate alpha}
 }
 \value{
 The p-value threshold that corresponds to the Benjamini-Hochberg adjusted p-value at the FDR set by alpha.
 }
 \description{
-Find false discovery rate threshold
+Given a vector of p-values and a set false discovery rate alpha the function 
+returns the lowest p-value in the vector for which the Benjamini-Hochberg 
+adjusted p-value (ie q-value) is less than that alpha.
 }

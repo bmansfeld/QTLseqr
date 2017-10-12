@@ -4,7 +4,8 @@
 \alias{getPvals}
 \title{Non-parametric estimation of the null distribution of G'}
 \usage{
-getPvals(Gprime, deltaSNP = NULL, outlierFilter = c("deltaSNP", "Hampel"))
+getPvals(Gprime, deltaSNP = NULL, outlierFilter = c("deltaSNP", "Hampel"),
+  filterThreshold)
 }
 \arguments{
 \item{Gprime}{a vector of G prime values (tricube weighted G statistics)}
@@ -13,6 +14,8 @@ getPvals(Gprime, deltaSNP = NULL, outlierFilter = c("deltaSNP", "Hampel"))
 
 \item{outlierFilter}{one of either "deltaSNP" or "Hampel". Method for 
 filtering outlier (ie QTL) regions for p-value estimation}
+
+\item{filterThreshold}{The absolute delta SNP index to use to filter out putative QTL}
 }
 \description{
 The function is used by \code{\link{runGprimeAnalysis}} to estimate p-values for the
@@ -21,7 +24,7 @@ in Magwene et al. 2011. Breifly, using the natural log of Gprime a median
 absolute deviation (MAD) is calculated. The Gprime set is trimmed to exclude 
 outlier regions (i.e. QTL) based on Hampel's rule. An alternate method for
 filtering out QTL is proposed using absolute delta SNP indeces greater than
-0.1 to filter out potential QTL.An estimation of the mode of the trimmed set
+a set threshold to filter out potential QTL. An estimation of the mode of the trimmed set
 is calculated using the \code{\link[modeest]{mlv}} function from the package
 modeest. Finally, the mean and variance of the set are estimated using the
 median and mode and p-values are estimated from a log normal distribution.

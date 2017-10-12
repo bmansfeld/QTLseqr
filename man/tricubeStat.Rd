@@ -9,7 +9,7 @@ tricubeStat(POS, Stat, windowSize = 2e+06)
 \arguments{
 \item{POS}{A vector of genomic positions for each SNP}
 
-\item{GStat}{A vector of G statistics for each SNP}
+\item{Stat}{A vector of values for a given statistic for each SNP}
 
 \item{WinSize}{the window size (in base pairs) bracketing each SNP for which 
 to calculate the statitics. Magwene et. al recommend a window size of ~25 
@@ -17,19 +17,19 @@ cM, but also recommend optionally trying several window sizes to test if
 peaks are over- or undersmoothed.}
 }
 \value{
-Returns a vector of the weighted G statistic caluculted with a
+Returns a vector of the weighted statistic caluculted with a
   tricube smoothing kernel
 }
 \description{
 Uses local regression (wrapper for \code{\link[locfit]{locfit}}) to predict a 
-tricube smoothed version of the G statistc for each SNP. This works as a
+tricube smoothed version of the statistic supplied for each SNP. This works as a
 weighted average across neighboring SNPs that accounts for Linkage
-disequilibrium (LD) while minizing noise attributed to SNP calling errors. G
-values for neighboring SNPs within the window are weighted by physical
+disequilibrium (LD) while minizing noise attributed to SNP calling errors.
+Values for neighboring SNPs within the window are weighted by physical
 distance from the focal SNP.
 }
 \examples{
-df_filt_4mb$Gprime <- tricubeGStat(POS, GStat, WinSize = 4e6)
+df_filt_4mb$Gprime <- tricubeStat(POS, Stat = GStat, WinSize = 4e6)
 }
 \seealso{
 \code{\link{getG}} for G statistic calculation
