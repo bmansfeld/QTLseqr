@@ -99,9 +99,17 @@ getPvals <-
         outlierFilter = c("deltaSNP", "Hampel"),
         filterThreshold)
     {
+        
         if (outlierFilter == "deltaSNP") {
-            trimGprime <- Gprime[abs(deltaSNP) < filterThreshold]
+            
+            if (abs(filterThreshold) >= 0.5) {
+                stop("filterThreshold should be less than 0.5")
+            }
+            
+            message("Using deltaSNP-index to filter outlier regions with a thershold of ", filterThreshold)
+            trimGprime <- Gprime[abs(deltaSNP) < abs(filterThreshold)]
         } else {
+            message("Using Hampel's rule to filter outlier regions")
             lnGprime <- log(Gprime)
             
             medianLogGprime <- median(lnGprime)
@@ -149,8 +157,8 @@ getPvals <-
 
 getFDRThreshold <- function(pvalues, alpha = 0.01)
 {
-    pVals <- sort(pvalues, decreasing = FALSE)
-    pAdj <- p.adjust(pVals, method = "BH")
+    sortedPvals <- sort(pvalues, decreasing = FALSE)
+    pAdj <- p.adjust(sortedPvals, method = "BH")
     fdrThreshold <- pVals[max(which(pAdj < alpha))]
     return(fdrThreshold)
 }
