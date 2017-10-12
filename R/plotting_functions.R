@@ -41,15 +41,9 @@ plotQTLStats <-
         plotThreshold = FALSE,
         q = 0.05,
         ...) {
+        
         #get fdr threshold by ordering snps by pval then getting the last pval
         #with a qval < q
-        fdrT <- getFDRThreshold(SNPset$pvalue, alpha = q)
-        logFdrT <- -log10(fdrT)
-        GprimeT <- SNPset[which(SNPset$pvalue == fdrT), "Gprime"]
-        
-        if (length(fdrT) == 0) {
-            warning("The q threshold is too low. No line will be drawn")
-        }
         
         if (!all(subset %in% unique(SNPset$CHROM))) {
             whichnot <-
@@ -69,6 +63,24 @@ plotQTLStats <-
             message("FDR threshold is not plotted in deltaSNP or nSNPs plots")
             plotThreshold <- FALSE
         }
+        #if you need to plot threshold get the FDR, but check if there are any values that pass fdr
+        
+        GprimeT <- 0
+        logFdrT <- 0
+        
+        if (plotThreshold == TRUE) {
+            fdrT <- getFDRThreshold(SNPset$pvalue, alpha = q)
+            
+            if (is.na(fdrT)) {
+                warning("The q threshold is too low. No threshold line will be drawn")
+                plotThreshold <- FALSE
+                
+            } else {
+                logFdrT <- -log10(fdrT)
+                GprimeT <- SNPset[which(SNPset$pvalue == fdrT), "Gprime"]
+            }
+        }
+        
         SNPset <-
             if (is.null(subset)) {
                 SNPset
