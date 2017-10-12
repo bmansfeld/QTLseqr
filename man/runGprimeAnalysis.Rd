@@ -10,56 +10,56 @@ runGprimeAnalysis(SNPset, windowSize = 1e+06, outlierFilter = "deltaSNP",
 \arguments{
 \item{SNPset}{Data frame SNP set containing previously filtered SNPs}
 
-\item{windowSize}{the window size (in base pairs) bracketing each SNP for which 
-to calculate the statitics. Magwene et. al recommend a window size of ~25 
-cM, but also recommend optionally trying several window sizes to test if 
+\item{windowSize}{the window size (in base pairs) bracketing each SNP for which
+to calculate the statitics. Magwene et. al recommend a window size of ~25
+cM, but also recommend optionally trying several window sizes to test if
 peaks are over- or undersmoothed.}
 
-\item{outlierFilter}{one of either "deltaSNP" or "Hampel". Method for 
+\item{outlierFilter}{one of either "deltaSNP" or "Hampel". Method for
 filtering outlier (ie QTL) regions for p-value estimation}
 
 \item{filterThreshold}{The absolute delta SNP index to use to filter out putative QTL (default = 0.1)}
 }
 \value{
-The supplied SNP set tibble after G' analysis. Includes five new 
-  columns: \itemize{\item{G - The G statistic for each SNP} \item{Gprime - 
-  The tricube smoothed G statistic based on the supplied window size} 
-  \item{pvalue - the pvalue at each SNP calculatd by non-parametric 
-  estimation} \item{negLog10Pval - the -Log10(pvalue) supplied for quick 
+The supplied SNP set tibble after G' analysis. Includes five new
+  columns: \itemize{\item{G - The G statistic for each SNP} \item{Gprime -
+  The tricube smoothed G statistic based on the supplied window size}
+  \item{pvalue - the pvalue at each SNP calculatd by non-parametric
+  estimation} \item{negLog10Pval - the -Log10(pvalue) supplied for quick
   plotting} \item{qvalue - the Benajamini-Hochberg adjusted p-value}}
 }
 \description{
-A wrapper for all the functions that perform the full G prime analysis to 
-identify QTL. The following steps are performed:\cr 1) Genome-wide G 
-statistics are calculated by \code{\link{getG}}. \cr G is defined by the 
+A wrapper for all the functions that perform the full G prime analysis to
+identify QTL. The following steps are performed:\cr 1) Genome-wide G
+statistics are calculated by \code{\link{getG}}. \cr G is defined by the
 equation: \deqn{G = 2*\sum_{i=1}^{4} n_{i}*ln\frac{obs(n_i)}{exp(n_i)}}{G = 2
-* \sum n_i * ln(obs(n_i)/exp(n_i))} Where for each SNP, \eqn{n_i} from i = 1 
-to 4 corresponds to the reference and alternate allele depths for each bulk, 
-as described in the following table: \tabular{rcc}{ Allele \tab High Bulk 
-\tab Low Bulk \cr Reference \tab \eqn{n_1} \tab \eqn{n_2} \cr Alternate \tab 
-\eqn{n_3} \tab \eqn{n_4} \cr} ...and \eqn{obs(n_i)} are the observed allele 
-depths as described in the data frame. \code{\link{getG}} calculates the G statistic 
-using expected values assuming read depth is equal for all alleles in both 
-bulks: \deqn{exp(n_1) = ((n_1 + n_2)*(n_1 + n_3))/(n_1 + n_2 + n_3 + n_4)} 
-\deqn{exp(n_2) = ((n_2 + n_1)*(n_2 + n_4))/(n_1 + n_2 + n_3 + n_4)} 
-\deqn{exp(n_3) = ((n_3 + n_1)*(n_3 + n_4))/(n_1 + n_2 + n_3 + n_4)} 
-\deqn{exp(n_4) = ((n_4 + n_2)*(n_4 + n_3))/(n_1 + n_2 + n_3 + n_4)}\cr 2) G' 
+* \sum n_i * ln(obs(n_i)/exp(n_i))} Where for each SNP, \eqn{n_i} from i = 1
+to 4 corresponds to the reference and alternate allele depths for each bulk,
+as described in the following table: \tabular{rcc}{ Allele \tab High Bulk
+\tab Low Bulk \cr Reference \tab \eqn{n_1} \tab \eqn{n_2} \cr Alternate \tab
+\eqn{n_3} \tab \eqn{n_4} \cr} ...and \eqn{obs(n_i)} are the observed allele
+depths as described in the data frame. \code{\link{getG}} calculates the G statistic
+using expected values assuming read depth is equal for all alleles in both
+bulks: \deqn{exp(n_1) = ((n_1 + n_2)*(n_1 + n_3))/(n_1 + n_2 + n_3 + n_4)}
+\deqn{exp(n_2) = ((n_2 + n_1)*(n_2 + n_4))/(n_1 + n_2 + n_3 + n_4)}
+\deqn{exp(n_3) = ((n_3 + n_1)*(n_3 + n_4))/(n_1 + n_2 + n_3 + n_4)}
+\deqn{exp(n_4) = ((n_4 + n_2)*(n_4 + n_3))/(n_1 + n_2 + n_3 + n_4)}\cr 2) G'
 - A tricube-smoothed G statistic is predicted by local regression within each
 chromosome using \code{\link{tricubeGStat}}. This works as a weighted average
-across neighboring SNPs that accounts for Linkage disequilibrium (LD) while 
-minizing noise attributed to SNP calling errors. G values for neighboring 
-SNPs within the window are weighted by physical distance from the focal SNP. 
+across neighboring SNPs that accounts for Linkage disequilibrium (LD) while
+minizing noise attributed to SNP calling errors. G values for neighboring
+SNPs within the window are weighted by physical distance from the focal SNP.
 \cr \cr 3) P-values are estimated based using the non-parametric method
 described by Magwene et al. 2011 with the function \code{\link{getPvals}}.
 Breifly, using the natural log of Gprime a median absolute deviation (MAD) is
-calculated. The Gprime set is trimmed to exclude outlier regions (i.e. QTL) 
+calculated. The Gprime set is trimmed to exclude outlier regions (i.e. QTL)
 based on Hampel's rule. An alternate method for filtering out QTL is proposed
-using absolute delta SNP indeces greater than 0.1 to filter out potential 
-QTL. An estimation of the mode of the trimmed set is calculated using the 
-\code{\link[modeest]{mlv}} function from the package modeest. Finally, the 
-mean and variance of the set are estimated using the median and mode and 
+using absolute delta SNP indeces greater than 0.1 to filter out potential
+QTL. An estimation of the mode of the trimmed set is calculated using the
+\code{\link[modeest]{mlv}} function from the package modeest. Finally, the
+mean and variance of the set are estimated using the median and mode and
 p-values are estimated from a log normal distribution. \cr \cr 4) Negative
-Log10- and Benjamini-Hochberg adjusted p-values are calculated using 
+Log10- and Benjamini-Hochberg adjusted p-values are calculated using
 \code{\link[stats]{p.adjust}}
 }
 \examples{

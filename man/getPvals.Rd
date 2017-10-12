@@ -12,7 +12,7 @@ getPvals(Gprime, deltaSNP = NULL, outlierFilter = c("deltaSNP", "Hampel"),
 
 \item{deltaSNP}{a vector of delta SNP values for use for QTL region filtering}
 
-\item{outlierFilter}{one of either "deltaSNP" or "Hampel". Method for 
+\item{outlierFilter}{one of either "deltaSNP" or "Hampel". Method for
 filtering outlier (ie QTL) regions for p-value estimation}
 
 \item{filterThreshold}{The absolute delta SNP index to use to filter out putative QTL}
@@ -20,8 +20,8 @@ filtering outlier (ie QTL) regions for p-value estimation}
 \description{
 The function is used by \code{\link{runGprimeAnalysis}} to estimate p-values for the
 weighted G' statistic based on the non-parametric estimation method described
-in Magwene et al. 2011. Breifly, using the natural log of Gprime a median 
-absolute deviation (MAD) is calculated. The Gprime set is trimmed to exclude 
+in Magwene et al. 2011. Breifly, using the natural log of Gprime a median
+absolute deviation (MAD) is calculated. The Gprime set is trimmed to exclude
 outlier regions (i.e. QTL) based on Hampel's rule. An alternate method for
 filtering out QTL is proposed using absolute delta SNP indeces greater than
 a set threshold to filter out potential QTL. An estimation of the mode of the trimmed set

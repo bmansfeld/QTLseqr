@@ -15,7 +15,7 @@ getFDRThreshold(pvalues, alpha = 0.01)
 The p-value threshold that corresponds to the Benjamini-Hochberg adjusted p-value at the FDR set by alpha.
 }
 \description{
-Given a vector of p-values and a set false discovery rate alpha the function 
-returns the lowest p-value in the vector for which the Benjamini-Hochberg 
+Given a vector of p-values and a set false discovery rate alpha the function
+returns the lowest p-value in the vector for which the Benjamini-Hochberg
 adjusted p-value (ie q-value) is less than that alpha.
 }

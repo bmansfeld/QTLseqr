@@ -4,14 +4,17 @@
 \alias{plotGprimeDist}
 \title{Plots Gprime distribution}
 \usage{
-plotGprimeDist(SNPset, outlierFilter = c("deltaSNP", "Hampel"))
+plotGprimeDist(SNPset, outlierFilter = c("deltaSNP", "Hampel"),
+  filterThreshold = 0.1)
 }
 \arguments{
 \item{SNPset}{a data frame with SNPs and genotype fields as imported by
 \code{ImportFromGATK} and after running \code{GetPrimeStats}}
 
-\item{outlierFilter}{one of either "deltaSNP" or "Hampel". Method for 
+\item{outlierFilter}{one of either "deltaSNP" or "Hampel". Method for
 filtering outlier (ie QTL) regions for p-value estimation}
+
+\item{filterThreshold}{The absolute delta SNP index to use to filter out putative QTL (default = 0.1)}
 }
 \value{
 Plots a ggplot density estimate of the G' value distribution. It will then
