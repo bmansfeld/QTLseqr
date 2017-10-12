@@ -30,7 +30,7 @@ knitr::opts_chunk$set(tidy=FALSE, cache=TRUE,
 > *Journal* 2017, **other info**
 
 ## Quick Start
-Here are the basic steps required to run and plot QTLseq and G' analysis
+Here are the basic steps required to run and plot QTLseq and $G'$ analysis
 
 ```{r quickStart, eval=FALSE}
 
@@ -92,7 +92,7 @@ Working directly with the [GATK best practices guide](https://software.broadinst
 |CHROM|POS|ID|REF|ALT|QUAL|FILTER|INFO|FORMAT|SRR834927|SRR834931|
 |-----|---|--|---|---|----|------|----|------|---------|---------|
 |Chr1|31071|.|A|G|1390.44|PASS|..\*...|GT:AD:DP:GQ:PL|0/1:34,36:70:99:897,0,855|0/1:26,22:48:99:522,0,698|
-Table :*\*info column removed for brevity*
+Table: *\*info column removed for brevity*
 
 
 GATK have provided a fast VCF parser, the [VariantsToTable](https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_variantutils_VariantsToTable.php) tool, that extracts the necessary fields for easy use in downstream analysis. 
@@ -301,11 +301,11 @@ head(df_filt)
 
 ## Plotting the data
 
-QTLseqr offers two main plotting functions to check the validity of the G' analysis and to plot genome-wide or chromosome specific QTL analysis plots.
+QTLseqr offers two main plotting functions to check the validity of the $G'$ analysis and to plot genome-wide or chromosome specific QTL analysis plots.
 
 ### G' distribution plots
 
-Due to the fact that p-values are estimated from the null distribution of G', an important check is to see if G' values are close to log normally distributed. For this purpose we use the `plotGprimeDist` function, which plots the G' density estimates alongside the lognormal null distribution. We can also use this to test which filtering method (Hampel or DeltaSNP) estimates a more accurate null distribution.
+Due to the fact that p-values are estimated from the null distribution of $G'$, an important check is to see if $G'$ values are close to log normally distributed. For this purpose we use the `plotGprimeDist` function, which plots the $G'$ density estimates alongside the lognormal null distribution. We can also use this to test which filtering method (Hampel or DeltaSNP) estimates a more accurate null distribution. If you use the `"deltaSNP"` method plotting $G'$ distributions with different filter thresholds might also help reveal a better $G'$ null distribution. 
 
 ```{r gprimedist hampel, message = FALSE, warning = FALSE, fig.align = "center", fig.height=4 }
 plotGprimeDist(SNPset = df_filt, outlierFilter = "Hampel")
@@ -317,7 +317,7 @@ plotGprimeDist(SNPset =df_filt, outlierFilter = "deltaSNP", filterThreshold = 0.
 ```
 
 ### QTL analysis plots
-Now that we are happy with our filtered data and it seems that the G' distribution is close to lognormal, we can finally plot some genome-wide figures and try to identify QTL.
+Now that we are happy with our filtered data and it seems that the $G'$ distribution is close to lognormal, we can finally plot some genome-wide figures and try to identify QTL.
 
 Let's start by plotting the SNP/window distribution:
 ```{r plotnSNPs, fig.align="center", fig.width=12, fig.height=4}
