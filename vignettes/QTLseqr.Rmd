@@ -375,18 +375,23 @@ results
 
 The columns are:
 
-* Chromosome - The chromosome on which the region was identified
+* id - the QTL identification number
+* chromosome - The chromosome on which the region was identified
 * start - the start position on that chromosome, i.e. the position of the first SNP that passes the FDR threshold
 * end - the end position
 * length - the length in basepairs from start to end of the region
 * nSNPs - the number of SNPs in the region
 * avgSNPs_Mb - the average number of SNPs/Mb within that region
+* peakDeltaSNP - the $\Delta SNP\text{-}index$ value at the peak summit
+* maxGprime - the max G' score in the region
 * meanGprime - the average $G'$ score of that region
 * sdGprime - the standard deviation of $G'$ within the region
-* AUCaT - the **A**rea **U**nder the **C**urve but **a**bove the **T**hreshold line, an indicator of how significant the peak is
+* AUCaT - the **A**rea **U**nder the **C**urve but **a**bove the **T**hreshold line, an indicator of how significant or wide the peak is
 * meanPval - the average p-value in the region
 * meanQval - the average adjusted p-value in the region
 
 ## Summary
 
 We've reviewed how to load SNP data from GATK and filter the data to contain high confidence SNPs. We then performed $\Delta SNP\text{-}index$ and $G'$ analysis and calculate p-values and q-values based on the tricube-smoothed $G'$ values. The QTL regions that pass our defined threshold can be stored as a list for further analysis or summarized as a table for publication.
+
+

@@ -18,15 +18,18 @@ getQTLTable(SNPset, alpha = 0.05, export = FALSE, fileName = "QTL.csv")
 \value{
 Returns a summarized table of QTL identified. The table contains the following columns:
 \itemize{
-\item{Chromosome - The chromosome on which the region was identified} 
+\item{id - the QTL identification number}
+\item{chromosome - The chromosome on which the region was identified} 
 \item{start - the start position on that chromosome, i.e. the position of the first SNP that passes the FDR threshold}
 \item{end - the end position} 
 \item{length - the length in basepairs from start to end of the region}
 \item{nSNPs - the number of SNPs in the region}
 \item{avgSNPs_Mb - the average number of SNPs/Mb within that region}
-\item{meanGprime - the average G′ score of that region}
-\item{sdGprime - the standard deviation of G′ within the region}
-\item{AUCaT - the Area Under the Curve but above the Threshold line, an indicator of how significant the peak is}
+\item{peakDeltaSNP - the deltaSNP-index value at the peak summit}
+\item{maxGprime - the max G' score in the region}
+\item{meanGprime - the average G' score of that region}
+\item{sdGprime - the standard deviation of G' within the region}
+\item{AUCaT - the Area Under the Curve but above the Threshold line, an indicator of how significant or wide the peak is}
 \item{meanPval - the average p-value in the region}
 \item{meanQval - the average adjusted p-value in the region}
 }
