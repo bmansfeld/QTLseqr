@@ -1,11 +1,12 @@
 #' Return SNPs in significant regions
 #'
-#' The function takes a SNP set after calculation of p- and q-values and returns a list
-#' containing all SNPs with q-values below a set alpha. Each entry in the list
-#' is a SNP set data frame in a contiguous region with
+#' The function takes a SNP set after calculation of p- and q-values and returns 
+#' a list containing all SNPs with q-values below a set alpha. Each entry in the list
+#' is a SNP set data frame in a contiguous region with adjusted pvalues lower 
+#' than the set false discovery rate alpha.
 #'
-#' @param SNPset
-#' @param alpha
+#' @param SNPset Data frame SNP set containing previously filtered SNPs
+#' @param alpha the required false discovery rate alpha
 #'
 #' @export getSigRegions
 
@@ -38,19 +39,29 @@ getSigRegions <- function(SNPset, alpha = 0.05)
 
 
 
-#' Export
+#' Export a summarized table of QTL
+#' @param SNPset Data frame SNP set containing previously filtered SNPs
+#' @param alpha the required false discovery rate alpha
+#' @param export logical. If TRUE will export a csv table.
+#' @param fileName either a character string naming a file or a connection open for writing. "" indicates output to the console.
 #'
-#' @param SNPset
-#' @param alpha
-#' @param export
-#' @param fileName
-#'
-#' @return
+#' @return Returns a summarized table of QTL identified. The table contains the following columns:
+#' \itemize{
+#' \item{Chromosome - The chromosome on which the region was identified} 
+#' \item{start - the start position on that chromosome, i.e. the position of the first SNP that passes the FDR threshold}
+#' \item{end - the end position} 
+#' \item{length - the length in basepairs from start to end of the region}
+#' \item{nSNPs - the number of SNPs in the region}
+#' \item{avgSNPs_Mb - the average number of SNPs/Mb within that region}
+#' \item{meanGprime - the average G′ score of that region}
+#' \item{sdGprime - the standard deviation of G′ within the region}
+#' \item{AUCaT - the Area Under the Curve but above the Threshold line, an indicator of how significant the peak is}
+#' \item{meanPval - the average p-value in the region}
+#' \item{meanQval - the average adjusted p-value in the region}
+#'}
 #' @export getQTLTable
 #'
-#'
 #' @importFrom dplyr %>%
-#' @examples
 
 getQTLTable <-
     function(SNPset,
