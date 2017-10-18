@@ -149,18 +149,18 @@ importFromGATK <- function(file,
 #' @export filterSNPs
 
 filterSNPs <- function(SNPset,
-    refAlleleFreq = NULL,
-    filterAroundMedianDepth = 2.5,
+    refAlleleFreq,
+    filterAroundMedianDepth,
     minTotalDepth,
     maxTotalDepth,
-    minSampleDepth = NULL,
-    minGQ = 99,
+    minSampleDepth,
+    minGQ,
     verbose = TRUE) {
     org_count <- nrow(SNPset)
     count <- nrow(SNPset)
     
     # Filter by total reference allele frequency
-    if (!is.null(refAlleleFreq)) {
+    if (!missing(refAlleleFreq)) {
         if (verbose) {
             message(
                 "Filtering by reference allele frequency: ",
@@ -249,7 +249,7 @@ filterSNPs <- function(SNPset,
     }
     
     # Filter by LOW BULK Genotype Quality
-    if (!is.null(minGQ)) {
+    if (!missing(minGQ)) {
         if (verbose) {
             message("Filtering by Genotype Quality: GQ >= ", minGQ)
         }
