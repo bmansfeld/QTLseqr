@@ -35,9 +35,9 @@ total reference allele frequency for both bulks together, the delta SNP index
 (i.e. SNP index of the low bulk substacted from the SNP index of the high
 bulk), the G statistic and returns a data frame. The required GATK fields
 (-F) are CHROM (Chromosome) and POS (Position). The required Genotype fields
-(-GF) are AD (Allele Depth), DP (Depth), GQ  (Genotype Quality). Recommended
+(-GF) are AD (Allele Depth), DP (Depth). Recommended
 fields are REF (Reference allele) and ALT (Alternative allele) Recommended
-Genotype feilds are PL (Phred-scaled likelihoods)
+Genotype feilds are PL (Phred-scaled likelihoods) and GQ  (Genotype Quality).
 }
 \examples{
 df <-  ImportFromGATK(filename = file.table,

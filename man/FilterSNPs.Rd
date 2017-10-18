@@ -4,9 +4,8 @@
 \alias{filterSNPs}
 \title{Filter SNPs based on read depth and quality}
 \usage{
-filterSNPs(SNPset, refAlleleFreq = NULL, filterAroundMedianDepth = 2.5,
-  minTotalDepth, maxTotalDepth, minSampleDepth = NULL, minGQ = 99,
-  verbose = TRUE)
+filterSNPs(SNPset, refAlleleFreq, filterAroundMedianDepth, minTotalDepth,
+  maxTotalDepth, minSampleDepth, minGQ, verbose = TRUE)
 }
 \arguments{
 \item{SNPset}{The data frame imported by \code{ImportFromGATK}}

@@ -112,7 +112,7 @@ java -jar GenomeAnalysisTK.jar \
 ```
 Where `${REF}` is the reference genome file and `${NAME}` is VCF file you wish to parse.
 
-To run QTLseqr successfully, the required VCF fields `(-F)` are CHROM (Chromosome) and POS (Position). the required Genotype fields `(-GF)` are AD (Allele Depth), DP (Depth), GQ (Genotype Quality). Recommended fields are REF (Reference allele) and ALT (Alternative allele) Recommended Genotype fields are PL (Phred-scaled likelihoods).
+To run QTLseqr successfully, the required VCF fields `(-F)` are CHROM (Chromosome) and POS (Position). the required Genotype fields `(-GF)` are AD (Allele Depth), DP (Depth). Recommended fields are REF (Reference allele) and ALT (Alternative allele) Recommended Genotype fields are PL (Phred-scaled likelihoods) and  GQ (Genotype Quality).
 
 ### Import function
 

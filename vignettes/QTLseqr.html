@@ -11,7 +11,7 @@
 
 <meta name="author" content="Ben N. Mansfeld and Rebecca Grumet" />
 
-<meta name="date" content="2017-10-13" />
+<meta name="date" content="2017-10-18" />
 
 <title>Next-generation sequencing bulk segregant analysis with QTLseqr</title>
 
@@ -157,7 +157,7 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">Next-generation sequencing bulk segregant analysis with QTLseqr</h1>
 <h4 class="author"><em>Ben N. Mansfeld and Rebecca Grumet</em></h4>
-<h4 class="date"><em>2017-10-13</em></h4>
+<h4 class="date"><em>2017-10-18</em></h4>
 <div class="abstract">
 <p class="abstract">Abstract</p>
 <p>Originally developed in the early 1990’s, Bulk Segregant Analysis (BSA) has since been an extremely useful tool for rapidly identifying markers in a genomic region associated with a trait of interest. QTL-seq is a relatively new and rapid way for performing bulk segregant analysis using next-generation sequencing data. However, no easy-to-use and multi-system compatible algorithms for performing this analysis are readily available.We developed the QTLseqr R package to allow for quick identification of genomic regions associated with traits of interest by combining two methods for bulk segregant analysis, <span class="math inline">\(G'\)</span> and <span class="math inline">\(\Delta SNP\text{-}index\)</span>, described by Magwene et al. (2011) and Tagaki et al. (2013), respectively. Plotting of data is implemented in ggplot2 which allows for high-quality and customizable figures. QTLseqr package version 0.3.0</p>
@@ -215,7 +215,7 @@ Chroms &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class=
 <span class="co">#Import SNP data from file</span>
 df &lt;-
 <span class="st">    </span><span class="kw">importFromGATK</span>(
-        <span class="dt">filename =</span> file,
+        <span class="dt">file =</span> file,
         <span class="dt">highBulk =</span> HighBulk,
         <span class="dt">lowBulk =</span> LowBulk,
         <span class="dt">chromList =</span> Chroms
@@ -310,7 +310,7 @@ df_filt &lt;-<span class="st"> </span><span class="kw">runGprimeAnalysis</span>(
 -GF AD -GF DP -GF GQ -GF PL \
 -o <span class="ot">${NAME}</span>.table</code></pre></div>
 <p>Where <code>${REF}</code> is the reference genome file and <code>${NAME}</code> is VCF file you wish to parse.</p>
-<p>To run QTLseqr successfully, the required VCF fields <code>(-F)</code> are CHROM (Chromosome) and POS (Position). the required Genotype fields <code>(-GF)</code> are AD (Allele Depth), DP (Depth), GQ (Genotype Quality). Recommended fields are REF (Reference allele) and ALT (Alternative allele) Recommended Genotype fields are PL (Phred-scaled likelihoods)</p>
+<p>To run QTLseqr successfully, the required VCF fields <code>(-F)</code> are CHROM (Chromosome) and POS (Position). the required Genotype fields <code>(-GF)</code> are AD (Allele Depth), DP (Depth). Recommended fields are REF (Reference allele) and ALT (Alternative allele) Recommended Genotype fields are PL (Phred-scaled likelihoods) and GQ (Genotype Quality).</p>
 <div id="import-function" class="section level3">
 <h3>Import function</h3>
 <p>The <code>importFromGATK</code> function imports SNP data from the output of the VariantsToTable function in GATK. After importing the data, the function then calculates total reference allele frequency for both bulks together, the SNP index for each bulk, and the delta SNP index.</p>
@@ -330,7 +330,7 @@ Chroms &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class=
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#import data</span>
 df &lt;-
 <span class="st">    </span><span class="kw">importFromGATK</span>(
-        <span class="dt">filename =</span> rawData,
+        <span class="dt">file =</span> rawData,
         <span class="dt">highBulk =</span> HighBulk,
         <span class="dt">lowBulk =</span> LowBulk,
         <span class="dt">chromList =</span> Chroms
