@@ -11,7 +11,7 @@
 #' fields are REF (Reference allele) and ALT (Alternative allele) Recommended
 #' Genotype feilds are PL (Phred-scaled likelihoods)
 #'
-#' @param filename The name of the GATK VariablesToTable output .table file which the
+#' @param file The name of the GATK VariablesToTable output .table file which the
 #'   data are to be read from.
 #' @param highBulk The sample name of the High Bulk
 #' @param lowBulk The sample name of the Low Bulk
@@ -35,47 +35,66 @@
 #'     chromList = c("Chr1","Chr4","Chr7"))
 #' @export importFromGATK
 
-importFromGATK <- function(filename,
+importFromGATK <- function(file,
     highBulk = character(),
     lowBulk = character(),
     chromList = NULL) {
-    message("Importing SNPs from file")
-    VarTable <-
-        read.table(file = filename,
-            header = T,
-            stringsAsFactors = F)
     
-    # Format data frame for analysis
-    SNPset <- VarTable[, 1:4]
+    SNPset <-
+        readr::read_tsv(file = file, col_names = TRUE)
     
-    # High Bulk data
-    SNPset$DP.HIGH <- VarTable[, paste0(highBulk, ".DP")]
-    SNPset$AD_REF.HIGH <-
-        as.numeric(gsub(",.*$", "", x = VarTable[, paste0(highBulk, ".AD")]))
-    SNPset$AD_ALT.HIGH <- SNPset$DP.HIGH - SNPset$AD_REF.HIGH
-    SNPset$GQ.HIGH <- VarTable[, paste0(highBulk, ".GQ")]
-    # Calculate SNP index
-    SNPset$SNPindex.HIGH <- SNPset$AD_ALT.HIGH / SNPset$DP.HIGH
-    
-    # Low Bulk data
-    SNPset$DP.LOW <- VarTable[, paste0(lowBulk, ".DP")]
-    SNPset$AD_REF.LOW <-
-        as.numeric(gsub(",.*$", "", x = VarTable[, paste0(lowBulk, ".AD")]))
-    SNPset$AD_ALT.LOW <- SNPset$DP.LOW - SNPset$AD_REF.LOW
-    SNPset$GQ.LOW <- VarTable[, paste0(lowBulk, ".GQ")]
-    SNPset$SNPindex.LOW <- SNPset$AD_ALT.LOW / SNPset$DP.LOW
+    colnames(SNPset) <-
+        sapply(strsplit(colnames(SNPset), "[.]"),
+            function(x) {paste0(rev(x),collapse = '.')})
     
     #Keep only wanted chromosomes
     if (!is.null(chromList)) {
+        message("Removing the following chromosomes: ", paste(unique(SNPset$CHROM)[!unique(SNPset$CHROM) %in% Chroms], collapse = ", "))
         SNPset <- SNPset[SNPset$CHROM %in% chromList, ]
     }
     #arrange the chromosomes by natural order sort, eg Chr1, Chr10, Chr2 >>> Chr1, Chr2, Chr10
-    SNPset$CHROM <- factor(SNPset$CHROM, levels = gtools::mixedsort(unique(SNPset$CHROM)))
+    SNPset$CHROM <-
+        factor(SNPset$CHROM, levels = gtools::mixedsort(unique(SNPset$CHROM)))
+
+    colnames(SNPset) <-
+        gsub(HighBulk, replacement = "HIGH", x = colnames(SNPset))
+    colnames(SNPset) <-
+        gsub(LowBulk, replacement = "LOW", x = colnames(SNPset))
     
-    # Calculate some descriptors
-    SNPset$REF_FRQ <-
-        (SNPset$AD_REF.HIGH + SNPset$AD_REF.LOW) / (SNPset$DP.HIGH + SNPset$DP.LOW)
-    SNPset$deltaSNP <- SNPset$SNPindex.HIGH - SNPset$SNPindex.LOW
+    SNPset <- SNPset %>%
+        tidyr::separate(
+            col = AD.LOW,
+            into = "AD_REF.LOW",
+            sep = ",",
+            extra = "drop",
+            convert = TRUE
+        ) %>%
+        tidyr::separate(
+            col = AD.HIGH,
+            into = "AD_REF.HIGH",
+            sep = ",",
+            extra = "drop",
+            convert = TRUE
+        ) %>%
+        dplyr::mutate(
+            AD_ALT.HIGH = DP.HIGH - AD_REF.HIGH,
+            AD_ALT.LOW = DP.LOW - AD_REF.LOW,
+            SNPindex.HIGH = AD_ALT.HIGH / DP.HIGH,
+            SNPindex.LOW = AD_ALT.LOW / DP.LOW,
+            REF_FRQ = (AD_REF.HIGH + AD_REF.LOW) / (DP.HIGH + DP.LOW),
+            deltaSNP = SNPindex.HIGH - SNPindex.LOW
+        ) %>%
+        dplyr::select(
+            -contains("HIGH"),
+            -contains("LOW"),
+            -one_of("deltaSNP", "REF_FRQ"),
+            dplyr::matches("AD.*.LOW"),
+            dplyr::contains("LOW"),
+            dplyr::matches("AD.*.HIGH"),
+            dplyr::contains("HIGH"),
+            dplyr::everything()
+        )
+    
     return(SNPset)
 }
 

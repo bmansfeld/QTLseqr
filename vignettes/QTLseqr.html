@@ -429,8 +429,7 @@ df &lt;-
 <ol style="list-style-type: decimal">
 <li><p>First the number of SNPs within the sliding window are counted.</p></li>
 <li><p>A tricube-smoothed <span class="math inline">\(\Delta SNP\text{-}index\)</span> is calculated within the set window size.</p></li>
-<li><p>Genome-wide G statistics are calculated by <code>getG</code>. <span class="math inline">\(G\)</span> is defined by the equation:</p></li>
-</ol>
+<li><p>Genome-wide G statistics are calculated by <code>getG</code>. <span class="math inline">\(G\)</span> is defined by the equation:</p>
 <p><span class="math display">\[G = 2 * ∑ n_i * ln(\frac{obs(n_i)}{exp(n_i)})\]</span></p>
 <p>Where for each SNP, <span class="math inline">\(n_i\)</span> from i = 1 to 4 corresponds to the reference and alternate allele depths for each bulk, as described in the following table:</p>
 <table>
@@ -462,8 +461,7 @@ exp(n_2) = \frac{(n_2 + n_1)*(n_2 + n_4)}{(n_1 + n_2 + n_3 + n_4)}
 exp(n_3) = \frac{(n_3 + n_1)*(n_3 + n_4)}{(n_1 + n_2 + n_3 + n_4)}
 \]</span> <span class="math display">\[
 exp(n_4) = \frac{(n_4 + n_2)*(n_4 + n_3)}{(n_1 + n_2 + n_3 + n_4)}
-\]</span></p>
-<ol style="list-style-type: decimal">
+\]</span></p></li>
 <li><p>G’ - A tricube-smoothed G statistic is predicted by constant local regression within each chromosome using the <code>tricubeStat</code> function. This works as a weighted average across neighboring SNPs that accounts for Linkage disequilibrium (LD) while minizing noise attributed to SNP calling errors. G values for neighboring SNPs within the window are weighted by physical distance from the focal SNP.</p></li>
 <li><p>P-values are estimated based using the non-parametric method described by Magwene et al. 2011 with the function <code>getPvals</code>. Breifly, using the natural log of <span class="math inline">\(G'\)</span> a median absolute deviation (MAD) is calculated. The <span class="math inline">\(G'\)</span> set is trimmed to exclude outlier regions (i.e. QTL) based on Hampel’s rule. An alternate method for filtering out QTL that we propose is using absolute <span class="math inline">\(\Delta SNP\text{-}index\)</span> values greater than a set threshold (default = 0.1) to filter out potential QTL. An estimation of the mode of the trimmed set is calculated using the <code>mlv</code> function from the package modeest. Finally, the mean and variance of the set are estimated using the median and mode and p-values are estimated from a log normal distribution.</p></li>
 <li><p>Negative Log10- and Benjamini-Hochberg adjusted p-values are calculated using <code>p.adjust</code>.</p></li>
@@ -615,7 +613,7 @@ results</code></pre></div>
 <li>length - the length in basepairs from start to end of the region</li>
 <li>nSNPs - the number of SNPs in the region</li>
 <li>avgSNPs_Mb - the average number of SNPs/Mb within that region</li>
-<li>peakDeltaSNP - the deltaSNP-index value at the peak summit</li>
+<li>peakDeltaSNP - the <span class="math inline">\(\Delta SNP\text{-}index\)</span> value at the peak summit</li>
 <li>maxGprime - the max G’ score in the region</li>
 <li>meanGprime - the average <span class="math inline">\(G'\)</span> score of that region</li>
 <li>sdGprime - the standard deviation of <span class="math inline">\(G'\)</span> within the region</li>

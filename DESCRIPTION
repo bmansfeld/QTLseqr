@@ -19,6 +19,8 @@ Imports:
     S4Vectors,
     gtools,
     dplyr,
+    readr,
+    tidyr,
     Rcpp
 Suggests:
     knitr,
