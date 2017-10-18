@@ -43,6 +43,18 @@ importFromGATK <- function(file,
     SNPset <-
         readr::read_tsv(file = file, col_names = TRUE)
     
+    if (!all(
+        c(
+        "CHROM", 
+        "POS", 
+        paste0("AD.", highBulk), 
+        paste0("AD.", lowBulk), 
+        paste0("DP.", highBulk), 
+        paste0("DP.", lowBulk)
+        ) %in% names(SNPset))) {
+        stop("One of the required fields is missing. Check your table file.")
+    }
+    
     colnames(SNPset) <-
         sapply(strsplit(colnames(SNPset), "[.]"),
             function(x) {paste0(rev(x),collapse = '.')})
