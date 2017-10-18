@@ -95,7 +95,7 @@ importFromGATK <- function(file,
             dplyr::everything()
         )
     
-    return(SNPset)
+    return(as.data.frame(SNPset))
 }
 
 
@@ -156,6 +156,7 @@ filterSNPs <- function(SNPset,
     minSampleDepth,
     minGQ,
     verbose = TRUE) {
+    
     org_count <- nrow(SNPset)
     count <- nrow(SNPset)
     
@@ -250,6 +251,7 @@ filterSNPs <- function(SNPset,
     
     # Filter by LOW BULK Genotype Quality
     if (!missing(minGQ)) {
+        if (all(c("GQ.LOW", "GQ.HIGH") %in% names(SNPset))) {
         if (verbose) {
             message("Filtering by Genotype Quality: GQ >= ", minGQ)
         }
@@ -258,7 +260,10 @@ filterSNPs <- function(SNPset,
         if (verbose) {
             message("...Filtered ", count - nrow(SNPset), " SNPs")
         }
-        count <- nrow(SNPset)
+        count <- nrow(SNPset)} 
+        else {
+            message("GQ columns not found. Skipping...")
+        }
     }
     
     # #Filter SNP Clusters
@@ -277,5 +282,5 @@ filterSNPs <- function(SNPset,
             count
         )
     }
-    return(SNPset)
+    return(as.data.frame(SNPset))
 }
