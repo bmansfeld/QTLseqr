@@ -83,7 +83,7 @@ getQTLTable(SNPset = df_filt, alpha = 0.01, export = TRUE, fileName = "my_BSA_QT
 
 ## Input data
 
-QTLseqr currently only supports table format SNP data exported from the VariantsToTable function built in to GATK. We hope to support import from SAMtools/BCFtools as well as a simple table format, soon.
+QTLseqr currently only supports table format SNP data exported from the VariantsToTable function built in to GATK. We hope to support import from any VCF file soon.
 
 ## Importing SNPs from GATK
 
@@ -128,7 +128,7 @@ If you have your own data you can simply refer to it directly:
 rawData <- "C:/PATH/TO/MY/DIR/My_BSA_data.table"
 ```
 
-We define the sample name for each of the bulks. This should corrispond to the sample names in the VCF returned by GATK. We also define a vector of the chromosomes to be included in the analysis (i.e. exclude smaller contigs), In this case, Chr1, Chr2 ... Chr12.
+We define the sample name for each of the bulks. This should correspond to the sample names in the VCF returned by GATK. We also define a vector of the chromosomes to be included in the analysis (i.e. exclude smaller contigs), In this case, Chr1, Chr2 ... Chr12.
 ```{r}
 HighBulk <- "SRR834931"
 LowBulk <- "SRR834927"
@@ -176,7 +176,7 @@ Let's review the column headers:
 
 ## Filtering SNPs
 Now that we have loaded the data into R we can start cleaning it up by filtering some of the low confidence SNPs.
-While GATK has its own filtering tools, QTLseqr offers some options for filtering that may help reduce noise and improve results. Filtering is mainly based on read depth for each SNP, such that we can try to elliminate SNPs with low confidence, due to low coverage, and SNPs that may be in repetitive regions and thus have inflated read depth. 
+While GATK has its own filtering tools, QTLseqr offers some options for filtering that may help reduce noise and improve results. Filtering is mainly based on read depth for each SNP, such that we can try to eliminate SNPs with low confidence, due to low coverage, and SNPs that may be in repetitive regions and thus have inflated read depth. 
 
 ### Read depth histograms
 
@@ -198,7 +198,7 @@ ggplot(data = df) +
 ```
 
 ### Using the filterSNPs function
-Now that we have an idea about our read depth distribution we can filter out low confidence SNPS. In general we recommend filtering extremely low and high coverage SNPs, either in both bulks (`minTotalDepth/maxTotalDepth`) and/or in each bulk separately (`minSampleDepth`). We have the option to filter based on reference allele frequency (`refAlleleFreq`), this removes SNPs that for some reason are over- or under-represented in *BOTH* bulks. We can also use the GATK GQ score (Genotype Quality) to filter out low confidence SNPs. If the `verbose` paramater is set to `TRUE` (default) the function will report the numbers of SNPs filtered in each step.
+Now that we have an idea about our read depth distribution we can filter out low confidence SNPS. In general we recommend filtering extremely low and high coverage SNPs, either in both bulks (`minTotalDepth/maxTotalDepth`) and/or in each bulk separately (`minSampleDepth`). We have the option to filter based on reference allele frequency (`refAlleleFreq`), this removes SNPs that for some reason are over- or under-represented in *BOTH* bulks. We can also use the GATK GQ score (Genotype Quality) to filter out low confidence SNPs. If the `verbose` parameter is set to `TRUE` (default) the function will report the numbers of SNPs filtered in each step.
 ```{r filtSNPs-source, eval = FALSE, message = FALSE}
 df_filt <-
     filterSNPs(
@@ -229,8 +229,8 @@ This step is quick and we can go back and plot some histograms to see if we are 
 
 ## Running the analysis
 
-The analysis in QTLseqr is an implementation of both pipelines for bulk segregant analysis, $G'$ and $\Delta SNP\text{-}index$, described by Magwene et al. (2011) and Tagaki et al. (2013), respectively. We recommend reading both papers to fully understand the conciderations and math behind the analysis. 
-Here, we will breifly summarize the steps performed by the main analysis function, `runGprimeAnalysis`.
+The analysis in QTLseqr is an implementation of both pipelines for bulk segregant analysis, $G'$ and $\Delta SNP\text{-}index$, described by Magwene et al. (2011) and Tagaki et al. (2013), respectively. We recommend reading both papers to fully understand the considerations and math behind the analysis. 
+Here, we will briefly summarize the steps performed by the main analysis function, `runGprimeAnalysis`.
 
 The following steps are performed:
 
@@ -264,9 +264,9 @@ The following steps are performed:
     exp(n_4) = \frac{(n_4 + n_2)*(n_4 + n_3)}{(n_1 + n_2 + n_3 + n_4)}
     $$
 
-1. G' - A tricube-smoothed G statistic is predicted by constant local regression within each chromosome using the `tricubeStat` function. This works as a weighted average across neighboring SNPs that accounts for Linkage disequilibrium (LD) while minizing noise attributed to SNP calling errors. G values for neighboring SNPs within the window are weighted by physical distance from the focal SNP. 
+1. G' - A tricube-smoothed G statistic is predicted by constant local regression within each chromosome using the `tricubeStat` function. This works as a weighted average across neighboring SNPs that accounts for Linkage disequilibrium (LD) while minimizing noise attributed to SNP calling errors. G values for neighboring SNPs within the window are weighted by physical distance from the focal SNP. 
 
-1. P-values are estimated based using the non-parametric method described by Magwene et al. 2011 with the function `getPvals`. Breifly, using the natural log of $G'$ a median absolute deviation (MAD) is calculated. The $G'$ set is trimmed to exclude outlier regions (i.e. QTL) based on Hampel's rule. An alternate method for filtering out QTL that we propose is using absolute $\Delta SNP\text{-}index$ values greater than a set threshold (default = 0.1) to filter out potential QTL. An estimation of the mode of the trimmed set is calculated using the `mlv` function from the package modeest. Finally, the mean and variance of the set are estimated using the median and mode and p-values are estimated from a log normal distribution. 
+1. P-values are estimated based using the non-parametric method described by Magwene et al. 2011 with the function `getPvals`. Briefly, using the natural log of $G'$ a median absolute deviation (MAD) is calculated. The $G'$ set is trimmed to exclude outlier regions (i.e. QTL) based on Hampel's rule. An alternate method for filtering out QTL that we propose is using absolute $\Delta SNP\text{-}index$ values greater than a set threshold (default = 0.1) to filter out potential QTL. An estimation of the mode of the trimmed set is calculated using the `mlv` function from the package modeest. Finally, the mean and variance of the set are estimated using the median and mode and p-values are estimated from a log normal distribution. 
 
 1. Negative Log10- and Benjamini-Hochberg adjusted p-values are calculated using `p.adjust`.
 
@@ -291,7 +291,7 @@ Some additional columns are added to the filtered data frame:
 head(df_filt)
 ```
 
-* nSNPs - the number of SNPs braketing the focal SNP within the set sliding window
+* nSNPs - the number of SNPs bracketing the focal SNP within the set sliding window
 * tricubeDeltaSNP - the tricube-smoothed $\Delta SNP\text{-}index$
 * G - the G value for the SNP
 * Gprime - the tricube-smoothed G value
@@ -305,7 +305,7 @@ QTLseqr offers two main plotting functions to check the validity of the $G'$ ana
 
 ### G' distribution plots
 
-Due to the fact that p-values are estimated from the null distribution of $G'$, an important check is to see if $G'$ values are close to log normally distributed. For this purpose we use the `plotGprimeDist` function, which plots the $G'$ density estimates alongside the lognormal null distribution (which is reported in the legend). We can also use this to test which filtering method (Hampel or DeltaSNP) estimates a more accurate null distribution. If you use the `"deltaSNP"` method plotting $G'$ distributions with different filter thresholds might also help reveal a better $G'$ null distribution. 
+Due to the fact that p-values are estimated from the null distribution of $G'$, an important check is to see if $G'$ values are close to log normally distributed. For this purpose we use the `plotGprimeDist` function, which plots the $G'$ density estimates alongside the log-normal null distribution (which is reported in the legend). We can also use this to test which filtering method (Hampel or DeltaSNP) estimates a more accurate null distribution. If you use the `"deltaSNP"` method plotting $G'$ distributions with different filter thresholds might also help reveal a better $G'$ null distribution. 
 
 ```{r gprimedist hampel, message = FALSE, warning = FALSE, fig.align = "center", fig.height=4 }
 plotGprimeDist(SNPset = df_filt, outlierFilter = "Hampel")
@@ -317,7 +317,7 @@ plotGprimeDist(SNPset =df_filt, outlierFilter = "deltaSNP", filterThreshold = 0.
 ```
 
 ### QTL analysis plots
-Now that we are happy with our filtered data and it seems that the $G'$ distribution is close to lognormal, we can finally plot some genome-wide figures and try to identify QTL.
+Now that we are happy with our filtered data and it seems that the $G'$ distribution is close to log-normal, we can finally plot some genome-wide figures and try to identify QTL.
 
 Let's start by plotting the SNP/window distribution:
 ```{r plotnSNPs, fig.align="center", fig.width=12, fig.height=4}
@@ -343,7 +343,7 @@ p3
 Great! It looks like there are QTL identified on Chromosomes 1, 2, 5, 8 and 10.
 Based on the $\Delta SNP\text{-}index$ and $G'$ plots the QTL from Chr1 originates from the reference parent (Nipponbare rice, in this case) and the QTL on Chr8 was contributed by the other parent, for example.
 
-We can also use the `plotQTLStats` function to the $-log_{10}(p\text{-}value)$. While this number is a direct dirivitive of $G'$ it can be more self explanitory for some. We can use the subset paramater to plot one or a few of the chomosomes, say for a close up figure of a QTL of interest. Here we look at the $-log_{10}(p\text{-}value)$ plots of Chromosomes 1 and 8:
+We can also use the `plotQTLStats` function to the $-log_{10}(p\text{-}value)$. While this number is a direct derivative of $G'$ it can be more self explanatory for some. We can use the subset parameter to plot one or a few of the chromosomes, say for a close up figure of a QTL of interest. Here we look at the $-log_{10}(p\text{-}value)$ plots of Chromosomes 1 and 8:
 
 ```{r subsetlogpval, fig.align="center", fig.width=6, fig.height=4}
 QTLplots <- plotQTLStats(SNPset = df_filt, var = "negLog10Pval", plotThreshold = TRUE, q = 0.01, subset = c("Chr1", "Chr8"))
@@ -355,7 +355,7 @@ QTLplots
 Now that we've plotted and identified some putative QTL we can extract the data using two functions `getSigRegions` and `getQTLTable`.
 
 ### Extracting significant regions
-The `getSigRegions` function will produce a list in which each element represents a QTL region. The elements are subseted from the orignal data frame you supplied. Any contiguous region above with an adjusted p-value above the set alpha will be returned. If there is a dip below the alpha this region will be split to two elements. 
+The `getSigRegions` function will produce a list in which each element represents a QTL region. The elements are subseted from the original data frame you supplied. Any contiguous region above with an adjusted p-value above the set alpha will be returned. If there is a dip below the alpha this region will be split to two elements. 
 
 Let's examine the `head` of the first QTL:
 ```{r getsigreg}
@@ -379,7 +379,7 @@ The columns are:
 * chromosome - The chromosome on which the region was identified
 * start - the start position on that chromosome, i.e. the position of the first SNP that passes the FDR threshold
 * end - the end position
-* length - the length in basepairs from start to end of the region
+* length - the length in base pairs from start to end of the region
 * nSNPs - the number of SNPs in the region
 * avgSNPs_Mb - the average number of SNPs/Mb within that region
 * peakDeltaSNP - the $\Delta SNP\text{-}index$ value at the peak summit
