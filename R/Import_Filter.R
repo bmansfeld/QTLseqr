@@ -47,10 +47,10 @@ importFromGATK <- function(file,
         c(
         "CHROM", 
         "POS", 
-        paste0("AD.", highBulk), 
-        paste0("AD.", lowBulk), 
-        paste0("DP.", highBulk), 
-        paste0("DP.", lowBulk)
+        paste0(highBulk, ".AD"), 
+        paste0(lowBulk, ".AD"), 
+        paste0(highBulk, ".DP"), 
+        paste0(lowBulk, ".DP")
         ) %in% names(SNPset))) {
         stop("One of the required fields is missing. Check your table file.")
     }
