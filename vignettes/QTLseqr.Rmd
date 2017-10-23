@@ -2,13 +2,9 @@
 title: "Next-generation sequencing bulk segregant analysis with QTLseqr"
 author: "Ben N. Mansfeld and Rebecca Grumet"
 date: "`r Sys.Date()`"
-output:
-  rmarkdown::html_document:
-    highlight: pygments
-    toc: true
-    fig_width: 5
+output: pdf_document
 abstract: > 
-  Originally developed in the early 1990’s, Bulk Segregant Analysis (BSA) has since been an extremely useful tool for rapidly identifying markers in a genomic region associated with a trait of interest. QTL-seq is a relatively new and rapid way for performing bulk segregant analysis using next-generation sequencing data. However, no easy-to-use and multi-system compatible algorithms for performing this analysis are readily available.We developed the QTLseqr R package to allow for quick identification of genomic regions associated with traits of interest by combining two methods for bulk segregant analysis, $G'$ and $\Delta SNP\text{-}index$, described by Magwene et al. (2011) and Tagaki et al. (2013), respectively. Plotting of data is implemented in ggplot2 which allows for high-quality and customizable figures. QTLseqr package  version `r packageVersion("QTLseqr")` 
+  Since the early 1990’s, Bulk Segregant Analysis (BSA) has been a valuable tool for rapidly identifying markers in a genomic region associated with a trait of interest. BSA is amenable to any type of codominant markers, including single nucleotide polymorphism (SNP) markers. This has allowed for the adaptation of this technology for use with next-generation sequencing (NGS) reads. SNPs detected in reads aligning to genomic regions closely linked to the trait should deviate from the expected ~50% representation observed in non-linked regions.  In the past several years, the main pipeline used for NGS-BSA for plant breeding research was QTL-seq. While this approach has been widely used in several crops for many traits, the released pipeline has not been updated in several years, and as a result software and version incompatibility issues have arisen. This limits the widespread utilization of this otherwise well-designed pipeline. While an alternate approach for evaluating statistical significance of QTL from NGS-BSA based on a tricube-smoothed G statistic exists, a software implementation was never developed or distributed. We thus present “QTLseqr”, an R package for NGS-BSA, that incorporates both methods above. QTLseqr, can quickly import and filter SNP data from the Genome Analysis Tool Kit (GATK) pipeline, then calculate and plot SNP distributions, relative allele frequencies, the tricube-smoothed G values, as well as log10(p-values). This allows for easy plotting and identification of QTL regions. QTLseqr package  version `r packageVersion("QTLseqr")` 
 vignette: >
   %\VignetteIndexEntry{NGS-BSA with QTLseqr}
   %\VignetteEngine{knitr::rmarkdown}
@@ -23,11 +19,11 @@ knitr::opts_chunk$set(tidy=FALSE, cache=TRUE,
 
 # Standard workflow
 
-**If you use QTLseqr in published research, please cite:**
+<!-- **If you use QTLseqr in published research, please cite:** -->
 
-> Mansfeld B.N. and Grumet R,
-> QTLseqr: An R package for bulk segregant analysis with next-generation sequencing
-> *Journal* 2017, **other info**
+<!-- > Mansfeld B.N. and Grumet R, -->
+<!-- > QTLseqr: An R package for bulk segregant analysis with next-generation sequencing -->
+<!-- > *Journal* 2017, **other info** -->
 
 ## Quick Start
 Here are the basic steps required to run and plot QTLseq and $G'$ analysis
@@ -89,12 +85,14 @@ QTLseqr currently only supports table format SNP data exported from the Variants
 
 Working directly with the [GATK best practices guide](https://software.broadinstitute.org/gatk/best-practices/bp_3step.php?case=GermShortWGS) for whole genome sequence should result in a VCF that is compatible with QTLseqr. In general the workflow suggested by GATK is per-sample variant calling followed by joint genotyping across samples. This will produce a VCF file that includes **BOTH** bulks, each with a different sample name (here SRR834927 and SRR834931), one SNP for example:
 
-|CHROM|POS|ID|REF|ALT|QUAL|FILTER|INFO|FORMAT|SRR834927|SRR834931|
-|-----|---|--|---|---|----|------|----|------|---------|---------|
-|Chr1|31071|.|A|G|1390.44|PASS|..\*...|GT:AD:DP:GQ:PL|0/1:34,36:70:99:897,0,855|0/1:26,22:48:99:522,0,698|
-Table: *\*info column removed for brevity*
+```{r VCFrow, echo=FALSE, warning=FALSE}
+library(kableExtra)
+x <- data.frame(CHROM = "Chr1", POS = 31071, ID = ".", REF = "A", ALT = "G", QUAL = 1390.44, FILTER = "PASS", INFO = "..\\*...", FORMAT = "GT:AD:DP:GQ:PL", SRR834927 = "0/1:34,36:70:99:897,0,855", SRR834931 = "0/1:26,22:48:99:522,0,698")
+kable_styling(knitr::kable(x = x, format = "latex", booktabs = TRUE), latex_options = "scale_down")
+```
+\**info column removed for brevity*
 
-
+  
 GATK have provided a fast VCF parser, the [VariantsToTable](https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_variantutils_VariantsToTable.php) tool, that extracts the necessary fields for easy use in downstream analysis. 
 
 We highly recommend reading [What is a VCF and how should I interpret it?](http://gatkforums.broadinstitute.org/gatk/discussion/1268/what-is-a-vcf-and-how-should-i-interpret-it) for more information on GATK VCF Fields and Genotype Fields
@@ -121,7 +119,11 @@ The `importFromGATK` function imports SNP data from the output of the VariantsTo
 To demonstrate the use of this function we will load the Yang et al. (2013) data file.
 ```{r}
 library("QTLseqr")
-rawData <- system.file("extdata", "Yang_et_al_2013.table", package = "QTLseqr", mustWork = TRUE)
+rawData <- system.file(
+    "extdata", 
+    "Yang_et_al_2013.table", 
+    package = "QTLseqr", 
+    mustWork = TRUE)
 ```
 If you have your own data you can simply refer to it directly:
 ```{r, eval = FALSE}
@@ -140,6 +142,7 @@ $$Reference\ allele\ frequency = \frac{Ref\ allele\ depth_{HighBulk} + Ref\ alle
 
 $$SNP\text{-}index_{per\ bulk} = \frac{Alternate\ allele\ depth}{Total\ read\ depth}$$
 $$\Delta SNP\text{-}index = SNP \text{-} index_{High Bulk} - SNP\text{-}index_{Low Bulk}$$
+
 
 Let's import 
 ```{r import, cache=TRUE}
@@ -183,7 +186,7 @@ While GATK has its own filtering tools, QTLseqr offers some options for filterin
 One way to assess filtering thresholds is by plotting histograms of the read depths. We can get an idea of where to draw our thresholds. We'll use the ggplot2 package for this purpose, but you could use base R to plot as well.
 
 Lets look at total read depth for example:
-```{r plothist1, warning = FALSE, fig.align="center", fig.width=4, fig.height=4}
+```{r plothist1, warning = FALSE, fig.align="center", fig.width=4, fig.height=4, dpi=300}
 library("ggplot2")
 ggplot(data = df) + 
     geom_histogram(aes(x = DP.HIGH + DP.LOW)) + 
@@ -192,7 +195,7 @@ ggplot(data = df) +
 ```
 
 ...or look at total reference allele frequency:
-```{r plothist2, warning=FALSE, fig.align="center", fig.width=4, fig.height=4}
+```{r plothist2, warning=FALSE, fig.align="center", fig.width=4, fig.height=4, dpi=300}
 ggplot(data = df) +
     geom_histogram(aes(x = REF_FRQ))
 ```
@@ -241,7 +244,7 @@ The following steps are performed:
 1. Genome-wide G statistics are calculated by `getG`.
     $G$ is defined by the equation:
 
-    $$G = 2 * ∑ n_i * ln(\frac{obs(n_i)}{exp(n_i)})$$
+    $$G = 2 * \sum n_i * ln(\frac{obs(n_i)}{exp(n_i)})$$
 
     Where for each SNP, $n_i$ from i = 1 to 4 corresponds to the reference and alternate allele depths      for each bulk, as described in the following table:
 
@@ -263,6 +266,7 @@ The following steps are performed:
     $$
     exp(n_4) = \frac{(n_4 + n_2)*(n_4 + n_3)}{(n_1 + n_2 + n_3 + n_4)}
     $$
+
 
 1. G' - A tricube-smoothed G statistic is predicted by constant local regression within each chromosome using the `tricubeStat` function. This works as a weighted average across neighboring SNPs that accounts for Linkage disequilibrium (LD) while minimizing noise attributed to SNP calling errors. G values for neighboring SNPs within the window are weighted by physical distance from the focal SNP. 
 
@@ -307,12 +311,12 @@ QTLseqr offers two main plotting functions to check the validity of the $G'$ ana
 
 Due to the fact that p-values are estimated from the null distribution of $G'$, an important check is to see if $G'$ values are close to log normally distributed. For this purpose we use the `plotGprimeDist` function, which plots the $G'$ density estimates alongside the log-normal null distribution (which is reported in the legend). We can also use this to test which filtering method (Hampel or DeltaSNP) estimates a more accurate null distribution. If you use the `"deltaSNP"` method plotting $G'$ distributions with different filter thresholds might also help reveal a better $G'$ null distribution. 
 
-```{r gprimedist hampel, message = FALSE, warning = FALSE, fig.align = "center", fig.height=4 }
+```{r gprimedist hampel, message = FALSE, warning = FALSE, fig.align = "center", fig.height=4 , dpi=300}
 plotGprimeDist(SNPset = df_filt, outlierFilter = "Hampel")
 
 ```
 
-```{r gprimedist deltaSNP, message=FALSE, warning = FALSE, fig.align = "center", fig.height=4}
+```{r gprimedist deltaSNP, message=FALSE, warning = FALSE, fig.align = "center", fig.height=4, dpi=300}
 plotGprimeDist(SNPset =df_filt, outlierFilter = "deltaSNP", filterThreshold = 0.1)
 ```
 
@@ -328,14 +332,14 @@ This is informative as we can assess if there are regions with extremely low SNP
 
 More importantly lets identify some QTL by plotting the smoothed $\Delta SNP\text{-}index$ and $G'$ values.
 
-```{r plotdeltaSNP, fig.align="center", fig.width=12, fig.height=4}
+```{r plotdeltaSNP, fig.align="center", fig.width=12, fig.height=4, , dpi=300}
 p2 <- plotQTLStats(SNPset = df_filt, var = "deltaSNP")
 p2
 ```
 We can see that there are some regions that have $|\Delta SNP\text{-}index| > 0.3$ these may be QTL. The directionality of the $\Delta SNP\text{-}index$ is also important. If the allele contributing to the trait is from the reference parent the $\Delta SNP\text{-}index$ should be less than 0. However, if the $\Delta SNP\text{-}index > 0$ then the contributing parent is the one with the alternate alleles. 
 
 Let's look at the $G'$ values to see if these regions are significant and pass the FDR (q) of 0.01.
-```{r plotGprime, fig.align="center", fig.width=12, fig.height=4}
+```{r plotGprime, fig.align="center", fig.width=12, fig.height=4, , dpi=300}
 p3 <- plotQTLStats(SNPset = df_filt, var = "Gprime", plotThreshold = TRUE, q = 0.01)
 p3
 ```
@@ -345,7 +349,7 @@ Based on the $\Delta SNP\text{-}index$ and $G'$ plots the QTL from Chr1 originat
 
 We can also use the `plotQTLStats` function to the $-log_{10}(p\text{-}value)$. While this number is a direct derivative of $G'$ it can be more self explanatory for some. We can use the subset parameter to plot one or a few of the chromosomes, say for a close up figure of a QTL of interest. Here we look at the $-log_{10}(p\text{-}value)$ plots of Chromosomes 1 and 8:
 
-```{r subsetlogpval, fig.align="center", fig.width=6, fig.height=4}
+```{r subsetlogpval, fig.align="center", fig.width=6, fig.height=4, , dpi=300}
 QTLplots <- plotQTLStats(SNPset = df_filt, var = "negLog10Pval", plotThreshold = TRUE, q = 0.01, subset = c("Chr1", "Chr8"))
 QTLplots
 ```
@@ -393,5 +397,3 @@ The columns are:
 ## Summary
 
 We've reviewed how to load SNP data from GATK and filter the data to contain high confidence SNPs. We then performed $\Delta SNP\text{-}index$ and $G'$ analysis and calculate p-values and q-values based on the tricube-smoothed $G'$ values. The QTL regions that pass our defined threshold can be stored as a list for further analysis or summarized as a table for publication.
-
-
