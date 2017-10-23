@@ -21,7 +21,8 @@ Imports:
     dplyr,
     readr,
     tidyr,
-    Rcpp
+    Rcpp,
+    kableExtra
 Suggests:
     knitr,
     rmarkdown
