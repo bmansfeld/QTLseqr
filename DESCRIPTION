@@ -1,8 +1,8 @@
 Package: QTLseqr
 Type: Package
 Title: QTL mapping using Bulk Segregant Analysis of Next Gen Sequencing data.
-Version: 0.3.0
-Date: 9-19-2017
+Version: 0.5.0
+Date: 10-23-2017
 Authors@R: c(
     person("Ben Nathan", "Mansfeld", email = "mansfeld@msu.edu", role = c("aut", "cre")),
     person("Rebecca", "Grumet", email = "grumet@msu.edu", role = c("ths"))

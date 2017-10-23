@@ -27,10 +27,14 @@ install.packages("devtools")
 devtools::install_github("bmansfeld/QTLseqr")
 ```
 
+**Note:** Apart from regular package dependencies, there are some Bioconductor tools that we use as well, as such you will be prompted to install support for Bioconductor, if you haven't already. QTLseqr makes use of C++ to make some tasks significantly faster (like counting SNPs). Because of this, in order to install QTLseqr from github you will be required to install some compiling tools (Rtools and Xcode, for Windows and Mac, respectively).
+
 Example
 -------
 
-This is a basic example which shows you how to import and analyze NGS-BSA data. For more detailed instructions please read the vignette [here](https://github.com/bmansfeld/QTLseqr/blob/master/vignettes/QTLseqr.pdf)
+**For more detailed instructions please read the vignette [here](https://github.com/bmansfeld/QTLseqr/blob/master/vignettes/QTLseqr.pdf)**
+
+This is a basic example which shows you how to import and analyze NGS-BSA data.
 
 ``` r
 
