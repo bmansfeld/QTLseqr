@@ -20,7 +20,10 @@ Installation
 You can install QTLseqr from github with:
 
 ``` r
-# install.packages("devtools")
+# install devtools first to download packages from github
+install.packages("devtools")
+
+# use devtools to install QTLseqr
 devtools::install_github("bmansfeld/QTLseqr")
 ```
 
