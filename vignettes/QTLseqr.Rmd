@@ -10,7 +10,7 @@ output:
 abstract: > 
   Originally developed in the early 1990’s, Bulk Segregant Analysis (BSA) has since been an extremely useful tool for rapidly identifying markers in a genomic region associated with a trait of interest. QTL-seq is a relatively new and rapid way for performing bulk segregant analysis using next-generation sequencing data. However, no easy-to-use and multi-system compatible algorithms for performing this analysis are readily available.We developed the QTLseqr R package to allow for quick identification of genomic regions associated with traits of interest by combining two methods for bulk segregant analysis, $G'$ and $\Delta SNP\text{-}index$, described by Magwene et al. (2011) and Tagaki et al. (2013), respectively. Plotting of data is implemented in ggplot2 which allows for high-quality and customizable figures. QTLseqr package  version `r packageVersion("QTLseqr")` 
 vignette: >
-  %\VignetteIndexEntry{Next-generation sequencing bulk segregant analysis with QTLseqr}
+  %\VignetteIndexEntry{NGS-BSA with QTLseqr}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
