@@ -5,6 +5,10 @@ QTLseqr
 
 QTLseqr is an R package for QTL mapping using NGS Bulk Segregant Analysis.
 
+**If you use QTLseqr in published research, please cite:**
+
+> Mansfeld B.N. and Grumet R, QTLseqr: An R package for bulk segregant analysis with next-generation sequencing *bioRxiv* 208140; doi: <https://doi.org/10.1101/208140>
+
 Abstract
 --------
 
