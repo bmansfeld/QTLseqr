@@ -32,7 +32,7 @@ devtools::install_github("bmansfeld/QTLseqr")
 Example
 -------
 
-**For more detailed instructions please read the vignette [here](https://drive.google.com/file/d/0B3wMyxzoUzkVOFFmN1VtZjdlV28/view?usp=sharing)**
+### **For more detailed instructions please read the vignette [here](https://drive.google.com/file/d/0B3wMyxzoUzkVOFFmN1VtZjdlV28/view?usp=sharing)**
 
 This is a basic example which shows you how to import and analyze NGS-BSA data.
 
