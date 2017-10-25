@@ -117,15 +117,27 @@ To run QTLseqr successfully, the required VCF fields `(-F)` are CHROM (Chromosom
 
 ### Import function
 
+Let's install and load the QTLseqr package:
+```{r install}
+#Install step if you have not done so yet:
+#devtools::install_github("bmansfeld/QTLseqr"")
+library("QTLseqr")
+```
+
 The `importFromGATK` function imports SNP data from the output of the VariantsToTable function in GATK. After importing the data, the function then calculates total reference allele frequency for both bulks together, the SNP index for each bulk, and the delta SNP index.
 
 To demonstrate the use of this function we will load the Yang et al. (2013) data file.
-```{r}
-library("QTLseqr")
+We first need to download the package that contains the data from github.
+```{r installdata}
+#download and load data package (~50Mb)
+devtools::install_github("bmansfeld/Yang2013data")
+library("Yang2013data")
+
+#Import the data
 rawData <- system.file(
     "extdata", 
     "Yang_et_al_2013.table", 
-    package = "QTLseqr", 
+    package = "Yang2013data", 
     mustWork = TRUE)
 ```
 If you have your own data you can simply refer to it directly:
