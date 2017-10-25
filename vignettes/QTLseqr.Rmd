@@ -120,7 +120,7 @@ To run QTLseqr successfully, the required VCF fields `(-F)` are CHROM (Chromosom
 Let's install and load the QTLseqr package:
 ```{r install}
 #Install step if you have not done so yet:
-#devtools::install_github("bmansfeld/QTLseqr"")
+#devtools::install_github("bmansfeld/QTLseqr")
 library("QTLseqr")
 ```
 
