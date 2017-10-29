@@ -21,11 +21,11 @@ Imports:
     dplyr,
     readr,
     tidyr,
-    Rcpp,
-    kableExtra
+    Rcpp
 Suggests:
     knitr,
-    rmarkdown
+    rmarkdown,
+    kableExtra
 RoxygenNote: 6.0.1
 biocViews: Software, Sequencing, Visualization
 VignetteBuilder: knitr
