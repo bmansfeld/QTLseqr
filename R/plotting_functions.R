@@ -180,7 +180,8 @@ plotGprimeDist <-
         filterThreshold = 0.1)
     {
         if (outlierFilter == "deltaSNP") {
-            trimGprime <- SNPset$Gprime[abs(SNPset$deltaSNP) < filterThreshold]
+            trim_df <- SNPset[abs(SNPset$deltaSNP) < filterThreshold, ]
+            trimGprime <- trim_df$Gprime
         } else {
             # Non-parametric estimation of the null distribution of G'
             
@@ -191,8 +192,8 @@ plotGprimeDist <-
                 median(abs(lnGprime[lnGprime <= median(lnGprime)] - median(lnGprime)))
             
             # Trim the G prime set to exclude outlier regions (i.e. QTL) using Hampel's rule
-            trimGprime <-
-                SNPset$Gprime[lnGprime - median(lnGprime) <= 5.2 * median(MAD)]
+            trim_df <- SNPset[lnGprime - median(lnGprime) <= 5.2 * median(MAD), ]
+            trimGprime <- trim_df$Gprime
         }
         medianTrimGprime <- median(trimGprime)
         
@@ -208,6 +209,7 @@ plotGprimeDist <-
             ggplot2::xlim(0, max(SNPset$Gprime) + 1) +
             ggplot2::xlab("G' value") +
             ggplot2::geom_density(ggplot2::aes(x = Gprime, color = "Data")) +
+            ggplot2::geom_density(data = trim_df, ggplot2::aes(x = Gprime, color = "Filtered"), position = ggplot2::position_jitter(0.1, 0.1)) +
             ggplot2::stat_function(
                 fun = dlnorm,
                 size = 1,
@@ -222,7 +224,8 @@ plotGprimeDist <-
                     )
                 )
             ) +
-            ggplot2::scale_colour_manual("Distribution", values = c("black", "blue"))# +
+         ggplot2::scale_colour_manual("Distribution", values = c("black", "red", "blue"))
+            
         #ggplot2::annotate(x = 10, y = 0.325, geom="text",
         #    label = paste0("G' ~ lnN(", round(muE, 2), ",",round(varE, 2), ")"),
         #    color = "blue")
