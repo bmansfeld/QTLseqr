@@ -247,7 +247,7 @@ This step is quick and we can go back and plot some histograms to see if we are 
 
 ## Running the analysis
 
-The analysis in QTLseqr is an implementation of both pipelines for bulk segregant analysis, $G'$ and $\Delta SNP\text{-}index$, described by Magwene et al. (2011) and Tagaki et al. (2013), respectively. We recommend reading both papers to fully understand the considerations and math behind the analysis. 
+The analysis in QTLseqr is an implementation of both pipelines for bulk segregant analysis, $G'$ and $\Delta SNP\text{-}index$, described by Magwene et al. (2011) and Takagi et al. (2013), respectively. We recommend reading both papers to fully understand the considerations and math behind the analysis. 
 Here, we will briefly summarize the steps performed by the main analysis function, `runGprimeAnalysis`.
 
 The following steps are performed:
@@ -365,7 +365,13 @@ Based on the $\Delta SNP\text{-}index$ and $G'$ plots the QTL from Chr1 originat
 We can also use the `plotQTLStats` function to the $-log_{10}(p\text{-}value)$. While this number is a direct derivative of $G'$ it can be more self explanatory for some. We can use the subset parameter to plot one or a few of the chromosomes, say for a close up figure of a QTL of interest. Here we look at the $-log_{10}(p\text{-}value)$ plots of Chromosomes 1 and 8:
 
 ```{r subsetlogpval, , fig.align = "center", fig.width=6, fig.height=4, , dpi=300}
-QTLplots <- plotQTLStats(SNPset = df_filt, var = "negLog10Pval", plotThreshold = TRUE, q = 0.01, subset = c("Chr1", "Chr8"))
+QTLplots <- plotQTLStats(
+    SNPset = df_filt, 
+    var = "negLog10Pval", 
+    plotThreshold = TRUE, 
+    q = 0.01, 
+    subset = c("Chr1", "Chr8")
+    )
 QTLplots
 ```
 
