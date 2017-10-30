@@ -209,7 +209,7 @@ plotGprimeDist <-
             ggplot2::xlim(0, max(SNPset$Gprime) + 1) +
             ggplot2::xlab("G' value") +
             ggplot2::geom_density(ggplot2::aes(x = Gprime, color = "Data")) +
-            ggplot2::geom_density(data = trim_df, ggplot2::aes(x = Gprime, color = "Filtered"), position = ggplot2::position_jitter(0.1, 0.1)) +
+            ggplot2::geom_density(data = trim_df, ggplot2::aes(x = Gprime, color = "Filtered"), position = ggplot2::position_jitter(0.1)) +
             ggplot2::stat_function(
                 fun = dlnorm,
                 size = 1,
