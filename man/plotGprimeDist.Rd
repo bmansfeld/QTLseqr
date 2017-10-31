@@ -5,7 +5,7 @@
 \title{Plots Gprime distribution}
 \usage{
 plotGprimeDist(SNPset, outlierFilter = c("deltaSNP", "Hampel"),
-  filterThreshold = 0.1)
+  filterThreshold = 0.1, binwidth = 0.5)
 }
 \arguments{
 \item{SNPset}{a data frame with SNPs and genotype fields as imported by
@@ -14,20 +14,25 @@ plotGprimeDist(SNPset, outlierFilter = c("deltaSNP", "Hampel"),
 \item{outlierFilter}{one of either "deltaSNP" or "Hampel". Method for
 filtering outlier (ie QTL) regions for p-value estimation}
 
-\item{filterThreshold}{The absolute delta SNP index to use to filter out putative QTL (default = 0.1)}
+\item{filterThreshold}{The absolute delta SNP index to use to filter out
+putative QTL (default = 0.1)}
+
+\item{binwidth}{The binwidth for the histogram. Recomended and default = 0.5}
 }
 \value{
-Plots a ggplot density estimate of the G' value distribution. It will then
-overlay an estimated log normal distribution with the same mean and variance
-as the null G' distribution. This will allow to verify if after filtering your G'
-value appear to be close to log normally and thus can be used to estimate
-p-values using the non-parametric estimation method described in Magwene et al. (2011). Breifly,
-using the natural log of Gprime a median absolute deviation (MAD) is
-calculated. The Gprime set is trimmed to exclude outlier regions (i.e. QTL)
-based on Hampel's rule. An estimation of the mode of the trimmed set is
-calculated using the \code{\link[modeest]{mlv}} function from the package modeest. Finally, the mean
-and variance of the set are estimated using the median and mode are
-estimated and used to plot the log normal distribution.
+Plots a ggplot histogram of the G' value distribution. The raw data
+  as well as the filtered G' values (excluding putatitve QTL) are plotted. It
+  will then overlay an estimated log normal distribution with the same mean
+  and variance as the null G' distribution. This will allow to verify if
+  after filtering your G' value appear to be close to log normally and thus
+  can be used to estimate p-values using the non-parametric estimation method
+  described in Magwene et al. (2011). Breifly, using the natural log of
+  Gprime a median absolute deviation (MAD) is calculated. The Gprime set is
+  trimmed to exclude outlier regions (i.e. QTL) based on Hampel's rule. An
+  estimation of the mode of the trimmed set is calculated using the
+  \code{\link[modeest]{mlv}} function from the package modeest. Finally, the
+  mean and variance of the set are estimated using the median and mode are
+  estimated and used to plot the log normal distribution.
 }
 \description{
 Plots a ggplot histogram of the distribution of Gprime with a log normal
