@@ -155,32 +155,38 @@ plotQTLStats <-
 #'   \code{ImportFromGATK} and after running \code{GetPrimeStats}
 #' @param outlierFilter one of either "deltaSNP" or "Hampel". Method for
 #'   filtering outlier (ie QTL) regions for p-value estimation
-#' @param filterThreshold The absolute delta SNP index to use to filter out putative QTL (default = 0.1)
+#' @param filterThreshold The absolute delta SNP index to use to filter out
+#'   putative QTL (default = 0.1)
+#' @param binwidth The binwidth for the histogram. Recomended and default = 0.5
 #'
-#' @return Plots a ggplot density estimate of the G' value distribution. It will then
-#' overlay an estimated log normal distribution with the same mean and variance
-#' as the null G' distribution. This will allow to verify if after filtering your G'
-#' value appear to be close to log normally and thus can be used to estimate
-#' p-values using the non-parametric estimation method described in Magwene et al. (2011). Breifly,
-#' using the natural log of Gprime a median absolute deviation (MAD) is
-#' calculated. The Gprime set is trimmed to exclude outlier regions (i.e. QTL)
-#' based on Hampel's rule. An estimation of the mode of the trimmed set is
-#' calculated using the \code{\link[modeest]{mlv}} function from the package modeest. Finally, the mean
-#' and variance of the set are estimated using the median and mode are
-#' estimated and used to plot the log normal distribution.
+#' @return Plots a ggplot histogram of the G' value distribution. The raw data
+#'   as well as the filtered G' values (excluding putatitve QTL) are plotted. It
+#'   will then overlay an estimated log normal distribution with the same mean
+#'   and variance as the null G' distribution. This will allow to verify if
+#'   after filtering your G' value appear to be close to log normally and thus
+#'   can be used to estimate p-values using the non-parametric estimation method
+#'   described in Magwene et al. (2011). Breifly, using the natural log of
+#'   Gprime a median absolute deviation (MAD) is calculated. The Gprime set is
+#'   trimmed to exclude outlier regions (i.e. QTL) based on Hampel's rule. An
+#'   estimation of the mode of the trimmed set is calculated using the
+#'   \code{\link[modeest]{mlv}} function from the package modeest. Finally, the
+#'   mean and variance of the set are estimated using the median and mode are
+#'   estimated and used to plot the log normal distribution.
 #'
 #' @examples plotGprimedist(df_filt_6Mb, outlierFilter = "deltaSNP")
 #'
 #' @seealso \code{\link{GetPvals}} for how p-values are calculated.
 #' @export plotGprimeDist
 
+
 plotGprimeDist <-
     function(SNPset,
         outlierFilter = c("deltaSNP", "Hampel"),
-        filterThreshold = 0.1)
+        filterThreshold = 0.1,
+        binwidth = 0.5)
     {
         if (outlierFilter == "deltaSNP") {
-            trim_df <- SNPset[abs(SNPset$deltaSNP) < filterThreshold, ]
+            trim_df <- SNPset[abs(SNPset$deltaSNP) < filterThreshold,]
             trimGprime <- trim_df$Gprime
         } else {
             # Non-parametric estimation of the null distribution of G'
@@ -192,7 +198,8 @@ plotGprimeDist <-
                 median(abs(lnGprime[lnGprime <= median(lnGprime)] - median(lnGprime)))
             
             # Trim the G prime set to exclude outlier regions (i.e. QTL) using Hampel's rule
-            trim_df <- SNPset[lnGprime - median(lnGprime) <= 5.2 * median(MAD), ]
+            trim_df <-
+                SNPset[lnGprime - median(lnGprime) <= 5.2 * median(MAD),]
             trimGprime <- trim_df$Gprime
         }
         medianTrimGprime <- median(trimGprime)
@@ -204,28 +211,57 @@ plotGprimeDist <-
         muE <- log(medianTrimGprime)
         varE <- abs(muE - log(modeTrimGprime))
         
+        n <- length(trim_df$Gprime)
+        bw <- binwidth
+        
         #plot Gprime distrubtion
         p <- ggplot2::ggplot(SNPset) +
             ggplot2::xlim(0, max(SNPset$Gprime) + 1) +
             ggplot2::xlab("G' value") +
-            ggplot2::geom_density(ggplot2::aes(x = Gprime, color = "Data")) +
-            ggplot2::geom_density(data = trim_df, ggplot2::aes(x = Gprime, color = "Filtered"), position = ggplot2::position_jitter(0.1)) +
-            ggplot2::stat_function(
-                fun = dlnorm,
+            ggplot2::geom_histogram(ggplot2::aes(x = Gprime, fill = "Raw Data"), binwidth = bw) +
+            ggplot2::geom_histogram(data = trim_df,
+                ggplot2::aes(x = Gprime, fill = "Filtered"),
+                binwidth = bw) +
+            stat_function(
                 size = 1,
-                args = c(meanlog = muE, sdlog = sqrt(varE)),
-                ggplot2::aes(
-                    color = paste0(
-                        "Null distribution \n G' ~ lnN(",
-                        round(muE, 2),
-                        ",",
-                        round(varE, 2),
-                        ")"
-                    )
+                ggplot2::aes(color = paste0(
+                    "G' ~ lnN(",
+                    round(muE, 2),
+                    ",",
+                    round(varE, 2),
+                    ")"
+                )),
+                fun = function(x, mean, sd, n, bw) {
+                    dlnorm(x = x,
+                        mean = muE,
+                        sd = sqrt(varE)) * n * bw
+                },
+                args = c(
+                    mean = muE,
+                    sd = sqrt(varE),
+                    n = n,
+                    bw = bw
                 )
             ) +
-         ggplot2::scale_colour_manual("Distribution", values = c("black", "red", "blue"))
             
+            # ggplot2::stat_function(
+            #     fun = dlnorm * n,
+            #     size = 1,
+            #     args = c(meanlog = muE, sdlog = sqrt(varE)),
+            # ggplot2::aes(
+            #     color = paste0(
+            #         "Null distribution \n G' ~ lnN(",
+            #         round(muE, 2),
+            #         ",",
+            #         round(varE, 2),
+        #         ")"
+        #     )
+        #     )
+        # ) +
+        ggplot2::scale_fill_discrete(name = "Distribution") +
+            ggplot2::scale_colour_manual(name = "Null distribution" , values = "black")  +
+            ggplot2::guides(fill = ggplot2::guide_legend(order = 1, reverse = TRUE))
+        
         #ggplot2::annotate(x = 10, y = 0.325, geom="text",
         #    label = paste0("G' ~ lnN(", round(muE, 2), ",",round(varE, 2), ")"),
         #    color = "blue")

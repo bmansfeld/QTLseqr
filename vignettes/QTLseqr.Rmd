@@ -12,6 +12,7 @@ vignette: >
   %\VignetteIndexEntry{NGS-BSA with QTLseqr}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
+header-includes: \usepackage{graphicx}
 ---
 
 ```{r setup, echo=FALSE, results="hide"}
@@ -324,7 +325,7 @@ QTLseqr offers two main plotting functions to check the validity of the $G'$ ana
 
 ### G' distribution plots
 
-Due to the fact that p-values are estimated from the null distribution of $G'$, an important check is to see if $G'$ values are close to log normally distributed. For this purpose we use the `plotGprimeDist` function, which plots the $G'$ density estimates alongside the log-normal null distribution (which is reported in the legend). We can also use this to test which filtering method (Hampel or DeltaSNP) estimates a more accurate null distribution. If you use the `"deltaSNP"` method plotting $G'$ distributions with different filter thresholds might also help reveal a better $G'$ null distribution. 
+Due to the fact that p-values are estimated from the null distribution of $G'$, an important check is to see if $G'$ values are close to log normally distributed. For this purpose we use the `plotGprimeDist` function, which plots the $G'$ histograms of both raw and filtered $G'$ sets (see P-value calculation above) alongside the log-normal null distribution (which is reported in the legend). We can also use this to test which filtering method (Hampel or DeltaSNP) estimates a more accurate null distribution. If you use the `"deltaSNP"` method plotting $G'$ distributions with different filter thresholds might also help reveal a better $G'$ null distribution. 
 
 ```{r gprimedist hampel, message = FALSE, warning = FALSE, fig.height=4 , dpi=300}
 plotGprimeDist(SNPset = df_filt, outlierFilter = "Hampel")
