@@ -222,7 +222,7 @@ plotGprimeDist <-
             ggplot2::geom_histogram(data = trim_df,
                 ggplot2::aes(x = Gprime, fill = "Filtered"),
                 binwidth = bw) +
-            stat_function(
+            ggplot2::stat_function(
                 size = 1,
                 ggplot2::aes(color = paste0(
                     "G' ~ lnN(",
