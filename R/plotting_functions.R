@@ -186,7 +186,7 @@ plotGprimeDist <-
         binwidth = 0.5)
     {
         if (outlierFilter == "deltaSNP") {
-            trim_df <- SNPset[abs(SNPset$deltaSNP) < filterThreshold,]
+            trim_df <- SNPset[abs(SNPset$deltaSNP) < filterThreshold, ]
             trimGprime <- trim_df$Gprime
         } else {
             # Non-parametric estimation of the null distribution of G'
@@ -223,14 +223,8 @@ plotGprimeDist <-
                 ggplot2::aes(x = Gprime, fill = "Filtered"),
                 binwidth = bw) +
             ggplot2::stat_function(
+                ggplot2::aes(color = "black"),
                 size = 1,
-                ggplot2::aes(color = paste0(
-                    "G' ~ lnN(",
-                    round(muE, 2),
-                    ",",
-                    round(varE, 2),
-                    ")"
-                )),
                 fun = function(x, mean, sd, n, bw) {
                     dlnorm(x = x,
                         mean = muE,
@@ -259,7 +253,7 @@ plotGprimeDist <-
         #     )
         # ) +
         ggplot2::scale_fill_discrete(name = "Distribution") +
-            ggplot2::scale_colour_manual(name = "Null distribution" , values = "black")  +
+            ggplot2::scale_colour_manual(name = "Null distribution" , values = "black", labels = as.expression(bquote(~theta["G'"]~" ~ lnN("*.(round(muE, 2))*","*.(round(varE, 2))*")")))  +
             ggplot2::guides(fill = ggplot2::guide_legend(order = 1, reverse = TRUE))
         
         #ggplot2::annotate(x = 10, y = 0.325, geom="text",

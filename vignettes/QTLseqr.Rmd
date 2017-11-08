@@ -16,7 +16,7 @@ header-includes: \usepackage{graphicx}
 ---
 
 ```{r setup, echo=FALSE, results="hide"}
-knitr::opts_chunk$set(tidy=FALSE, cache=TRUE,
+knitr::opts_chunk$set(tidy=FALSE, cache=FALSE,
                       dev="png",
                       message=FALSE, error=FALSE, warning=TRUE)
 ```	
@@ -365,7 +365,7 @@ Based on the $\Delta SNP\text{-}index$ and $G'$ plots the QTL from Chr1 originat
 
 We can also use the `plotQTLStats` function to the $-log_{10}(p\text{-}value)$. While this number is a direct derivative of $G'$ it can be more self explanatory for some. We can use the subset parameter to plot one or a few of the chromosomes, say for a close up figure of a QTL of interest. Here we look at the $-log_{10}(p\text{-}value)$ plots of Chromosomes 1 and 8:
 
-```{r subsetlogpval, , fig.align = "center", fig.width=6, fig.height=4, , dpi=300}
+```{r subsetlogpval, , fig.align = "center", fig.width=6, fig.height=3, , dpi=300}
 QTLplots <- plotQTLStats(
     SNPset = df_filt, 
     var = "negLog10Pval", 

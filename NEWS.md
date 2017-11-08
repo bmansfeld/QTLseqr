@@ -1,3 +1,7 @@
+# QTLseqr 0.5.5
+## Updates
+* `plotGprimeDist` null distribution label more accurate.
+
 # QTLseqr 0.5.4
 
 ## Updates
