@@ -1,9 +1,13 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-QTLseqr v0.5.4
+QTLseqr v0.5.5
 ==============
 
-QTLseqr is an R package for QTL mapping using NGS Bulk Segregant Analysis. QTLseqr is still under development and is offered with out any guarantee.
+QTLseqr is an R package for QTL mapping using NGS Bulk Segregant Analysis.
+
+QTLseqr is still under development and is offered with out any guarantee.
+
+### For updates read the [NEWS.md](https://github.com/bmansfeld/QTLseqr/blob/master/NEWS.md)
 
 **If you use QTLseqr in published research, please cite:**
 
