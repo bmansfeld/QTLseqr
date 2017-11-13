@@ -25,7 +25,13 @@ It also incorperates ΔSNP-index type analysis as described by Takagi, Hiroki, e
 Installation
 ============
 
-You can install QTLseqr from github with:
+You can install and update QTLseqr by using our [drat](http://dirk.eddelbuettel.com/code/drat.html) repository hosted on our github page:
+
+``` r
+install.packages("QTLseqr", repos = "http://bmansfeld.github.io/drat")
+```
+
+OR You can install QTLseqr from github with:
 
 ``` r
 # install devtools first to download packages from github
