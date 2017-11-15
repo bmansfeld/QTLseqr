@@ -21,7 +21,8 @@ Imports:
     dplyr,
     readr,
     tidyr,
-    Rcpp
+    Rcpp,
+    locfit
 Suggests:
     knitr,
     rmarkdown,
