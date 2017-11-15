@@ -1,3 +1,7 @@
+# QTLseqr 0.5.6
+## Bug fixes
+* Added package `locfit` to Imports. 
+
 # QTLseqr 0.5.5
 ## Updates
 * `plotGprimeDist` null distribution label more accurate.
