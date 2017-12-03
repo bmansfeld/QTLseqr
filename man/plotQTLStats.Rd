@@ -4,8 +4,8 @@
 \alias{plotQTLStats}
 \title{Plots different paramaters for QTL identification}
 \usage{
-plotQTLStats(SNPset, subset = NULL, var = "nSNPs", line = TRUE,
-  plotThreshold = FALSE, q = 0.05, ...)
+plotQTLStats(SNPset, subset = NULL, var = "nSNPs", scaleChroms = TRUE,
+  line = TRUE, plotThreshold = FALSE, q = 0.05, ...)
 }
 \arguments{
 \item{SNPset}{a data frame with SNPs and genotype fields as imported by
@@ -17,6 +17,11 @@ NULL and will plot all chromosomes in the SNPset}
 
 \item{var}{character. The paramater for plotting. Must be one of: "nSNPs",
 "deltaSNP", "Gprime", "negLog10Pval"}
+
+\item{scaleChroms}{boolean. if TRUE (default) then chromosome facets will be 
+scaled to relative chromosome sizes. If FALSE all facets will be equal
+sizes. This is basically a convenience argument for setting both scales and 
+shape as "free_x" in ggplot2::facet_grid.}
 
 \item{line}{boolean. If TRUE will plot line graph. If FALSE will plot points.
 Plotting points will take more time.}

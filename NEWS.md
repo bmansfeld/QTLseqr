@@ -1,3 +1,7 @@
+# QTLseqr 0.5.7
+## Updates
+* `plotQTLStats` now allows for chromosome facet shape scaling using the 'scaleChroms' paramater
+
 # QTLseqr 0.5.6
 ## Bug fixes
 * Added package `locfit` to Imports. 

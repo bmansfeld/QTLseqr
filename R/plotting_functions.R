@@ -10,6 +10,10 @@
 #'   NULL and will plot all chromosomes in the SNPset
 #' @param var character. The paramater for plotting. Must be one of: "nSNPs",
 #'   "deltaSNP", "Gprime", "negLog10Pval"
+#' @param scaleChroms boolean. if TRUE (default) then chromosome facets will be 
+#'   scaled to relative chromosome sizes. If FALSE all facets will be equal
+#'   sizes. This is basically a convenience argument for setting both scales and 
+#'   shape as "free_x" in ggplot2::facet_grid.
 #' @param line boolean. If TRUE will plot line graph. If FALSE will plot points.
 #'   Plotting points will take more time.
 #' @param plotThreshold boolean. Should we plot the False Discovery Rate
@@ -37,6 +41,7 @@ plotQTLStats <-
     function(SNPset,
         subset = NULL,
         var = "nSNPs",
+        scaleChroms = TRUE,
         line = TRUE,
         plotThreshold = FALSE,
         q = 0.05,
@@ -89,7 +94,6 @@ plotQTLStats <-
             }
         
         p <- ggplot2::ggplot(data = SNPset) +
-            ggplot2::facet_grid(~ CHROM, scales = "free_x") +
             ggplot2::scale_x_continuous(labels = format_genomic(), name = "Genomic Position (Mb)") +
             ggplot2::theme(plot.margin = ggplot2::margin(
                 b = 10,
@@ -141,6 +145,13 @@ plotQTLStats <-
                 size = 1,
                 alpha = 0.4
             )
+        
+        if (scaleChroms == TRUE) {
+           p <- p + ggplot2::facet_grid(~ CHROM, scales = "free_x", space = "free_x")
+        } else {
+           p <- p + ggplot2::facet_grid(~ CHROM, scales = "free_x")    
+        }
+        
         p
         
     }
