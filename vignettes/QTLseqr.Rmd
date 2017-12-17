@@ -125,7 +125,7 @@ Let's install and load the QTLseqr package:
 library("QTLseqr")
 ```
 
-The `importFromGATK` function imports SNP data from the output of the VariantsToTable function in GATK. After importing the data, the function then calculates total reference allele frequency for both bulks together, the SNP index for each bulk, and the delta SNP index.
+The `importFromGATK` function imports SNP data from the output of the VariantsToTable function in GATK. After importing the data, the function then calculates total reference allele frequency for both bulks together, the SNP index for each bulk, and the $\Delta (SNP\text{-}index)$.
 
 To demonstrate the use of this function we will load the Yang et al. (2013) data file.
 We first need to download the package that contains the data from github.
@@ -152,12 +152,12 @@ HighBulk <- "SRR834931"
 LowBulk <- "SRR834927"
 Chroms <- paste0(rep("Chr", 12), 1:12)
 ```
-We then use the `importFromGATK` function to import the raw data. After importing the data, the function then calculates total reference allele frequency for both bulks together, the $SNP\text{-}index$ for each SNP in each bulk and the $\Delta SNP\text{-}index$ and returns a data frame.
+We then use the `importFromGATK` function to import the raw data. After importing the data, the function then calculates total reference allele frequency for both bulks together, the $SNP\text{-}index$ for each SNP in each bulk and the $\Delta (SNP\text{-}index)$ and returns a data frame.
 
 $$Reference\ allele\ frequency = \frac{Ref\ allele\ depth_{HighBulk} + Ref\ allele\ depth_{LowBulk}}{Total\ read\ depth\ for\ both\ bulks}$$
 
 $$SNP\text{-}index_{per\ bulk} = \frac{Alternate\ allele\ depth}{Total\ read\ depth}$$
-$$\Delta SNP\text{-}index = SNP \text{-} index_{High Bulk} - SNP\text{-}index_{Low Bulk}$$
+$$\Delta (SNP\text{-}index) = SNP \text{-} index_{High Bulk} - SNP\text{-}index_{Low Bulk}$$
 
 
 Let's import 
@@ -191,7 +191,7 @@ Let's review the column headers:
 * SNPindex.HIGH - The calculated SNP-index for the high bulk
 * Same as above for the low bulk
 * REF_FRQ - The reference allele frequency as defined above
-* deltaSNP - The $\Delta SNP\text{-}index$ as defined above
+* deltaSNP - The $\Delta (SNP\text{-}index)$ as defined above
 
 ## Filtering SNPs
 Now that we have loaded the data into R we can start cleaning it up by filtering some of the low confidence SNPs.
@@ -248,14 +248,14 @@ This step is quick and we can go back and plot some histograms to see if we are 
 
 ## Running the analysis
 
-The analysis in QTLseqr is an implementation of both pipelines for bulk segregant analysis, $G'$ and $\Delta SNP\text{-}index$, described by Magwene et al. (2011) and Takagi et al. (2013), respectively. We recommend reading both papers to fully understand the considerations and math behind the analysis. 
+The analysis in QTLseqr is an implementation of both pipelines for bulk segregant analysis, $G'$ and $\Delta (SNP\text{-}index)$, described by Magwene et al. (2011) and Takagi et al. (2013), respectively. We recommend reading both papers to fully understand the considerations and math behind the analysis. 
 Here, we will briefly summarize the steps performed by the main analysis function, `runGprimeAnalysis`.
 
 The following steps are performed:
 
 1. First the number of SNPs within the sliding window are counted.
 
-1. A tricube-smoothed $\Delta SNP\text{-}index$ is calculated within the set window size.
+1. A tricube-smoothed $\Delta (SNP\text{-}index)$ is calculated within the set window size.
 
 1. Genome-wide G statistics are calculated by `getG`.
     $G$ is defined by the equation:
@@ -286,7 +286,7 @@ The following steps are performed:
 
 1. G' - A tricube-smoothed G statistic is predicted by constant local regression within each chromosome using the `tricubeStat` function. This works as a weighted average across neighboring SNPs that accounts for Linkage disequilibrium (LD) while minimizing noise attributed to SNP calling errors. G values for neighboring SNPs within the window are weighted by physical distance from the focal SNP. 
 
-1. P-values are estimated based using the non-parametric method described by Magwene et al. 2011 with the function `getPvals`. Briefly, using the natural log of $G'$ a median absolute deviation (MAD) is calculated. The $G'$ set is trimmed to exclude outlier regions (i.e. QTL) based on Hampel's rule. An alternate method for filtering out QTL that we propose is using absolute $\Delta SNP\text{-}index$ values greater than a set threshold (default = 0.1) to filter out potential QTL. An estimation of the mode of the trimmed set is calculated using the `mlv` function from the package modeest. Finally, the mean and variance of the set are estimated using the median and mode and p-values are estimated from a log normal distribution. 
+1. P-values are estimated based using the non-parametric method described by Magwene et al. 2011 with the function `getPvals`. Briefly, using the natural log of $G'$ a median absolute deviation (MAD) is calculated. The $G'$ set is trimmed to exclude outlier regions (i.e. QTL) based on Hampel's rule. An alternate method for filtering out QTL that we propose is using absolute $\Delta (SNP\text{-}index)$ values greater than a set threshold (default = 0.1) to filter out potential QTL. An estimation of the mode of the trimmed set is calculated using the `mlv` function from the package modeest. Finally, the mean and variance of the set are estimated using the median and mode and p-values are estimated from a log normal distribution. 
 
 1. Negative Log10- and Benjamini-Hochberg adjusted p-values are calculated using `p.adjust`.
 
@@ -312,7 +312,7 @@ head(df_filt)
 ```
 
 * nSNPs - the number of SNPs bracketing the focal SNP within the set sliding window
-* tricubeDeltaSNP - the tricube-smoothed $\Delta SNP\text{-}index$
+* tricubeDeltaSNP - the tricube-smoothed $\Delta (SNP\text{-}index)$
 * G - the G value for the SNP
 * Gprime - the tricube-smoothed G value
 * pvalue - the p-value calculated by non-parametric estimation
@@ -346,13 +346,13 @@ p1
 ```
 This is informative as we can assess if there are regions with extremely low SNP density.
 
-More importantly lets identify some QTL by plotting the smoothed $\Delta SNP\text{-}index$ and $G'$ values.
+More importantly lets identify some QTL by plotting the smoothed $\Delta (SNP\text{-}index)$ and $G'$ values.
 
 ```{r plotdeltaSNP, fig.align = "center", fig.width=12, fig.height=4, , dpi=300}
 p2 <- plotQTLStats(SNPset = df_filt, var = "deltaSNP")
 p2
 ```
-We can see that there are some regions that have $|\Delta SNP\text{-}index| > 0.3$ these may be QTL. The directionality of the $\Delta SNP\text{-}index$ is also important. If the allele contributing to the trait is from the reference parent the $\Delta SNP\text{-}index$ should be less than 0. However, if the $\Delta SNP\text{-}index > 0$ then the contributing parent is the one with the alternate alleles. 
+We can see that there are some regions that have $|\Delta (SNP\text{-}index)| > 0.3$ these may be QTL. The directionality of the $\Delta (SNP\text{-}index)$ is also important. If the allele contributing to the trait is from the reference parent the $\Delta (SNP\text{-}index)$ should be less than 0. However, if the $\Delta (SNP\text{-}index) > 0$ then the contributing parent is the one with the alternate alleles. 
 
 Let's look at the $G'$ values to see if these regions are significant and pass the FDR (q) of 0.01.
 ```{r plotGprime, fig.align = "center", fig.width=12, fig.height=4, , dpi=300}
@@ -361,7 +361,7 @@ p3
 ```
 
 Great! It looks like there are QTL identified on Chromosomes 1, 2, 5, 8 and 10.
-Based on the $\Delta SNP\text{-}index$ and $G'$ plots the QTL from Chr1 originates from the reference parent (Nipponbare rice, in this case) and the QTL on Chr8 was contributed by the other parent, for example.
+Based on the $\Delta (SNP\text{-}index)$ and $G'$ plots the QTL from Chr1 originates from the reference parent (Nipponbare rice, in this case) and the QTL on Chr8 was contributed by the other parent, for example.
 
 We can also use the `plotQTLStats` function to the $-log_{10}(p\text{-}value)$. While this number is a direct derivative of $G'$ it can be more self explanatory for some. We can use the subset parameter to plot one or a few of the chromosomes, say for a close up figure of a QTL of interest. Here we look at the $-log_{10}(p\text{-}value)$ plots of Chromosomes 1 and 8:
 
@@ -408,7 +408,7 @@ The columns are:
 * length - the length in base pairs from start to end of the region
 * nSNPs - the number of SNPs in the region
 * avgSNPs_Mb - the average number of SNPs/Mb within that region
-* peakDeltaSNP - the $\Delta SNP\text{-}index$ value at the peak summit
+* peakDeltaSNP - the $\Delta (SNP\text{-}index)$ value at the peak summit
 * maxGprime - the max G' score in the region
 * meanGprime - the average $G'$ score of that region
 * sdGprime - the standard deviation of $G'$ within the region
@@ -418,4 +418,4 @@ The columns are:
 
 ## Summary
 
-We've reviewed how to load SNP data from GATK and filter the data to contain high confidence SNPs. We then performed $\Delta SNP\text{-}index$ and $G'$ analysis and calculate p-values and q-values based on the tricube-smoothed $G'$ values. The QTL regions that pass our defined threshold can be stored as a list for further analysis or summarized as a table for publication.
+We've reviewed how to load SNP data from GATK and filter the data to contain high confidence SNPs. We then performed $\Delta (SNP\text{-}index)$ and $G'$ analysis and calculate p-values and q-values based on the tricube-smoothed $G'$ values. The QTL regions that pass our defined threshold can be stored as a list for further analysis or summarized as a table for publication.

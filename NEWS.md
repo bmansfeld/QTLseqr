@@ -1,3 +1,7 @@
+# QTLseqr 0.5.8
+## Updates
+* changed $\Delta SNP\text{-}index$ to $\Delta (SNP\text{-}index)$
+
 # QTLseqr 0.5.7
 ## Updates
 * `plotQTLStats` now allows for chromosome facet shape scaling using the 'scaleChroms' paramater

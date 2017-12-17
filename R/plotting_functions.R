@@ -120,7 +120,7 @@ plotQTLStats <-
         if (var == "deltaSNP") {
             var <- "tricubeDeltaSNP"
             p <-
-                p + ggplot2::ylab(expression(Delta * 'SNP-index')) +
+                p + ggplot2::ylab(expression(Delta * '(SNP-index)')) +
                 ggplot2::ylim(-0.55, 0.55) +
                 ggplot2::geom_hline(yintercept = 0,
                     color = "black",
