@@ -93,7 +93,7 @@ simulateConfInt <-
         depth = 1:100,
         replications = 10000,
         filter = 0.3,
-        intervals = c(0.005, 0.025, 0.05, 0.95, 0.975, 0.995)) {
+        intervals = c(0.95, 0.975, 0.995)) {
         if (popStruc == "F2") {
             message(
                 "Assuming bulks selected from F2 population, with ",
@@ -154,7 +154,7 @@ simulateConfInt <-
         )
         
         CI <- data.frame(t(CI))
-        names(CI) <- intervals
+        names(CI) <- sub(x = as.character(intervals), pattern = "0.", replacement = "CI_")
         CI <- cbind(depth, CI)
         
         #to long format for easy plotting
@@ -169,3 +169,51 @@ simulateConfInt <-
         # )))
         CI
     }
+
+
+runQTLseqAnalysis <- function(SNPset,
+    popStruc = "F2",
+    bulkSize,
+    depth = NULL,
+    replications = 10000,
+    filter = 0.3,
+    intervals = c(0.95, 0.975, 0.995)) {
+    
+    #calculate min depth per snp between bulks
+    SNPset <-
+        SNPset %>% dplyr::mutate(minDP = pmin(DP.LOW, DP.HIGH))
+    
+    SNPset <-
+        SNPset %>% 
+        group_by(CHROM) %>% 
+        mutate(tricubeDP = floor(tricubeStat(POS, minDP, windowSize = 1e6)))
+    
+    if (is.null(depth)) {
+        message(
+            "Variable 'depth' not defined, using min and max depth from data: ",
+            min(SNPset$minDP),
+            "-",
+            max(SNPset$minDP)
+        )
+        depth <- min(SNPset$minDP):max(SNPset$minDP)
+    }
+    
+    #simualte confidence intervals
+    CI <-
+        simulateConfInt(
+            popStruc = popStruc,
+            bulkSize = bulkSize,
+            depth = depth,
+            replications = replications,
+            filter = filter,
+            intervals = intervals
+        )
+    
+    #use join as a quick way to match min depth to matching conf intervals.
+    SNPset <-
+        dplyr::left_join(x = SNPset,
+            y = CI,
+            by = c("tricubeDP" = "depth"))
+    
+}
+
