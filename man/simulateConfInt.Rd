@@ -5,7 +5,7 @@
 \title{Simulation of delta SPP index confidence intervals}
 \usage{
 simulateConfInt(popStruc = "F2", bulkSize, depth = 1:100,
-  replications = 10000, filter = 0.3, intervals = c(0.95, 0.975, 0.995))
+  replications = 10000, filter = 0.3, intervals = c(90, 95, 99))
 }
 \arguments{
 \item{popStruc}{the population structure. Defaults to "F2" and assumes "RIL"}
