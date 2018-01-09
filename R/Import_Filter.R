@@ -61,7 +61,7 @@ importFromGATK <- function(file,
     
     #Keep only wanted chromosomes
     if (!is.null(chromList)) {
-        message("Removing the following chromosomes: ", paste(unique(SNPset$CHROM)[!unique(SNPset$CHROM) %in% Chroms], collapse = ", "))
+        message("Removing the following chromosomes: ", paste(unique(SNPset$CHROM)[!unique(SNPset$CHROM) %in% chromList], collapse = ", "))
         SNPset <- SNPset[SNPset$CHROM %in% chromList, ]
     }
     #arrange the chromosomes by natural order sort, eg Chr1, Chr10, Chr2 >>> Chr1, Chr2, Chr10
