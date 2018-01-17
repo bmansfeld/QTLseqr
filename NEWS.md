@@ -28,8 +28,3 @@
 
 ## Bug fixes
 * Corrected a bug in `getFDRThreshold` function that was using regular p-values and not adjusted pvalues to define threshold
-
-
-
-
-temp
