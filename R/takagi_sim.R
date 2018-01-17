@@ -174,7 +174,7 @@ simulateConfInt <-
     }
 
 
-#' Title
+#' Calculates delta SNP confidence intervals
 #'
 #' @param SNPset 
 #' @param popStruc 
@@ -188,7 +188,7 @@ simulateConfInt <-
 #' @export runQTLseqAnalysis
 #'
 #' @examples
-runQTLseqAnalysis <- function(SNPset,
+runQTLseqAnalysis <- function(SNPset, windowSize = 1e6,
     popStruc = "F2",
     bulkSize,
     depth = NULL,
@@ -197,6 +197,14 @@ runQTLseqAnalysis <- function(SNPset,
     intervals = c(95, 99)
     ) {
     
+    message("Counting SNPs in each window...")
+    SNPset <- SNPset %>%
+        dplyr::group_by(CHROM) %>%
+        dplyr::mutate(nSNPs = countSNPs_cpp(POS = POS, windowSize = windowSize))
+    
+    message("Calculating tricube smoothed delta SNP index...")
+    SNPset <- SNPset %>%
+        dplyr::mutate(tricubeDeltaSNP = tricubeStat(POS = POS, Stat = deltaSNP, windowSize))
     
     #convert intervals to quantiles
     if (all(intervals >= 1)) {
@@ -207,7 +215,6 @@ runQTLseqAnalysis <- function(SNPset,
             "Convidence intervals ('intervals' paramater) should be supplied as two-sided percentiles. i.e. If intervals = '95' will return the two sided 95% confidence interval, 2.5% on each side."
         )
     }
-    
     
     #calculate min depth per snp between bulks
     SNPset <-
@@ -240,11 +247,16 @@ runQTLseqAnalysis <- function(SNPset,
             intervals = quantiles
         )
     
+    
+    #match name of column for easier joining of repeat columns
+    names(CI)[1] <- "tricubeDP"
+    
     #use join as a quick way to match min depth to matching conf intervals.
     SNPset <-
         dplyr::left_join(x = SNPset,
-            y = CI,
-            by = c("tricubeDP" = "depth"))
+            y = CI #, commented out becuase of above change. need to remove eventually
+            # by = c("tricubeDP" = "depth")
+            )
     
     as.data.frame(SNPset)
     
