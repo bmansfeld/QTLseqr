@@ -4,7 +4,7 @@
 #' identify QTL.
 #'
 #' @param SNPset a data frame with SNPs and genotype fields as imported by
-#'   \code{ImportFromGATK} and after running \code{GetPrimeStats}
+#'   \code{ImportFromGATK} and after running \code{runGprimeAnalysis} or \code{runQTLseqAnalysis}
 #' @param subset a vector of chromosome names for use in quick plotting of
 #'   chromosomes of interest. Defaults to
 #'   NULL and will plot all chromosomes in the SNPset
@@ -17,7 +17,8 @@
 #' @param line boolean. If TRUE will plot line graph. If FALSE will plot points.
 #'   Plotting points will take more time.
 #' @param plotThreshold boolean. Should we plot the False Discovery Rate
-#'   threshold (FDR). Only plots line if var is "Gprime" or "negLogPval"
+#'   threshold (FDR). Only plots line if var is "Gprime" or "negLogPval". 
+#' @param plotIntervals boolean. Whether or not to plot the two-sided Takagi confidence intervals in "deltaSNP" plots.
 #' @param q numeric. The q-value to use as the FDR threshold. If too low, no
 #'   line will be drawn and a warning will be given.
 #' @param ... arguments to pass to ggplot2::geom_line or ggplot2::geom_point for
@@ -44,6 +45,7 @@ plotQTLStats <-
         scaleChroms = TRUE,
         line = TRUE,
         plotThreshold = FALSE,
+        plotIntervals = FALSE,
         q = 0.05,
         ...) {
         
@@ -125,6 +127,18 @@ plotQTLStats <-
                 ggplot2::geom_hline(yintercept = 0,
                     color = "black",
                     alpha = 0.4)
+            if (plotIntervals == TRUE) {
+                
+                ints_df <-
+                     dplyr::select(SNPset, CHROM, POS, dplyr::matches("CI_")) %>% tidyr::gather(key = "Interval", value = "value",-CHROM,-POS)
+                
+                p <- p + ggplot2::geom_line(data = ints_df, aes(x = POS, y = value, color = Interval)) +
+                    ggplot2::geom_line(data = ints_df, aes(
+                        x = POS,
+                        y = -value,
+                        color = Interval
+                    ))
+            }
         }
         
         if (line) {
