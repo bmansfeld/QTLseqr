@@ -4,12 +4,17 @@
 \alias{getQTLTable}
 \title{Export a summarized table of QTL}
 \usage{
-getQTLTable(SNPset, alpha = 0.05, export = FALSE, fileName = "QTL.csv")
+getQTLTable(SNPset, method = "Gprime", alpha = 0.05, interval = 99,
+  export = FALSE, fileName = "QTL.csv")
 }
 \arguments{
 \item{SNPset}{Data frame SNP set containing previously filtered SNPs}
 
-\item{alpha}{the required false discovery rate alpha}
+\item{method}{either "Gprime" or "QTLseq". The method for detecting significant regions.}
+
+\item{alpha}{numeric. The required false discovery rate alpha for use with \code{method = "Gprime"}}
+
+\item{interval}{numeric. For use eith \code{method = "QTLseq"} The Takagi based confidence interval requested. This will find the column named "CI_\*\*", where \*\* is the requested interval, i.e. 99.}
 
 \item{export}{logical. If TRUE will export a csv table.}
 
@@ -19,9 +24,9 @@ getQTLTable(SNPset, alpha = 0.05, export = FALSE, fileName = "QTL.csv")
 Returns a summarized table of QTL identified. The table contains the following columns:
 \itemize{
 \item{id - the QTL identification number}
-\item{chromosome - The chromosome on which the region was identified} 
+\item{chromosome - The chromosome on which the region was identified}
 \item{start - the start position on that chromosome, i.e. the position of the first SNP that passes the FDR threshold}
-\item{end - the end position} 
+\item{end - the end position}
 \item{length - the length in basepairs from start to end of the region}
 \item{nSNPs - the number of SNPs in the region}
 \item{avgSNPs_Mb - the average number of SNPs/Mb within that region}
