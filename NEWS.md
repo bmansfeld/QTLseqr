@@ -1,10 +1,17 @@
+# QTLseqr 0.6.0
+## Updates
+* Added QTLseq analysis functionality
+* `plotQTLStats` can now plot confidence intervals in $\Delta (SNP\text{-}index)$ plots
+* Export functions run faster and allow for detection of QTL in either "Gprime" or "QTLseq" methods
+* removed Bioconductor dependency
+
 # QTLseqr 0.5.8
 ## Updates
 * changed $\Delta SNP\text{-}index$ to $\Delta (SNP\text{-}index)$
 
 # QTLseqr 0.5.7
 ## Updates
-* `plotQTLStats` now allows for chromosome facet shape scaling using the 'scaleChroms' paramater
+* `plotQTLStats` now allows for chromosome facet shape scaling using the 'scaleChroms' parameter
 
 # QTLseqr 0.5.6
 ## Bug fixes
@@ -17,7 +24,7 @@
 # QTLseqr 0.5.4
 
 ## Updates
-* `plotGprimeDist` now plots histograms of filtered and raw data. overlayed with the null dist. Is easier to interpret. 
+* `plotGprimeDist` now plots histograms of filtered and raw data. overlaid with the null dist. Is easier to interpret. 
 
 # QTLseqr 0.5.3
 
