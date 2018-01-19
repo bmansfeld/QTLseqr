@@ -1,56 +1,100 @@
 #' Return SNPs in significant regions
 #'
-#' The function takes a SNP set after calculation of p- and q-values and returns 
-#' a list containing all SNPs with q-values below a set alpha. Each entry in the list
-#' is a SNP set data frame in a contiguous region with adjusted pvalues lower 
+#' The function takes a SNP set after calculation of p- and q-values or Takagi confidence intervals and returns
+#' a list containing all SNPs with q-values or deltaSNP below a set alpha or confidence intervals, respectively. Each entry in the list
+#' is a SNP set data frame in a contiguous region with adjusted pvalues lower
 #' than the set false discovery rate alpha.
 #'
-#' @param SNPset Data frame SNP set containing previously filtered SNPs
-#' @param alpha the required false discovery rate alpha
+#' @param SNPset Data frame SNP set containing previously filtered SNPs.
+#' @param method either "Gprime" or "QTLseq". The method for detecting significant regions.
+#' @param alpha numeric. The required false discovery rate alpha for use with \code{method = "Gprime"}
+#' @param interval numeric. For use eith \code{method = "QTLseq"} The Takagi based confidence interval requested. This will find the column named "CI_\*\*", where \*\* is the requested interval, i.e. 99.
 #'
 #' @export getSigRegions
 
-getSigRegions <- function(SNPset, alpha = 0.05)
-{
-    if ("qvalue" %in% colnames(SNPset))
+getSigRegions <-
+    function(SNPset,
+             method = "Gprime",
+             alpha = 0.05,
+             interval = 99)
     {
-        SigRegions <- list()
-        for (x in levels(as.factor(SNPset$CHROM))) {
-            chr <- as.data.frame(subset(SNPset, CHROM == x))
-            
-            runs <- S4Vectors::Rle(chr$qvalue <= alpha)
-            runvals <- S4Vectors::runValue(runs)
-            starts <- S4Vectors::start(runs)
-            ends <- S4Vectors::end(runs)
-            
-            for (i in 1:S4Vectors::nrun(runs)) {
-                SigRegions[[length(SigRegions) + 1]] <- if (runvals[i]) {
-                    chr[starts[i]:ends[i],]
-                }
-            }
+        conf <- paste0("CI_", interval)
+        
+        if (!method %in% c("Gprime", "QTLseq")) {
+            stop("method must be either \"Gprime\" or \"QTLseq\"")
         }
-        return(SigRegions)
-    } else {
-        stop("Please first run GetPrimeStats or ParGetPrimeStats to ",
-            "calculate q-values")
+        
+        if ((method == "Gprime") & !("qvalue" %in% colnames(SNPset))) {
+            stop("Please first use runGprimeAnalysis to calculate q-values")
+        }
+        
+        if ((method == "QTLseq") & !(any(names(SNPset) %in% conf))) {
+            stop(
+                "Cant find the requested confidence interval. Please check that the requested interval exsits or first use runQTLseqAnalysis to calculate confidence intervals"
+            )
+        }
+        
+        #QTL <- getSigRegions(SNPset = SNPset, method = method, interval = interval, alpha = alpha)
+        fdrT <- getFDRThreshold(SNPset$pvalue, alpha = alpha)
+        GprimeT <- SNPset[which(SNPset$pvalue == fdrT), "Gprime"]
+        #merged_QTL <- dplyr::bind_rows(QTL, .id = "id")
+        SNPset <- SNPset %>%
+            dplyr::group_by(CHROM)
+        
+        if (method == "QTLseq") {
+            table <-
+                SNPset %>% dplyr::mutate(passThresh = abs(tricubeDeltaSNP) > abs(!!as.name(conf))) %>%
+                dplyr::group_by(CHROM, run = {
+                    run = rle(passThresh)
+                    rep(seq_along(run$lengths), run$lengths)
+                }) %>%
+                dplyr::filter(passThresh == T) %>% dplyr::ungroup() %>%
+                dplyr::group_by(CHROM) %>% dplyr::group_by(CHROM, qtl = {
+                    qtl = rep(seq_along(rle(run)$lengths), rle(run)$lengths)
+                }) %>%
+                #dont need run variable anymore
+                dplyr::select(-run,-qtl,-passThresh)
+        } else {
+            table <- SNPset %>% dplyr::mutate(passThresh = qvalue <= alpha) %>%
+                dplyr::group_by(CHROM, run = {
+                    run = rle(passThresh)
+                    rep(seq_along(run$lengths), run$lengths)
+                }) %>%
+                dplyr::filter(passThresh == T) %>% dplyr::ungroup() %>%
+                dplyr::group_by(CHROM) %>% dplyr::group_by(CHROM, qtl = {
+                    qtl = rep(seq_along(rle(run)$lengths), rle(run)$lengths)
+                }) %>%
+                #dont need run variable anymore
+                dplyr::select(-run,-qtl,-passThresh)
+        }
+        
+        table <- as.data.frame(table)
+        qtlList <-
+            split(table, factor(
+                paste(table$CHROM, table$qtl, sep = "_"),
+                levels = gtools::mixedsort(unique(
+                    paste(table$CHROM, table$qtl, sep = "_")
+                ))
+            ))
+        
+        return(qtlList)
     }
-    
-}
-
 
 
 #' Export a summarized table of QTL
 #' @param SNPset Data frame SNP set containing previously filtered SNPs
-#' @param alpha the required false discovery rate alpha
+#' @param method either "Gprime" or "QTLseq". The method for detecting significant regions.
+#' @param alpha numeric. The required false discovery rate alpha for use with \code{method = "Gprime"}
+#' @param interval numeric. For use eith \code{method = "QTLseq"} The Takagi based confidence interval requested. This will find the column named "CI_\*\*", where \*\* is the requested interval, i.e. 99.
 #' @param export logical. If TRUE will export a csv table.
 #' @param fileName either a character string naming a file or a connection open for writing. "" indicates output to the console.
 #'
 #' @return Returns a summarized table of QTL identified. The table contains the following columns:
 #' \itemize{
 #' \item{id - the QTL identification number}
-#' \item{chromosome - The chromosome on which the region was identified} 
+#' \item{chromosome - The chromosome on which the region was identified}
 #' \item{start - the start position on that chromosome, i.e. the position of the first SNP that passes the FDR threshold}
-#' \item{end - the end position} 
+#' \item{end - the end position}
 #' \item{length - the length in basepairs from start to end of the region}
 #' \item{nSNPs - the number of SNPs in the region}
 #' \item{avgSNPs_Mb - the average number of SNPs/Mb within that region}
@@ -68,26 +112,87 @@ getSigRegions <- function(SNPset, alpha = 0.05)
 
 getQTLTable <-
     function(SNPset,
-        alpha = 0.05,
-        export = FALSE,
-        fileName = "QTL.csv")
+             method = "Gprime",
+             alpha = 0.05,
+             interval = 99,
+             export = FALSE,
+             fileName = "QTL.csv")
     {
-        QTL <- getSigRegions(SNPset = SNPset, alpha = alpha)
+        conf <- paste0("CI_", interval)
+        
+        if (!method %in% c("Gprime", "QTLseq")) {
+            stop("method must be either \"Gprime\" or \"QTLseq\"")
+        }
+        
+        if ((method == "Gprime") &
+            !("qvalue" %in% colnames(SNPset))) {
+            stop("Please first use runGprimeAnalysis to calculate q-values")
+        }
+        
+        if ((method == "QTLseq") & !(any(names(SNPset) %in% conf))) {
+            stop(
+                "Cant find the requested confidence interval. Please check that the requested interval exsits or first use runQTLseqAnalysis to calculate confidence intervals"
+            )
+        }
+        
+        #QTL <- getSigRegions(SNPset = SNPset, method = method, interval = interval, alpha = alpha)
         fdrT <- getFDRThreshold(SNPset$pvalue, alpha = alpha)
         GprimeT <- SNPset[which(SNPset$pvalue == fdrT), "Gprime"]
-        merged_QTL <- dplyr::bind_rows(QTL, .id = "id")
-        table <- as.data.frame(
-            merged_QTL %>%
-                dplyr::group_by(id) %>%
-                dplyr::summarise(
-                    chromosome = unique(as.character(CHROM)),
+        #merged_QTL <- dplyr::bind_rows(QTL, .id = "id")
+        SNPset <- SNPset %>%
+            dplyr::group_by(CHROM)
+        
+        if (method == "QTLseq") {
+            table <-
+                SNPset %>% dplyr::mutate(passThresh = abs(tricubeDeltaSNP) > abs(!!as.name(conf))) %>%
+                dplyr::group_by(CHROM, run = {
+                    run = rle(passThresh)
+                    rep(seq_along(run$lengths), run$lengths)
+                }) %>%
+                dplyr::filter(passThresh == T) %>% dplyr::ungroup() %>%
+                dplyr::group_by(CHROM) %>% dplyr::group_by(CHROM, qtl = {
+                    qtl = rep(seq_along(rle(run)$lengths), rle(run)$lengths)
+                }) %>%
+                #dont need run variable anymore
+                dplyr::select(-run) %>%
+                dplyr::summarize(
                     start = min(POS),
                     end = max(POS),
-                    length = max(POS) - min(POS),
+                    length = end - start,
                     nSNPs = length(POS),
                     avgSNPs_Mb = round(length(POS) / (max(POS) - min(POS)) * 1e6),
-                    peakDeltaSNP = ifelse(mean(tricubeDeltaSNP) >= 0, 
-                        max(tricubeDeltaSNP), min(tricubeDeltaSNP)),
+                    peakDeltaSNP = ifelse(
+                        mean(tricubeDeltaSNP) >= 0,
+                        max(tricubeDeltaSNP),
+                        min(tricubeDeltaSNP)
+                    ),
+                    avgDeltaSNP = mean(tricubeDeltaSNP)
+                )
+        } else {
+            table <- SNPset %>% dplyr::mutate(passThresh = qvalue <= alpha) %>%
+                dplyr::group_by(CHROM, run = {
+                    run = rle(passThresh)
+                    rep(seq_along(run$lengths), run$lengths)
+                }) %>%
+                dplyr::filter(passThresh == T) %>% dplyr::ungroup() %>%
+                dplyr::group_by(CHROM) %>% dplyr::group_by(CHROM, qtl = {
+                    qtl = rep(seq_along(rle(run)$lengths), rle(run)$lengths)
+                }) %>%
+                #dont need run variable anymore
+                dplyr::select(-run) %>%
+                dplyr::summarize(
+                    start = min(POS),
+                    end = max(POS),
+                    length = end - start,
+                    nSNPs = length(POS),
+                    avgSNPs_Mb = round(length(POS) / (max(POS) - min(POS)) * 1e6),
+                    peakDeltaSNP = ifelse(
+                        mean(tricubeDeltaSNP) >= 0,
+                        max(tricubeDeltaSNP),
+                        min(tricubeDeltaSNP)
+                    ),
+                    avgDeltaSNP = mean(tricubeDeltaSNP),
+                    #Gprime stuff
                     maxGprime = max(Gprime),
                     meanGprime = mean(Gprime),
                     sdGprime = sd(Gprime),
@@ -96,13 +201,14 @@ getQTLTable <-
                     meanPval = mean(pvalue),
                     meanQval = mean(qvalue)
                 )
-        )
+        }
         
+        table <- as.data.frame(table)
         
         if (export) {
             write.csv(file = fileName,
-                x = table,
-                row.names = FALSE)
+                      x = table,
+                      row.names = FALSE)
         }
         return(table)
     }
