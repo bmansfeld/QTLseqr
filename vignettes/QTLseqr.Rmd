@@ -274,7 +274,7 @@ The analysis in QTLseqr is an implementation of both pipelines for bulk segregan
 
 There are two main analysis functions: 
 1. `runGprimeAnalysis` - performs Magwene et al type $G'$ analysis
-1. `runQTLseqAnalysis` - performs Takagi et al tyep QTLseq analysis
+1. `runQTLseqAnalysis` - performs Takagi et al type QTLseq analysis
 
 ### QTLseq analysis
 Takagi et al. (2013) developed the method for QTLseq type NGS-BSA. The analysis is based on calculating the allele frequency differences, or $\Delta (SNP\text{-}index)$, from the allele depths at each SNP. To determine regions of the genome that significantly differ from the expected $\Delta (SNP\text{-}index)$ of 0, a simulation approach is used. Briefly, at each read depth, simulated SNP frequencies are bootstrapped, and the extreme quantiles are used as simulated confidence intervals. The true data are averaged over a sliding window and regions that surpass the CI are putative QTL.
@@ -285,7 +285,7 @@ When the analysis is run the following steps are performed:
 
 1. A tricube-smoothed $\Delta (SNP\text{-}index)$ is calculated within the set window size.
 
-1. The minium read depth at each position is calculated and the tricube-smoothed depth is calculated for the window.
+1. The minimum read depth at each position is calculated and the tricube-smoothed depth is calculated for the window.
 
 1. The simulation is performed for data derived read depths (can be set by the user): 
 Alternate allele frequency is calculated per bulk based on the population type and size (F2 or RIL) $\Delta (SNP\text{-}index)$ is simulated over several replications (default = 10000) for        each bulk. The quantiles from the simulations are used to estimate the confidence intervals. Say for example the 99th quantile of 10000 $\Delta (SNP\text{-}index)$ simulations represents the 99% confidence interval for the true data.
@@ -352,7 +352,7 @@ The following steps are performed:
 
 1. G' - A tricube-smoothed G statistic is predicted by constant local regression within each chromosome using the `tricubeStat` function. This works as a weighted average across neighboring SNPs that accounts for Linkage disequilibrium (LD) while minimizing noise attributed to SNP calling errors. G values for neighboring SNPs within the window are weighted by physical distance from the focal SNP. 
 
-1. P-values are estimated based using the non-parametric method described by Magwene et al. 2011 with the function `getPvals`. Briefly, using the natural log of $G'$ a median absolute deviation (MAD) is calculated. The $G'$ set is trimmed to exclude outlier regions (i.e. QTL) based on Hampel's rule. An alternate method for filtering out QTL that we propose is using absolute $\Delta (SNP\text{-}index)$ values greater than a set threshold (default = 0.1) to filter out potential QTL. An estimation of the mode of the trimmed set is calculated using the `mlv` function from the package modeest. Finally, the mean and variance of the set are estimated using the median and mode and p-values are estimated from a log normal distribution. 
+1. P-values are estimated based using the non-parametric method described by Magwene et al. 2011 with the function `getPvals`. Briefly, using the natural log of $G'$ a median absolute deviation (MAD) is calculated. The $G'$ set is trimmed to exclude outlier regions (i.e. QTL) based on Hampel's rule. An alternate method for filtering out QTL that we propose is using absolute $\Delta (SNP\text{-}index)$ values greater than a set threshold (default = 0.1) to filter out potential QTL. An estimation of the mode of the trimmed set is calculated using the `mlv` function from the package `modeest`. Finally, the mean and variance of the set are estimated using the median and mode and p-values are estimated from a log normal distribution. 
 
 1. Negative Log10- and Benjamini-Hochberg adjusted p-values are calculated using `p.adjust`.
 
@@ -447,7 +447,7 @@ QTLplots
 Now that we've plotted and identified some putative QTL we can extract the data using two functions `getSigRegions` and `getQTLTable`.
 
 ### Extracting significant regions
-The `getSigRegions` function will produce a list in which each element represents a QTL region. The elements are subseted from the original data frame you supplied. Any contiguous region above with an adjusted p-value above the set alpha will be returned. If there is a dip below the alpha this region will be split to two elements. 
+The `getSigRegions` function will produce a list in which each element represents a QTL region. The elements are subsets from the original data frame you supplied. Any contiguous region above with an adjusted p-value above the set alpha will be returned. If there is a dip below the alpha this region will be split to two elements. 
 
 Let's examine the `head` of the first QTL:
 ```{r getsigreg}
@@ -457,7 +457,7 @@ head(QTL[[1]])
 
 ### Output QTL summary
 
-While `getSigRegions` is useful for examining every SNP within each QTL and perhaps for some downstream analysis, the `getQTLTable` will summarize those results and can output a CSV by setting `export = TRUE` and `fileName = "MyQTLsummary.csv"`. We can set `method` as either `"Gprime"` or `"QTLseq"` depending on the type of analysis; `"Gprime"` will use `alpha` as FDR threshold and `"QTLseq"` will use the `interval` paramter, which should match one of the intervals calculated above.
+While `getSigRegions` is useful for examining every SNP within each QTL and perhaps for some downstream analysis, the `getQTLTable` will summarize those results and can output a CSV by setting `export = TRUE` and `fileName = "MyQTLsummary.csv"`. We can set `method` as either `"Gprime"` or `"QTLseq"` depending on the type of analysis; `"Gprime"` will use `alpha` as FDR threshold and `"QTLseq"` will use the `interval` parameter, which should match one of the intervals calculated above.
 
 Here is the summary for significant regions with a FDR of 0.01:
 ```{r QTLtable}
