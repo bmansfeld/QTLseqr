@@ -34,6 +34,7 @@ Here are the basic steps required to run and plot QTLseq and $G'$ analysis
 
 ```{r quickStart, eval=FALSE}
 
+
 #load the package
 library("QTLseqr")
 
@@ -52,7 +53,7 @@ df <-
         highBulk = HighBulk,
         lowBulk = LowBulk,
         chromList = Chroms
-     )
+    )
 
 #Filter SNPs based on some criteria
 df_filt <-
@@ -65,19 +66,40 @@ df_filt <-
         minGQ = 99
     )
 
-
 #Run G' analysis
-df_filt <- runGprimeAnalysis(
+df_filt <- runGprimeAnalysis(SNPset = df_filt,
+                             windowSize = 1e6,
+                             outlierFilter = "deltaSNP")
+
+#Run QTLseq analysis
+df_filt <- runQTLseqAnalysis(
     SNPset = df_filt,
     windowSize = 1e6,
-    outlierFilter = "deltaSNP")
+    popStruc = "F2",
+    replications = 10000,
+    intervals = c(95, 99)
+)
 
 #Plot
-plotQTLStats(SNPset = df_filt, var = "deltaSNP", plotThreshold = TRUE, q = 0.01)
-plotQTLStats(SNPset = df_filt, var = "Gprime", plotThreshold = TRUE, q = 0.01)
+plotQTLStats(
+    SNPset = df_filt,
+    var = "Gprime",
+    plotThreshold = TRUE,
+    q = 0.01
+)
+
+plotQTLStats(
+    SNPset = df_filt,
+    var = "deltaSNP",
+    plotIntervals = TRUE)
 
 #export summary CSV
-getQTLTable(SNPset = df_filt, alpha = 0.01, export = TRUE, fileName = "my_BSA_QTL.csv")
+getQTLTable(
+    SNPset = df_filt,
+    alpha = 0.01,
+    export = TRUE,
+    fileName = "my_BSA_QTL.csv"
+)
 ```
 
 
@@ -249,6 +271,50 @@ This step is quick and we can go back and plot some histograms to see if we are 
 ## Running the analysis
 
 The analysis in QTLseqr is an implementation of both pipelines for bulk segregant analysis, $G'$ and $\Delta (SNP\text{-}index)$, described by Magwene et al. (2011) and Takagi et al. (2013), respectively. We recommend reading both papers to fully understand the considerations and math behind the analysis. 
+
+There are two main analysis functions: 
+1. `runGprimeAnalysis` - performs Magwene et al type $G'$ analysis
+1. `runQTLseqAnalysis` - performs Takagi et al tyep QTLseq analysis
+
+### QTLseq analysis
+Takagi et al. (2013) developed the method for QTLseq type NGS-BSA. The analysis is based on calculating the allele frequency differences, or $\Delta (SNP\text{-}index)$, from the allele depths at each SNP. To determine regions of the genome that significantly differ from the expected $\Delta (SNP\text{-}index)$ of 0, a simulation approach is used. Briefly, at each read depth, simulated SNP frequencies are bootstrapped, and the extreme quantiles are used as simulated confidence intervals. The true data are averaged over a sliding window and regions that surpass the CI are putative QTL.
+
+When the analysis is run the following steps are performed:
+
+1. First the number of SNPs within the sliding window are counted.
+
+1. A tricube-smoothed $\Delta (SNP\text{-}index)$ is calculated within the set window size.
+
+1. The minium read depth at each position is calculated and the tricube-smoothed depth is calculated for the window.
+
+1. The simulation is performed for data derived read depths (can be set by the user): 
+Alternate allele frequency is calculated per bulk based on the population type and size (F2 or RIL) $\Delta (SNP\text{-}index)$ is simulated over several replications (default = 10000) for        each bulk. The quantiles from the simulations are used to estimate the confidence intervals. Say for example the 99th quantile of 10000 $\Delta (SNP\text{-}index)$ simulations represents the 99% confidence interval for the true data.
+
+1. Confidence intervals are matched with the relevant window depth at each SNP.
+
+Here is an example for running the analysis for an F2 population, with a bulk size of 300 individuals in each bulk. The simulation is bootstrapped 10000 times and the two-sided 95 and 99% confidence intervals are calculated:
+```{r qtlseqanalysis-src, eval = FALSE}
+df_filt <- runQTLseqAnalysis(df_filt,
+    windowSize = 1e6,
+    popStruc = "F2", 
+    bulkSize = 300, 
+    replications = 10000, 
+    intervals = c(95, 99)
+    )
+```
+```{r atlseqanalysis-msg, message = TRUE, warning = FALSE, collapse = TRUE, echo = FALSE}
+df_filt <- runQTLseqAnalysis(df_filt,
+    windowSize = 1e6,
+    popStruc = "F2", 
+    bulkSize = 300, 
+    replications = 10000, 
+    intervals = c(95, 99)
+    )
+```
+
+### G' analysis
+An alternate approach to determine statistical significance of QTL from NGS-BSA was proposed by Magwene et al. (2011) – calculating a modified G statistic for each SNP based on the observed and expected allele depths and smoothing this value using a tricube smoothing kernel. Using the smoothed G statistic, or G’, Magwene et al. allow for noise reduction while also addressing linkage disequilibrium between SNPs. Furthermore, as G’ is close to being log normally distributed, p-values can be estimated for each SNP using non-parametric estimation of the null distribution of G’. This provides a clear and easy-to-interpret result as well as the option for multiple testing corrections.
+
 Here, we will briefly summarize the steps performed by the main analysis function, `runGprimeAnalysis`.
 
 The following steps are performed:
@@ -325,7 +391,7 @@ QTLseqr offers two main plotting functions to check the validity of the $G'$ ana
 
 ### G' distribution plots
 
-Due to the fact that p-values are estimated from the null distribution of $G'$, an important check is to see if $G'$ values are close to log normally distributed. For this purpose we use the `plotGprimeDist` function, which plots the $G'$ histograms of both raw and filtered $G'$ sets (see P-value calculation above) alongside the log-normal null distribution (which is reported in the legend). We can also use this to test which filtering method (Hampel or DeltaSNP) estimates a more accurate null distribution. If you use the `"deltaSNP"` method plotting $G'$ distributions with different filter thresholds might also help reveal a better $G'$ null distribution. 
+Due to the fact that p-values are estimated from the null distribution of $G'$, an important check is to see if the null distribution of $G'$ values is close to log normally distributed. For this purpose we use the `plotGprimeDist` function, which plots the $G'$ histograms of both raw and filtered $G'$ sets (see P-value calculation above) alongside the log-normal null distribution (which is reported in the legend). We can also use this to test which filtering method (Hampel or DeltaSNP) estimates a more accurate null distribution. If you use the `"deltaSNP"` method plotting $G'$ distributions with different filter thresholds might also help reveal a better $G'$ null distribution. 
 
 ```{r gprimedist hampel, message = FALSE, warning = FALSE, fig.height=4 , dpi=300}
 plotGprimeDist(SNPset = df_filt, outlierFilter = "Hampel")
@@ -346,13 +412,13 @@ p1
 ```
 This is informative as we can assess if there are regions with extremely low SNP density.
 
-More importantly lets identify some QTL by plotting the smoothed $\Delta (SNP\text{-}index)$ and $G'$ values.
+More importantly lets identify some QTL by plotting the smoothed $\Delta (SNP\text{-}index)$ and $G'$ values. If we've performed QTLseq analysis we can also set `plotIntervals` to `TRUE` and plot the confidence intervals to identify QTL using that method.
 
 ```{r plotdeltaSNP, fig.align = "center", fig.width=12, fig.height=4, , dpi=300}
-p2 <- plotQTLStats(SNPset = df_filt, var = "deltaSNP")
+p2 <- plotQTLStats(SNPset = df_filt, var = "deltaSNP", plotIntervals = TRUE)
 p2
 ```
-We can see that there are some regions that have $|\Delta (SNP\text{-}index)| > 0.3$ these may be QTL. The directionality of the $\Delta (SNP\text{-}index)$ is also important. If the allele contributing to the trait is from the reference parent the $\Delta (SNP\text{-}index)$ should be less than 0. However, if the $\Delta (SNP\text{-}index) > 0$ then the contributing parent is the one with the alternate alleles. 
+We can see that there are some regions that have $\Delta (SNP\text{-}index)$ that pass the confidence interval thresholds, and are putative QTL. The directionality of the $\Delta (SNP\text{-}index)$ is also important for $G'$ analysis. If the allele contributing to the trait is from the reference parent the $\Delta (SNP\text{-}index)$ should be less than 0. However, if the $\Delta (SNP\text{-}index) > 0$ then the contributing parent is the one with the alternate alleles. 
 
 Let's look at the $G'$ values to see if these regions are significant and pass the FDR (q) of 0.01.
 ```{r plotGprime, fig.align = "center", fig.width=12, fig.height=4, , dpi=300}
@@ -391,18 +457,18 @@ head(QTL[[1]])
 
 ### Output QTL summary
 
-While `getSigRegions` is useful for examining every SNP within each QTL and perhaps for some downstream analysis, the `getQTLTable` will summarize those results and can output a CSV by setting `export = TRUE` and `fileName = "MyQTLsummary.csv"`.
+While `getSigRegions` is useful for examining every SNP within each QTL and perhaps for some downstream analysis, the `getQTLTable` will summarize those results and can output a CSV by setting `export = TRUE` and `fileName = "MyQTLsummary.csv"`. We can set `method` as either `"Gprime"` or `"QTLseq"` depending on the type of analysis; `"Gprime"` will use `alpha` as FDR threshold and `"QTLseq"` will use the `interval` paramter, which should match one of the intervals calculated above.
 
 Here is the summary for significant regions with a FDR of 0.01:
 ```{r QTLtable}
-results <- getQTLTable(SNPset = df_filt, alpha = 0.01, export = FALSE)
+results <- getQTLTable(SNPset = df_filt, method = "Gprime",alpha = 0.01, export = FALSE)
 results
 ```
 
 The columns are:
 
-* id - the QTL identification number
 * chromosome - The chromosome on which the region was identified
+* qtl - the QTL identification number in this chromosome
 * start - the start position on that chromosome, i.e. the position of the first SNP that passes the FDR threshold
 * end - the end position
 * length - the length in base pairs from start to end of the region
