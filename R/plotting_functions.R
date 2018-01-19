@@ -132,8 +132,8 @@ plotQTLStats <-
                 ints_df <-
                      dplyr::select(SNPset, CHROM, POS, dplyr::matches("CI_")) %>% tidyr::gather(key = "Interval", value = "value",-CHROM,-POS)
                 
-                p <- p + ggplot2::geom_line(data = ints_df, aes(x = POS, y = value, color = Interval)) +
-                    ggplot2::geom_line(data = ints_df, aes(
+                p <- p + ggplot2::geom_line(data = ints_df, ggplot2::aes(x = POS, y = value, color = Interval)) +
+                    ggplot2::geom_line(data = ints_df, ggplot2::aes(
                         x = POS,
                         y = -value,
                         color = Interval
