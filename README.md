@@ -7,7 +7,7 @@ QTLseqr is an R package for QTL mapping using NGS Bulk Segregant Analysis.
 
 QTLseqr is still under development and is offered with out any guarantee.
 
-### **For more detailed instructions please read the vignette [here](https://drive.google.com/file/d/0B3wMyxzoUzkVOFFmN1VtZjdlV28/view?usp=sharing)**
+### **For more detailed instructions please read the vignette [here](https://drive.google.com/file/d/1IPXToemXcDSjcdrrsCs2F99po6IHAyxx/view?usp=sharing)**
 
 Installation
 ============
@@ -47,7 +47,7 @@ It also incorperates Δ(SNP-index) type analysis as described by Takagi, Hiroki,
 Example
 -------
 
-### **For more detailed instructions please read the vignette [here](https://drive.google.com/file/d/0B3wMyxzoUzkVOFFmN1VtZjdlV28/view?usp=sharing)**
+### **For more detailed instructions please read the vignette [here](https://drive.google.com/file/d/1IPXToemXcDSjcdrrsCs2F99po6IHAyxx/view?usp=sharing)**
 
 This is a basic example which shows you how to import and analyze NGS-BSA data.
 
