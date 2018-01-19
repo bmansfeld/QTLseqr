@@ -7,6 +7,8 @@ QTLseqr is an R package for QTL mapping using NGS Bulk Segregant Analysis.
 
 QTLseqr is still under development and is offered with out any guarantee.
 
+### **For more detailed instructions please read the vignette [here](https://drive.google.com/file/d/0B3wMyxzoUzkVOFFmN1VtZjdlV28/view?usp=sharing)**
+
 Installation
 ============
 
