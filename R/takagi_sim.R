@@ -7,7 +7,7 @@
 #' @param pop the population structure. Defaults to "F2" and assumes "RIL" 
 #' population otherwise.
 #'
-#' @return an alternate allele frequency withing the bulk. Used for simulating 
+#' @return an alternate allele frequency within the bulk. Used for simulating 
 #' SNP-indeces.
 #'
 simulateAlleleFreq <- function(n, pop = "F2") {
@@ -174,20 +174,37 @@ simulateConfInt <-
     }
 
 
-#' Calculates delta SNP confidence intervals
+#' Calculates delta SNP confidence intervals for QTLseq analysis
 #'
-#' @param SNPset 
-#' @param popStruc 
-#' @param bulkSize 
-#' @param depth 
-#' @param replications 
-#' @param filter 
-#' @param intervals 
+#'The method for simulating delta SNP-index confidence interval thresholds
+#' as described in Takagi et al., (2013). Genotypes are randomly assigned for
+#' each indvidual in the bulk, based on the population structure. The total
+#' alternative allele frequency in each bulk is calculated at each depth used to simulate 
+#' delta SNP-indeces, with a user defined number of bootstrapped replication.
+#' The requested confidence intervals are then calculated from the bootstraps.
 #'
-#' @return
+#' @param SNPset The data frame imported by \code{ImportFromGATK} 
+#' @param popStruc the population structure. Defaults to "F2" and assumes "RIL" 
+#' @param bulkSize non-negative integer. The number of individuals in each bulk
+#' @param depth integer. A read depth for which to replicate SNP-index calls.
+#' @param replications integer. The number of bootstrap replications.
+#' @param filter numeric. An optional minimum SNP-index filter
+#' @param intervals numeric vector of probabilities with values in [0,1] 
+#' corresponding to the requested confidence intervals 
+#'
+#' @return A SNPset data frame with delta SNP-index thresholds corrisponding to the 
+#' requested confidence intervals matching the tricube smoothed depth at each SNP.
 #' @export runQTLseqAnalysis
 #'
-#' @examples
+#' @examples df_filt <- runQTLseqAnalysis(
+#' SNPset = df_filt,
+#' windowSize = 1e6,
+#' popStruc = "F2",
+#' replications = 10000,
+#' intervals = c(95, 99)
+#' )
+#' 
+#' 
 runQTLseqAnalysis <- function(SNPset, windowSize = 1e6,
     popStruc = "F2",
     bulkSize,

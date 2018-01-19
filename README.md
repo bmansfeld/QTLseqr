@@ -1,6 +1,6 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-QTLseqr v0.5.8
+QTLseqr v0.6.0
 ==============
 
 QTLseqr is an R package for QTL mapping using NGS Bulk Segregant Analysis.
@@ -89,9 +89,18 @@ df_filt <- runGprimeAnalysis(
     windowSize = 1e6,
     outlierFilter = "deltaSNP")
 
+#Run QTLseq analysis
+df_filt <- runQTLseqAnalysis(
+    SNPset = df_filt,
+    windowSize = 1e6,
+    popStruc = "F2",
+    replications = 10000,
+    intervals = c(95, 99)
+)
+
 #Plot
-plotQTLStats(SNPset = df_filt, var = "deltaSNP", plotThreshold = TRUE, q = 0.01)
 plotQTLStats(SNPset = df_filt, var = "Gprime", plotThreshold = TRUE, q = 0.01)
+plotQTLStats(SNPset = df_filt, var = "deltaSNP", plotIntervals = TRUE)
 
 #export summary CSV
 getQTLTable(SNPset = df_filt, alpha = 0.01, export = TRUE, fileName = "my_BSA_QTL.csv")

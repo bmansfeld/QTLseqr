@@ -13,7 +13,7 @@ simulateAlleleFreq(n, pop = "F2")
 population otherwise.}
 }
 \value{
-an alternate allele frequency withing the bulk. Used for simulating 
+an alternate allele frequency within the bulk. Used for simulating 
 SNP-indeces.
 }
 \description{
