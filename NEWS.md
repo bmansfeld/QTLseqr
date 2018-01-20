@@ -1,3 +1,8 @@
+# QTLseqr 0.6.1
+## Updates
+* added `plotSimulatedThresholds` function to help users visuallize their confisence intervals
+* some manual corrections and mods
+
 # QTLseqr 0.6.0
 ## Updates
 * Added QTLseq analysis functionality

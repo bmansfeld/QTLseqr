@@ -286,3 +286,82 @@ plotGprimeDist <-
         #    color = "blue")
         return(p)
     }
+
+
+#' Plots simulation data for QTLseq analysis
+#'
+# The method for simulating delta SNP-index confidence interval thresholds
+#' as described in Takagi et al., (2013). Genotypes are randomly assigned for
+#' each indvidual in the bulk, based on the population structure. The total
+#' alternative allele frequency in each bulk is calculated at each depth used to simulate
+#' delta SNP-indeces, with a user defined number of bootstrapped replication.
+#' The requested confidence intervals are then calculated from the bootstraps.
+#' This function plots the simulated confidence intervals by the read depth.
+#'
+#' @param SNPset optional. Either supply your data set to extract read depths from or supply depth vector.
+#' @param popStruc the population structure. Defaults to "F2" and assumes "RIL" otherwise.
+#' @param bulkSize non-negative integer. The number of individuals in each bulk
+#' @param depth optional integer vector. A read depth for which to replicate SNP-index calls. If read depth is defined SNPset will be ignored.
+#' @param replications integer. The number of bootstrap replications.
+#' @param filter numeric. An optional minimum SNP-index filter
+#' @param intervals numeric vector. Confidence intervals supplied as two-sided percentiles. i.e. If intervals = '95' will return the two sided 95\% confidence interval, 2.5\% on each side.
+#'
+#' @return Plots a deltaSNP by depth plot. Helps if the user wants to know the the delta SNP index needed to pass a certain CI at a specified depth.
+#'
+#' @export plotSimulatedThresholds
+#'
+#' @examples plotSimulatedThresholds <- function(SNPset = NULL, popStruc = "F2", bulkSize = 25,   depth = 1:150, replications = 10000, filter = 0.3, intervals = c(95, 99))
+
+plotSimulatedThresholds <-
+    function(SNPset = NULL,
+             popStruc = "F2",
+             bulkSize,
+             depth = NULL,
+             replications = 10000,
+             filter = 0.3,
+             intervals = c(95, 99)) {
+        
+        if (is.null(depth)) {
+            if (!is.null(SNPset)) {
+                message(
+                    "Variable 'depth' not defined, using min and max depth from data: ",
+                    min(SNPset$minDP),
+                    "-",
+                    max(SNPset$minDP)
+                )
+                depth <- min(SNPset$minDP):max(SNPset$minDP)
+            } else {
+                stop("No SNPset or depth supplied")
+            }
+        }
+        
+        #convert intervals to quantiles
+        if (all(intervals >= 1)) {
+            message(
+                "Returning the following two sided confidence intervals: ",
+                paste(intervals, collapse = ", ")
+            )
+            quantiles <- (100 - intervals) / 200
+        } else {
+            stop(
+                "Convidence intervals ('intervals' paramater) should be supplied as two-sided percentiles. i.e. If intervals = '95' will return the two sided 95% confidence interval, 2.5% on each side."
+            )
+        }
+        
+        CI <-
+            simulateConfInt(
+                popStruc = popStruc,
+                bulkSize = bulkSize,
+                depth = depth,
+                replications = replications,
+                filter = filter,
+                intervals = quantiles
+            )
+        
+        CI <-
+            tidyr::gather(CI, key = "Interval", value = "deltaSNP",-depth)
+        
+        ggplot2::ggplot(data = CI) + 
+            ggplot2::geom_line(ggplot2::aes(x = depth, y = deltaSNP, color = Interval)) +
+            ggplot2::geom_line(ggplot2::aes(x = depth, y = -deltaSNP,color = Interval))
+    }    
