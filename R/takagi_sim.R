@@ -91,7 +91,7 @@ simulateConfInt <-
         depth = 1:100,
         replications = 10000,
         filter = 0.3,
-        intervals = c(90, 95, 99)) {
+        intervals = c(0.05, 0.025)) {
         if (popStruc == "F2") {
             message(
                 "Assuming bulks selected from F2 population, with ",
@@ -184,13 +184,12 @@ simulateConfInt <-
 #' The requested confidence intervals are then calculated from the bootstraps.
 #'
 #' @param SNPset The data frame imported by \code{ImportFromGATK} 
-#' @param popStruc the population structure. Defaults to "F2" and assumes "RIL" 
+#' @param popStruc the population structure. Defaults to "F2" and assumes "RIL" otherwise
 #' @param bulkSize non-negative integer. The number of individuals in each bulk
 #' @param depth integer. A read depth for which to replicate SNP-index calls.
 #' @param replications integer. The number of bootstrap replications.
 #' @param filter numeric. An optional minimum SNP-index filter
-#' @param intervals numeric vector of probabilities with values in [0,1] 
-#' corresponding to the requested confidence intervals 
+#' @param intervals numeric vector. Confidence intervals supplied as two-sided percentiles. i.e. If intervals = '95' will return the two sided 95\% confidence interval, 2.5\% on each side. 
 #'
 #' @return A SNPset data frame with delta SNP-index thresholds corrisponding to the 
 #' requested confidence intervals matching the tricube smoothed depth at each SNP.

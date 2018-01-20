@@ -11,7 +11,7 @@ runQTLseqAnalysis(SNPset, windowSize = 1e+06, popStruc = "F2", bulkSize,
 \arguments{
 \item{SNPset}{The data frame imported by \code{ImportFromGATK}}
 
-\item{popStruc}{the population structure. Defaults to "F2" and assumes "RIL"}
+\item{popStruc}{the population structure. Defaults to "F2" and assumes "RIL" otherwise}
 
 \item{bulkSize}{non-negative integer. The number of individuals in each bulk}
 
@@ -21,8 +21,7 @@ runQTLseqAnalysis(SNPset, windowSize = 1e+06, popStruc = "F2", bulkSize,
 
 \item{filter}{numeric. An optional minimum SNP-index filter}
 
-\item{intervals}{numeric vector of probabilities with values in [0,1] 
-corresponding to the requested confidence intervals}
+\item{intervals}{numeric vector. Confidence intervals supplied as two-sided percentiles. i.e. If intervals = '95' will return the two sided 95\% confidence interval, 2.5\% on each side.}
 }
 \value{
 A SNPset data frame with delta SNP-index thresholds corrisponding to the 
