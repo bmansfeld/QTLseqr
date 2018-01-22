@@ -40,6 +40,11 @@ Abstract
 
 Since the early 1990’s, Bulk Segregant Analysis (BSA) has been a valuable tool for rapidly identifying markers in a genomic region associated with a trait of interest. BSA is amenable to any type of codominant markers, including single nucleotide polymorphism (SNP) markers. This has allowed for the adaptation of this technology for use with next-generation sequencing (NGS) reads. SNPs detected in reads aligning to genomic regions closely linked to the trait should deviate from the expected ~50% representation observed in non-linked regions. In the past several years, the main pipeline used for NGS-BSA for plant breeding research was QTL-seq. While this approach has been widely used in several crops for many traits, the released pipeline has not been updated in several years, and as a result software and version incompatibility issues have arisen. This limits the widespread utilization of this otherwise well-designed pipeline. While an alternate approach for evaluating statistical significance of QTL from NGS-BSA based on a tricube-smoothed G statistic exists, a software implementation was never developed or distributed. We thus present “QTLseqr”, an R package for NGS-BSA, that incorporates both methods above. QTLseqr, can quickly import and filter SNP data from the Genome Analysis Tool Kit (GATK) pipeline, then calculate and plot SNP distributions, relative allele frequencies, the tricube-smoothed G values, as well as log10(p-values). This allows for easy plotting and identification of QTL regions.
 
+Example figure
+--------------
+
+![Example figure](https://github.com/bmansfeld/QTLseqr/raw/master/all_plots2.png "Example figure")
+
 The package is an R implementation of the analysis described in The Statistics of Bulk Segregant Analysis Using Next Generation Sequencing Magwene PM, Willis JH, Kelly JK (2011) The Statistics of Bulk Segregant Analysis Using Next Generation Sequencing. PLOS Computational Biology 7(11): e1002255. doi: [10.1371/journal.pcbi.1002255](http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1002255)
 
 It also incorperates Δ(SNP-index) type analysis as described by Takagi, Hiroki, et al. "QTL‐seq: rapid mapping of quantitative trait loci in rice by whole genome resequencing of DNA from two bulked populations." The Plant Journal 74.1 (2013): 174-183. [doi:10.1111/tpj.12105](http://onlinelibrary.wiley.com/doi/10.1111/tpj.12105/full)
@@ -107,9 +112,3 @@ plotQTLStats(SNPset = df_filt, var = "deltaSNP", plotIntervals = TRUE)
 #export summary CSV
 getQTLTable(SNPset = df_filt, alpha = 0.01, export = TRUE, fileName = "my_BSA_QTL.csv")
 ```
-
-    #> Warning: package 'ggpubr' was built under R version 3.4.3
-    #> Loading required package: magrittr
-    #> Warning: package 'magrittr' was built under R version 3.4.3
-
-![](README-plot-1.png)
