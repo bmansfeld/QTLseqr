@@ -107,3 +107,9 @@ plotQTLStats(SNPset = df_filt, var = "deltaSNP", plotIntervals = TRUE)
 #export summary CSV
 getQTLTable(SNPset = df_filt, alpha = 0.01, export = TRUE, fileName = "my_BSA_QTL.csv")
 ```
+
+    #> Warning: package 'ggpubr' was built under R version 3.4.3
+    #> Loading required package: magrittr
+    #> Warning: package 'magrittr' was built under R version 3.4.3
+
+![](README-plot-1.png)
