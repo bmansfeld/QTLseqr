@@ -1,6 +1,6 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-QTLseqr v0.6.0
+QTLseqr v0.6.1
 ==============
 
 QTLseqr is an R package for QTL mapping using NGS Bulk Segregant Analysis.
@@ -43,7 +43,7 @@ Since the early 1990’s, Bulk Segregant Analysis (BSA) has been a valuable tool
 Example figure
 --------------
 
-![Example figure](https://github.com/bmansfeld/QTLseqr/raw/master/all_plots2.png "Example figure")
+![Example figure](https://github.com/bmansfeld/QTLseqr/raw/master/all_plots.png "Example figure")
 
 The package is an R implementation of the analysis described in The Statistics of Bulk Segregant Analysis Using Next Generation Sequencing Magwene PM, Willis JH, Kelly JK (2011) The Statistics of Bulk Segregant Analysis Using Next Generation Sequencing. PLOS Computational Biology 7(11): e1002255. doi: [10.1371/journal.pcbi.1002255](http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1002255)
 
