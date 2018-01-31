@@ -1,3 +1,7 @@
+# QTLseqr 0.6.2
+## Bug fixes
+* Added responsive x axis brakes. Axis brake labels were getting squashed on small chromosomes.
+
 # QTLseqr 0.6.1
 ## Updates
 * added `plotSimulatedThresholds` function to help users visuallize their confisence intervals
