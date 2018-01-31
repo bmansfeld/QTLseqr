@@ -96,7 +96,7 @@ plotQTLStats <-
             }
         
         p <- ggplot2::ggplot(data = SNPset) +
-            ggplot2::scale_x_continuous(labels = format_genomic(), name = "Genomic Position (Mb)") +
+            ggplot2::scale_x_continuous(breaks = seq(from = 0,to = max(SNPset$POS), by = 10^(floor(log10(max(SNPset$POS))))), labels = format_genomic(), name = "Genomic Position (Mb)") +
             ggplot2::theme(plot.margin = ggplot2::margin(
                 b = 10,
                 l = 20,
@@ -245,7 +245,7 @@ plotGprimeDist <-
             ggplot2::xlab("G' value") +
             ggplot2::geom_histogram(ggplot2::aes(x = Gprime, fill = "Raw Data"), binwidth = bw) +
             ggplot2::geom_histogram(data = trim_df,
-                ggplot2::aes(x = Gprime, fill = "Filtered"),
+                ggplot2::aes(x = Gprime, fill = "After filtering"),
                 binwidth = bw) +
             ggplot2::stat_function(
                 ggplot2::aes(color = "black"),
