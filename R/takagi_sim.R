@@ -106,6 +106,7 @@ simulateConfInt <-
             )
         }
         
+        #makes a vector of possible alt allele frequencies once. this is then sampled for each replicate
         tmp_freq <-
             replicate(n = replications * 10, simulateAlleleFreq(n = bulkSize, pop = popStruc))
         
@@ -125,6 +126,8 @@ simulateConfInt <-
             " SNP-index in both simulated bulks"
         ))
         
+        # tmp allele freqs are sampled to produce 'replicate' numbers of probablities. these 
+        # are then used as altFreq probs to simulate SNP index values, per bulk.
         CI <- sapply(
             X = depth,
             FUN = function(x)
