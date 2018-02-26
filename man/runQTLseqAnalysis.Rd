@@ -11,6 +11,8 @@ runQTLseqAnalysis(SNPset, windowSize = 1e+06, popStruc = "F2", bulkSize,
 \arguments{
 \item{SNPset}{The data frame imported by \code{ImportFromGATK}}
 
+\item{windowSize}{the window size (in base pairs) bracketing each SNP for which to calculate the statitics.}
+
 \item{popStruc}{the population structure. Defaults to "F2" and assumes "RIL" otherwise}
 
 \item{bulkSize}{non-negative integer. The number of individuals in each bulk}

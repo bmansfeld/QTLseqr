@@ -187,6 +187,7 @@ simulateConfInt <-
 #' The requested confidence intervals are then calculated from the bootstraps.
 #'
 #' @param SNPset The data frame imported by \code{ImportFromGATK} 
+#' @param windowSize the window size (in base pairs) bracketing each SNP for which to calculate the statitics.
 #' @param popStruc the population structure. Defaults to "F2" and assumes "RIL" otherwise
 #' @param bulkSize non-negative integer. The number of individuals in each bulk
 #' @param depth integer. A read depth for which to replicate SNP-index calls.
