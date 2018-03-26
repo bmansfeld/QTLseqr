@@ -21,6 +21,7 @@ knitr::opts_chunk$set(tidy=FALSE, cache=FALSE,
                       message=FALSE, error=FALSE, warning=TRUE)
 ```	
 # Current version: Development - `r packageVersion("QTLseqr")`
+
 # Standard workflow
 
 **If you use QTLseqr in published research, please cite:**
