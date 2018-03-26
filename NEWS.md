@@ -1,3 +1,9 @@
+# QTLseqr 0.6.3
+## Bug fixes
+* Corrected a call to global env variables in `importFromGATK`.
+* Fixed issues with bulk names that had periods in them.
+* Bug fix in export functions using `table` as variable name.
+
 # QTLseqr 0.6.2
 ## Bug fixes
 * Added responsive x axis brakes. Axis brake labels were getting squashed on small chromosomes.
