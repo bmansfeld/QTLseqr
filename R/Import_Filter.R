@@ -55,6 +55,12 @@ importFromGATK <- function(file,
         stop("One of the required fields is missing. Check your table file.")
     }
     
+# rename columns based on bulk names and flip headers (ie HIGH.AD -> AD.HIGH to match the rest of the functions
+    colnames(SNPset) <-
+        gsub(highBulk, replacement = "HIGH", x = colnames(SNPset))
+    colnames(SNPset) <-
+        gsub(lowBulk, replacement = "LOW", x = colnames(SNPset))
+    
     colnames(SNPset) <-
         sapply(strsplit(colnames(SNPset), "[.]"),
             function(x) {paste0(rev(x),collapse = '.')})
@@ -67,11 +73,6 @@ importFromGATK <- function(file,
     #arrange the chromosomes by natural order sort, eg Chr1, Chr10, Chr2 >>> Chr1, Chr2, Chr10
     SNPset$CHROM <-
         factor(SNPset$CHROM, levels = gtools::mixedsort(unique(SNPset$CHROM)))
-
-    colnames(SNPset) <-
-        gsub(HighBulk, replacement = "HIGH", x = colnames(SNPset))
-    colnames(SNPset) <-
-        gsub(LowBulk, replacement = "LOW", x = colnames(SNPset))
     
     SNPset <- SNPset %>%
         tidyr::separate(
@@ -108,6 +109,70 @@ importFromGATK <- function(file,
         )
     
     return(as.data.frame(SNPset))
+}
+
+
+## not exported still only works for GATK...
+importFromVCF <- function(file,
+                          highBulk = character(),
+                          lowBulk = character(),
+                          chromList = NULL) {
+    
+    vcf <- vcfR::read.vcfR(file = file)
+    message("Keeping SNPs that pass all filters")
+    vcf <- vcf[vcf@fix[, "FILTER"] == "PASS"] 
+    
+    fix <- dplyr::as_tibble(vcf@fix[, c("CHROM", "POS", "REF", "ALT")]) %>% mutate(Key = seq(1:nrow(.)))
+    
+    # if (!all(
+    #     c(
+    #         "CHROM", 
+    #         "POS", 
+    #         paste0(highBulk, ".AD"), 
+    #         paste0(lowBulk, ".AD"), 
+    #         paste0(highBulk, ".DP"), 
+    #         paste0(lowBulk, ".DP")
+    #     ) %in% names(SNPset))) {
+    #     stop("One of the required fields is missing. Check your VCF file.")
+    # }
+    
+    tidy_gt <- extract_gt_tidy(vcf, format_fields = c("AD", "DP", "GQ"), gt_column_prepend = "", alleles = FALSE)
+    
+    SNPset <- tidy_gt %>%
+        filter(Indiv == LowBulk) %>% select(-Indiv) %>%
+        dplyr::left_join(select(filter(tidy_gt, Indiv == HighBulk),-Indiv),
+                         by = "Key",
+                         suffix = c(".LOW", ".HIGH")) %>%
+        tidyr::separate(
+            col = "AD.LOW",
+            into = c("AD_REF.LOW", "AD_ALT.LOW"),
+            sep = ",",
+            extra = "merge",
+            convert = TRUE
+        ) %>%
+        tidyr::separate(
+            col = "AD.HIGH",
+            into = c("AD_REF.HIGH", "AD_ALT.HIGH"),
+            sep = ",",
+            extra = "merge", 
+            convert = TRUE
+        ) %>%
+        dplyr::full_join(x = fix, by = "Key") %>%
+        dplyr::mutate(
+            AD_ALT.HIGH = DP.HIGH - AD_REF.HIGH,
+            AD_ALT.LOW = DP.LOW - AD_REF.LOW,
+            SNPindex.HIGH = AD_ALT.HIGH / DP.HIGH,
+            SNPindex.LOW = AD_ALT.LOW / DP.LOW,
+            REF_FRQ = (AD_REF.HIGH + AD_REF.LOW) / (DP.HIGH + DP.LOW),
+            deltaSNP = SNPindex.HIGH - SNPindex.LOW
+        ) %>%
+        select(-Key)
+    #Keep only wanted chromosomes
+    if (!is.null(chromList)) {
+        message("Removing the following chromosomes: ", paste(unique(SNPset$CHROM)[!unique(SNPset$CHROM) %in% chromList], collapse = ", "))
+        SNPset <- SNPset[SNPset$CHROM %in% chromList, ]
+    }
+    as.data.frame(SNPset)
 }
 
 
