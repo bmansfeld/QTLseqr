@@ -42,7 +42,7 @@ getSigRegions <-
             dplyr::group_by(CHROM)
         
         if (method == "QTLseq") {
-            table <-
+            qtltable <-
                 SNPset %>% dplyr::mutate(passThresh = abs(tricubeDeltaSNP) > abs(!!as.name(conf))) %>%
                 dplyr::group_by(CHROM, run = {
                     run = rle(passThresh)
@@ -55,7 +55,7 @@ getSigRegions <-
                 #dont need run variable anymore
                 dplyr::select(-run,-qtl,-passThresh)
         } else {
-            table <- SNPset %>% dplyr::mutate(passThresh = qvalue <= alpha) %>%
+            qtltable <- SNPset %>% dplyr::mutate(passThresh = qvalue <= alpha) %>%
                 dplyr::group_by(CHROM, run = {
                     run = rle(passThresh)
                     rep(seq_along(run$lengths), run$lengths)
@@ -68,12 +68,12 @@ getSigRegions <-
                 dplyr::select(-run,-qtl,-passThresh)
         }
         
-        table <- as.data.frame(table)
+        qtltable <- as.data.frame(qtltable)
         qtlList <-
-            split(table, factor(
-                paste(table$CHROM, table$qtl, sep = "_"),
+            split(qtltable, factor(
+                paste(qtltable$CHROM, qtltable$qtl, sep = "_"),
                 levels = gtools::mixedsort(unique(
-                    paste(table$CHROM, table$qtl, sep = "_")
+                    paste(qtltable$CHROM, qtltable$qtl, sep = "_")
                 ))
             ))
         
@@ -143,7 +143,7 @@ getQTLTable <-
             dplyr::group_by(CHROM)
         
         if (method == "QTLseq") {
-            table <-
+            qtltable <-
                 SNPset %>% dplyr::mutate(passThresh = abs(tricubeDeltaSNP) > abs(!!as.name(conf))) %>%
                 dplyr::group_by(CHROM, run = {
                     run = rle(passThresh)
@@ -169,7 +169,7 @@ getQTLTable <-
                     avgDeltaSNP = mean(tricubeDeltaSNP)
                 )
         } else {
-            table <- SNPset %>% dplyr::mutate(passThresh = qvalue <= alpha) %>%
+            qtltable <- SNPset %>% dplyr::mutate(passThresh = qvalue <= alpha) %>%
                 dplyr::group_by(CHROM, run = {
                     run = rle(passThresh)
                     rep(seq_along(run$lengths), run$lengths)
@@ -203,12 +203,12 @@ getQTLTable <-
                 )
         }
         
-        table <- as.data.frame(table)
+        qtltable <- as.data.frame(qtltable)
         
         if (export) {
             write.csv(file = fileName,
-                      x = table,
+                      x = qtltable,
                       row.names = FALSE)
         }
-        return(table)
+        return(qtltable)
     }
