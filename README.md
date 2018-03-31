@@ -33,7 +33,7 @@ devtools::install_github("bmansfeld/QTLseqr")
 
 **If you use QTLseqr in published research, please cite:**
 
-> Mansfeld B.N. and Grumet R, QTLseqr: An R package for bulk segregant analysis with next-generation sequencing *bioRxiv* 208140. doi: <https://doi.org/10.1101/208140>
+> Mansfeld B.N. and Grumet R, QTLseqr: An R package for bulk segregant analysis with next-generation sequencing *The Plant Genome* <doi:10.3835/plantgenome2018.01.0006>
 
 We also recommend citing the paper for the corresponding method you work with.
 
