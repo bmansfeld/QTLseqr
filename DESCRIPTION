@@ -9,7 +9,7 @@ Authors@R: c(
     )
 BugReports: https://github.com/bmansfeld/QTLseqr/issues
 Description: QTLseqr performs QTL mapping using Bulk Segregant Analysis of Next Gen Sequencing data.
-    The package is an R implementation of the analysis described in The Statistics of Bulk Segregant Analysis Using Next Generation Sequencing Magwene PM, Willis JH, Kelly JK (2011) The Statistics of Bulk Segregant Analysis Using Next Generation Sequencing. PLOS Computational Biology 7(11): e1002255. doi: 10.1371/journal.pcbi.1002255    
+    The package is an R implementation of the analyses described in Magwene PM, Willis JH, Kelly JK (2011) The Statistics of Bulk Segregant Analysis Using Next Generation Sequencing. PLOS Computational Biology 7(11): e1002255. doi: 10.1371/journal.pcbi.1002255 and Takagi, H., Abe, A., Yoshida, K., Kosugi, S., Natsume, S., Mitsuoka, C., Uemura, A., Utsushi,H., Tamiru, M., Takuno, S., Innan, H., Cano, L. M., Kamoun, S. and Terauchi, R. (2013), QTL-seq: rapid mapping of quantitative trait loci in rice by whole genome resequencing of DNA from two bulked populations. *Plant J*, 74: 174–183. doi:10.1111/tpj.12105
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
