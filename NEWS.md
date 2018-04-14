@@ -1,3 +1,7 @@
+# QTLseqr 0.6.4
+## Bug fixes
+* Corrected a windowSize that was set to 1e6 instead of the parameter function in 'runQTLanalysis'. This was causing problems in calculating window depth.
+
 # QTLseqr 0.6.3
 ## Bug fixes
 * Corrected a call to global env variables in `importFromGATK`.

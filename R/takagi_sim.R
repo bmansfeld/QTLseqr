@@ -244,7 +244,7 @@ runQTLseqAnalysis <- function(SNPset, windowSize = 1e6,
     SNPset <-
         SNPset %>% 
         dplyr::group_by(CHROM) %>% 
-        dplyr::mutate(tricubeDP = floor(tricubeStat(POS, minDP, windowSize = 1e6)))
+        dplyr::mutate(tricubeDP = floor(tricubeStat(POS, minDP, windowSize = windowSize)))
     
     if (is.null(depth)) {
         message(
