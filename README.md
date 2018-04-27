@@ -107,6 +107,7 @@ df_filt <- runQTLseqAnalysis(
     SNPset = df_filt,
     windowSize = 1e6,
     popStruc = "F2",
+    bulkSize = 25,
     replications = 10000,
     intervals = c(95, 99)
 )
