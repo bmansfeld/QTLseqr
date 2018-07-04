@@ -4,8 +4,7 @@ author: "Ben N. Mansfeld and Rebecca Grumet"
 date: "`r Sys.Date()`"
 output: 
   pdf_document:
-      toc: true
-      highlight: default
+    toc: yes
 graphics: yes
 urlcolor: blue
 vignette: >
@@ -499,6 +498,11 @@ The columns are:
 * meanPval - the average p-value in the region
 * meanQval - the average adjusted p-value in the region
 
-## Summary
+# Summary
 
 We've reviewed how to load SNP data from GATK and filter the data to contain high confidence SNPs. We then performed $\Delta (SNP\text{-}index)$ and $G'$ analysis and calculate p-values and q-values based on the tricube-smoothed $G'$ values. The QTL regions that pass our defined threshold can be stored as a list for further analysis or summarized as a table for publication.
+
+# Session info
+```{r sessioninfo, echo=FALSE}
+sessionInfo()
+```

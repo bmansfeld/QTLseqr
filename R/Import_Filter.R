@@ -41,7 +41,11 @@ importFromGATK <- function(file,
     chromList = NULL) {
     
     SNPset <-
-        readr::read_tsv(file = file, col_names = TRUE)
+        readr::read_tsv(file = file, 
+                        col_names = TRUE, 
+                        col_types = readr::cols(.default = readr::col_guess(),
+                                         CHROM = "c", POS = "i")
+                        )
     
     if (!all(
         c(
@@ -56,10 +60,14 @@ importFromGATK <- function(file,
     }
     
 # rename columns based on bulk names and flip headers (ie HIGH.AD -> AD.HIGH to match the rest of the functions
-    colnames(SNPset) <-
-        gsub(highBulk, replacement = "HIGH", x = colnames(SNPset))
-    colnames(SNPset) <-
-        gsub(lowBulk, replacement = "LOW", x = colnames(SNPset))
+    colnames(SNPset)[!colnames(SNPset) %in% c("CHROM", "POS", "REF", "ALT")] <- 
+        gsub(pattern = highBulk, 
+             replacement = "HIGH", 
+             x = colnames(SNPset)[!colnames(SNPset) %in% c("CHROM", "POS", "REF", "ALT")])
+    colnames(SNPset)[!colnames(SNPset) %in% c("CHROM", "POS", "REF", "ALT")] <- 
+        gsub(pattern = lowBulk, 
+             replacement = "LOW", 
+             x = colnames(SNPset)[!colnames(SNPset) %in% c("CHROM", "POS", "REF", "ALT")])
     
     colnames(SNPset) <-
         sapply(strsplit(colnames(SNPset), "[.]"),

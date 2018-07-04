@@ -1,3 +1,7 @@
+# QTLseqr 0.6.5
+## Bug fixes
+* Corrected a bug in import that happend when high or low bulks were named with things that looked like CHROM, POS, ALT or REF. Now the function ignores those columns when renaming to HIGH.xx or LOW.xx. Also better definition of column types to force CHROM to be char and POS to be int.
+
 # QTLseqr 0.6.4
 ## Bug fixes
 * Corrected a windowSize that was set to 1e6 instead of the parameter function in 'runQTLanalysis'. This was causing problems in calculating window depth.
