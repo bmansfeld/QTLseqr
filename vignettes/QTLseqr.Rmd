@@ -49,6 +49,14 @@ G prime method:
 ## Quick Start
 Here are the basic steps required to run and plot QTLseq and $G'$ analysis
 
+```{r installGitHub, eval = FALSE}
+# download and install the devtools package
+install.packages("devtools")
+
+# download the QTLseqr package from GitHub
+devtools::install_github("bmansfeld/QTLseqr")
+```
+
 ```{r quickStart, eval=FALSE}
 #load the package
 library("QTLseqr")
@@ -120,11 +128,57 @@ getQTLTable(
 
 # Standard workflow
 
+## Installation 
+Let's install and load the QTLseqr package:
+```{r install_load}
+#Install step if you have not done so yet:
+#install.packages("devtools")
+
+devtools::install_github("bmansfeld/QTLseqr")
+library("QTLseqr")
+```
+
+Great! We now need to load some data. QTLseqr has with a sister package [Yang2013data](https://github.com/bmansfeld/Yang2013data) (derived from [Yang et al. (2013)](https://doi.org/10.1371/journal.pone.0068433)], that has some trial data you can play with. 
+
 ## Input data
 
-QTLseqr currently only supports table format SNP data exported from the VariantsToTable function built in to GATK. We hope to support import from any VCF file soon.
+QTLseqr supports importing data either from table file exported from the VariantsToTable function built in to GATK or a delimited file containing allele read depths for each bulk. The two available functions are `importFromGATK` and `importFromTable`.
 
-## Importing SNPs from GATK
+Both functions import the SNP data and perform some preliminary calculations to find the following:
+
+$$Reference\ allele\ frequency = \frac{Ref\ allele\ depth_{HighBulk} + Ref\ allele\ depth_{LowBulk}}{Total\ read\ depth\ for\ both\ bulks}$$
+
+$$SNP\text{-}index_{per\ bulk} = \frac{Alternate\ allele\ depth}{Total\ read\ depth}$$
+
+$$\Delta (SNP\text{-}index) = SNP \text{-} index_{High Bulk} - SNP\text{-}index_{Low Bulk}$$
+
+To demonstrate the use of the import functions we will first load the Yang et al. (2013) data file.
+We first need to download the package that contains the data from github.
+```{r installdata}
+#download and load data package (~50Mb)
+devtools::install_github("bmansfeld/Yang2013data")
+library("Yang2013data")
+
+#Import the data
+rawData <- system.file(
+    "extdata", 
+    "Yang_et_al_2013.table", 
+    package = "Yang2013data", 
+    mustWork = TRUE)
+```
+If you have your own data you can simply refer to it directly:
+```{r, eval = FALSE}
+rawData <- "C:/PATH/TO/MY/DIR/My_BSA_data.table"
+```
+
+We define the sample name for each of the bulks. We also can define a vector of the chromosomes to be included in the analysis (i.e. exclude smaller contigs), In this case, Chr1, Chr2 ... Chr12.
+```{r}
+HighBulk <- "SRR834931"
+LowBulk <- "SRR834927"
+Chroms <- paste0(rep("Chr", 12), 1:12)
+```
+
+### Importing SNPs from GATK
 
 Working directly with the [GATK best practices guide](https://software.broadinstitute.org/gatk/best-practices/bp_3step.php?case=GermShortWGS) for whole genome sequence should result in a VCF that is compatible with QTLseqr. In general the workflow suggested by GATK is per-sample variant calling followed by joint genotyping across samples. This will produce a VCF file that includes **BOTH** bulks, each with a different sample name (here SRR834927 and SRR834931), one SNP for example:
 
@@ -135,7 +189,6 @@ kable_styling(knitr::kable(x = x, format = "latex", booktabs = TRUE), latex_opti
 ```
 \**info column removed for brevity*
 
-  
 GATK have provided a fast VCF parser, the [VariantsToTable](https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_variantutils_VariantsToTable.php) tool, that extracts the necessary fields for easy use in downstream analysis. 
 
 We highly recommend reading [What is a VCF and how should I interpret it?](http://gatkforums.broadinstitute.org/gatk/discussion/1268/what-is-a-vcf-and-how-should-i-interpret-it) for more information on GATK VCF Fields and Genotype Fields
@@ -155,51 +208,13 @@ Where `${REF}` is the reference genome file and `${NAME}` is VCF file you wish t
 
 To run QTLseqr successfully, the required VCF fields `(-F)` are CHROM (Chromosome) and POS (Position). the required Genotype fields `(-GF)` are AD (Allele Depth), DP (Depth). Recommended fields are REF (Reference allele) and ALT (Alternative allele) Recommended Genotype fields are PL (Phred-scaled likelihoods) and  GQ (Genotype Quality).
 
-### Import function
-
-Let's install and load the QTLseqr package:
-```{r install}
-#Install step if you have not done so yet:
-#devtools::install_github("bmansfeld/QTLseqr")
-library("QTLseqr")
-```
+#### The `ImportFromGATK` function
 
 The `importFromGATK` function imports SNP data from the output of the VariantsToTable function in GATK. After importing the data, the function then calculates total reference allele frequency for both bulks together, the SNP index for each bulk, and the $\Delta (SNP\text{-}index)$.
 
-To demonstrate the use of this function we will load the Yang et al. (2013) data file.
-We first need to download the package that contains the data from github.
-```{r installdata}
-#download and load data package (~50Mb)
-devtools::install_github("bmansfeld/Yang2013data")
-library("Yang2013data")
-
-#Import the data
-rawData <- system.file(
-    "extdata", 
-    "Yang_et_al_2013.table", 
-    package = "Yang2013data", 
-    mustWork = TRUE)
-```
-If you have your own data you can simply refer to it directly:
-```{r, eval = FALSE}
-rawData <- "C:/PATH/TO/MY/DIR/My_BSA_data.table"
-```
-
-We define the sample name for each of the bulks. This should correspond to the sample names in the VCF returned by GATK. We also define a vector of the chromosomes to be included in the analysis (i.e. exclude smaller contigs), In this case, Chr1, Chr2 ... Chr12.
-```{r}
-HighBulk <- "SRR834931"
-LowBulk <- "SRR834927"
-Chroms <- paste0(rep("Chr", 12), 1:12)
-```
 We then use the `importFromGATK` function to import the raw data. After importing the data, the function then calculates total reference allele frequency for both bulks together, the $SNP\text{-}index$ for each SNP in each bulk and the $\Delta (SNP\text{-}index)$ and returns a data frame.
 
-$$Reference\ allele\ frequency = \frac{Ref\ allele\ depth_{HighBulk} + Ref\ allele\ depth_{LowBulk}}{Total\ read\ depth\ for\ both\ bulks}$$
-
-$$SNP\text{-}index_{per\ bulk} = \frac{Alternate\ allele\ depth}{Total\ read\ depth}$$
-$$\Delta (SNP\text{-}index) = SNP \text{-} index_{High Bulk} - SNP\text{-}index_{Low Bulk}$$
-
-
-Let's import 
+Let's import:
 ```{r import, cache=TRUE}
 #import data
 df <-
@@ -211,8 +226,42 @@ df <-
      )
 ```
 
-### Loaded data frame
-The loaded data frame should look like this:
+### Importing from a delimited file
+
+You can also import SNPs from a csv, tsv or any other delimited file. Your file must include some necessary columns: CHROM (Chromosome names) and POS (the SNP position) as well as the reference and alternate allele depths (number of reads supporting each allele). The allele depths should be in columns named in this format: AD_(<ALT/REF>).<sampleName>*. For example, the column for alternate allele depth for a high bulk sample named "sample1", should be "AD_ALT.sample1". Any other columns describing the SNPs are allowed, ie the actual allele calls, or a quality score. If the column is Bulk specific, It should be named columnName.sampleName, i.e "QUAL.sample1".
+
+Here is the header of an example file:
+```{r csvexample, echo=FALSE}
+x <-
+    data.frame(
+    CHROM = rep("Chr1", 5),
+    POS = c(31071, 31478, 33667, 34057, 35239),
+    REF = c("A", "C", "A", "C", "A"),
+    ALT = c("G", "T", "G", "T", "C"),
+    AD_REF.SRR834927 = c(34, 34, 20, 38, 25),
+    AD_ALT.SRR834927 = c(36, 52, 48, 40, 36),
+    GQ.SRR834927 = rep(99, 5),
+    AD_REF.SRR834931 = c(26, 40, 24, 29, 40),
+    AD_ALT.SRR834931 = c(22, 34, 29, 26, 60),
+    GQ.SRR834931 = rep(99, 5)
+    )
+
+kableExtra::kable_styling(knitr::kable(x = x, format = "latex", booktabs = TRUE), latex_options = "scale_down")
+```
+
+#### The `importFromTable` function
+
+To load the data from a delimited file we use the `importFromTable` function. in our case it is a csv so it is comma delimited. The columns are denoted by the sample names for the bulks (SRR834931 and SRR834927). These names will be renamed to "HIGH" and "LOW". If you want you can set the column names as such in advance as the defaults for `highBulk` and `lowBulk` arguments are "HIGH" and "LOW", respectively. As in the `importFromGATK` function the `chromList` argument should be a string vector of the chromosomes to be used in the analysis. Useful for filtering out unwanted contigs etc.
+
+```{r importcsv, eval=FALSE}
+df <- importFromTable(file = "Yang2013.csv",
+                      highBulk = HighBulk,
+                      lowBulk = LowBulk,
+                      chromList = Chroms)
+```
+
+## Loaded data frame
+The loaded data frame should look like this. This data frame has other information about the genotype calls from GATK:
 ```{r viewdf}
 head(df)
 ```
@@ -234,7 +283,7 @@ Let's review the column headers:
 
 ## Filtering SNPs
 Now that we have loaded the data into R we can start cleaning it up by filtering some of the low confidence SNPs.
-While GATK has its own filtering tools, QTLseqr offers some options for filtering that may help reduce noise and improve results. Filtering is mainly based on read depth for each SNP, such that we can try to eliminate SNPs with low confidence, due to low coverage, and SNPs that may be in repetitive regions and thus have inflated read depth. 
+While GATK has its own filtering tools, QTLseqr offers some options for filtering that may help reduce noise and improve results. Filtering is mainly based on read depth for each SNP, such that we can try to eliminate SNPs with low confidence, due to low coverage, and SNPs that may be in repetitive regions and thus have inflated read depth. If you have your own quality columns you can always use R's base subsetting functions to filter out any SNPs you don't want. 
 
 ### Read depth histograms
 
