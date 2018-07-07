@@ -32,7 +32,7 @@ Imports SNP data from the output of the
 \href{https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_variantutils_VariantsToTable.php}{VariantsToTable}
 function in GATK. After importing the data, the function then calculates
 total reference allele frequency for both bulks together, the delta SNP index
-(i.e. SNP index of the low bulk substacted from the SNP index of the high
+(i.e. SNP index of the low bulk subtracted from the SNP index of the high
 bulk), the G statistic and returns a data frame. The required GATK fields
 (-F) are CHROM (Chromosome) and POS (Position). The required Genotype fields
 (-GF) are AD (Allele Depth), DP (Depth). Recommended

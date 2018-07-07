@@ -4,7 +4,7 @@
 #' \href{https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_variantutils_VariantsToTable.php}{VariantsToTable}
 #' function in GATK. After importing the data, the function then calculates
 #' total reference allele frequency for both bulks together, the delta SNP index
-#' (i.e. SNP index of the low bulk substacted from the SNP index of the high
+#' (i.e. SNP index of the low bulk subtracted from the SNP index of the high
 #' bulk), the G statistic and returns a data frame. The required GATK fields
 #' (-F) are CHROM (Chromosome) and POS (Position). The required Genotype fields
 #' (-GF) are AD (Allele Depth), DP (Depth). Recommended
@@ -124,26 +124,31 @@ importFromGATK <- function(file,
 #'
 #' After importing the data from a delimited file, the function then calculates
 #' total reference allele frequency for both bulks together, the delta SNP index
-#' (i.e. SNP index of the low bulk substacted from the SNP index of the high
-#' bulk), the G statistic and returns a data frame. The required columns in 
-#' the file are CHROM (Chromosome) and POS (Position) as well as the refernce and alternate 
-#' allele depths (number of reads supporting each allele). The allele depths should be in columns 
-#' named in this format: \code{AD_(<ALT/REF>).<sampleName>}. For example, the column for alternate 
-#' allele depth for a high bulk sample named "sample1", should be "AD_ALT.sample1". 
+#' (i.e. SNP index of the low bulk subtracted from the SNP index of the high
+#' bulk), the G statistic and returns a data frame. The required columns in the
+#' file are CHROM (Chromosome) and POS (Position) as well as the reference and
+#' alternate allele depths (number of reads supporting each allele). The allele
+#' depths should be in columns named in this format:
+#' \code{AD_(<ALT/REF>).<sampleName>}. For example, the column for alternate
+#' allele depth for a high bulk sample named "sample1", should be
+#' "AD_ALT.sample1". Any other columns describing the SNPs are allowed, ie the
+#' actual allele calls, or a quality score. If the column is Bulk specific, It
+#' should be named \code{columnName.sampleName}, i.e "QUAL.sample1".
 #'
-#' @param file The name of the file which the
-#'   data are to be read from.
+#' @param file The name of the file which the data are to be read from.
 #' @param highBulk The sample name of the High Bulk. Defaults to "HIGH"
 #' @param lowBulk The sample name of the Low Bulk. Defaults to "LOW"
 #' @param chromList a string vector of the chromosomes to be used in the
 #'   analysis. Useful for filtering out unwanted contigs etc.
-#' @param sep the field separator character. Values on each line of the file are separated by this character. Default is for csv file ie ",".
-#' @return Returns a data frame containing columns for Read depth (DP),
-#'   Reference Allele Depth (AD_REF) and Alternative Allele Depth (AD_ALT),
-#'   any other SNP associated columns in the file, and SNPindex for each bulk (indicated by .HIGH and
-#'   .LOW column name suffix). Total reference allele frequnce "REF_FRQ" is the
-#'   sum of AD_REF for both bulks divided by total Depth for that SNP. The
-#'   deltaSNPindex is equal to  SNPindex.HIGH - SNPindex.LOW.
+#' @param sep the field separator character. Values on each line of the file are
+#'   separated by this character. Default is for csv file ie ",".
+#' @return Returns a data frame containing columns for per bulk total Read depth (DP),
+#'   Reference Allele Depth (AD_REF) and Alternative Allele Depth (AD_ALT), any
+#'   other SNP associated columns in the file, and SNPindex for each bulk
+#'   (indicated by .HIGH and .LOW column name suffix). Total reference allele
+#'   frequnce "REF_FRQ" is the sum of AD_REF for both bulks divided by total
+#'   Depth for that SNP. The deltaSNPindex is equal to  SNPindex.HIGH -
+#'   SNPindex.LOW.
 #'
 #' @export importFromTable
 
