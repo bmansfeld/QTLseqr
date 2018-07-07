@@ -18,7 +18,7 @@
 #' @param chromList a string vector of the chromosomes to be used in the
 #'   analysis. Useful for filtering out unwanted contigs etc.
 #' @return Returns a data frame containing columns for Read depth (DP),
-#'   Reference Allele Depth (AD.REF) and Alternative Allele Depth (AD.ALT),
+#'   Reference Allele Depth (AD_REF) and Alternative Allele Depth (AD_ALT),
 #'   Genoytype Quality (GQ) and SNPindex for each bulk (indicated by .HIGH and
 #'   .LOW column name suffix). Total reference allele frequnce "REF_FRQ" is the
 #'   sum of AD.REF for both bulks divided by total Depth for that SNP. The
