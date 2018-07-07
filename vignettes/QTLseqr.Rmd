@@ -12,6 +12,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 header-includes: \usepackage{graphicx}
+  \usepackage{float}
 ---
 
 ```{r setup, echo=FALSE, results="hide"}
@@ -29,7 +30,7 @@ knitr::opts_chunk$set(tidy=FALSE, cache=TRUE,
 
 > Mansfeld B.N. and Grumet R,
 > QTLseqr: An R package for bulk segregant analysis with next-generation sequencing
-> *The Plant Genome* doi:10.3835/plantgenome2018.01.0006
+> *The Plant Genome* [doi:10.3835/plantgenome2018.01.0006](https://doi:10.3835/plantgenome2018.01.0006)
 
 We also recommend citing the paper for the corresponding method you work with.
 
@@ -38,13 +39,13 @@ QTL-seq method:
 > Takagi, H., Abe, A., Yoshida, K., Kosugi, S., Natsume, S., Mitsuoka, C., Uemura, A., Utsushi,
 > H., Tamiru, M., Takuno, S., Innan, H., Cano, L. M., Kamoun, S. and Terauchi, R. (2013), 
 > QTL-seq: rapid mapping of quantitative trait loci in rice by whole genome resequencing of DNA 
-> from two bulked populations. *Plant J*, 74: 174–183. doi:10.1111/tpj.12105
+> from two bulked populations. *Plant J*, 74: 174–183. [doi:10.1111/tpj.12105](https://doi:10.1111/tpj.12105)
 
 G prime method:
 
 > Magwene PM, Willis JH, Kelly JK (2011) The Statistics of Bulk Segregant Analysis Using Next 
 > Generation Sequencing. *PLOS Computational Biology* 7(11): e1002255. 
-> https://doi.org/10.1371/journal.pcbi.1002255
+> [doi.org/10.1371/journal.pcbi.1002255](https://doi.org/10.1371/journal.pcbi.1002255)
 
 ## Quick Start
 Here are the basic steps required to run and plot QTLseq and $G'$ analysis
@@ -130,7 +131,7 @@ getQTLTable(
 
 ## Installation 
 Let's install and load the QTLseqr package:
-```{r install_load}
+```{r install_load, eval=FALSE}
 #Install step if you have not done so yet:
 #install.packages("devtools")
 
@@ -228,7 +229,7 @@ df <-
 
 ### Importing from a delimited file
 
-You can also import SNPs from a csv, tsv or any other delimited file. Your file must include some necessary columns: CHROM (Chromosome names) and POS (the SNP position) as well as the reference and alternate allele depths (number of reads supporting each allele). The allele depths should be in columns named in this format: AD_(<ALT/REF>).<sampleName>*. For example, the column for alternate allele depth for a high bulk sample named "sample1", should be "AD_ALT.sample1". Any other columns describing the SNPs are allowed, ie the actual allele calls, or a quality score. If the column is Bulk specific, It should be named columnName.sampleName, i.e "QUAL.sample1".
+You can also import SNPs from a csv, tsv or any other delimited file. Your file must include some necessary columns: CHROM (Chromosome names) and POS (the SNP position) as well as the reference and alternate allele depths (number of reads supporting each allele). The allele depths should be in columns named in this format: *AD_\<ALT/REF\>.\<sampleName\>*. For example, the column for alternate allele depth for a high bulk sample named "sample1", should be "AD_ALT.sample1". Any other columns describing the SNPs are allowed, ie the actual allele calls, or a quality score. If the column is Bulk specific, It should be named columnName.sampleName, i.e "QUAL.sample1".
 
 Here is the header of an example file:
 ```{r csvexample, echo=FALSE}
@@ -290,7 +291,7 @@ While GATK has its own filtering tools, QTLseqr offers some options for filterin
 One way to assess filtering thresholds is by plotting histograms of the read depths. We can get an idea of where to draw our thresholds. We'll use the ggplot2 package for this purpose, but you could use base R to plot as well.
 
 Lets look at total read depth for example:
-```{r plothist1, warning = FALSE, fig.align="center", fig.width=4, fig.height=4, dpi=300}
+```{r plothist1, warning = FALSE, fig.align="center", fig.width=4, fig.height=3, dpi=300}
 library("ggplot2")
 ggplot(data = df) + 
     geom_histogram(aes(x = DP.HIGH + DP.LOW)) + 
@@ -299,7 +300,7 @@ ggplot(data = df) +
 ```
 
 ...or look at total reference allele frequency:
-```{r plothist2, warning=FALSE, fig.align = "center", fig.width=4, fig.height=4, dpi=300}
+```{r plothist2, warning=FALSE, fig.align = "center", fig.width=4, fig.height=3, dpi=300}
 ggplot(data = df) +
     geom_histogram(aes(x = REF_FRQ))
 ```
