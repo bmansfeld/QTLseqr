@@ -120,6 +120,132 @@ importFromGATK <- function(file,
 }
 
 
+#' Import SNP data from a delimited file
+#'
+#' After importing the data from a delimited file, the function then calculates
+#' total reference allele frequency for both bulks together, the delta SNP index
+#' (i.e. SNP index of the low bulk substacted from the SNP index of the high
+#' bulk), the G statistic and returns a data frame. The required columns in 
+#' the file are CHROM (Chromosome) and POS (Position) as well as the refernce and alternate 
+#' allele depths (number of reads supporting each allele). The allele depths should be in columns 
+#' named in this format: \code{AD_(<ALT/REF>).<sampleName>}. For example, the column for alternate 
+#' allele depth for a high bulk sample named "sample1", should be "AD_ALT.sample1". 
+#'
+#' @param file The name of the file which the
+#'   data are to be read from.
+#' @param highBulk The sample name of the High Bulk. Defaults to "HIGH"
+#' @param lowBulk The sample name of the Low Bulk. Defaults to "LOW"
+#' @param chromList a string vector of the chromosomes to be used in the
+#'   analysis. Useful for filtering out unwanted contigs etc.
+#' @param sep the field separator character. Values on each line of the file are separated by this character. Default is for csv file ie ",".
+#' @return Returns a data frame containing columns for Read depth (DP),
+#'   Reference Allele Depth (AD_REF) and Alternative Allele Depth (AD_ALT),
+#'   any other SNP associated columns in the file, and SNPindex for each bulk (indicated by .HIGH and
+#'   .LOW column name suffix). Total reference allele frequnce "REF_FRQ" is the
+#'   sum of AD_REF for both bulks divided by total Depth for that SNP. The
+#'   deltaSNPindex is equal to  SNPindex.HIGH - SNPindex.LOW.
+#'
+#' @export importFromTable
+
+importFromTable <-
+    function(file,
+             highBulk = "HIGH",
+             lowBulk = "LOW",
+             chromList = NULL,
+             sep = ",") {
+        SNPset <-
+            readr::read_delim(
+                file = file,
+                delim = sep,
+                col_names = TRUE,
+                col_types = readr::cols(
+                    .default = readr::col_guess(),
+                    CHROM = "c",
+                    POS = "i"
+                )
+            )
+        # check CHROM
+        if (!"CHROM" %in% names(SNPset)) {
+            stop("No 'CHROM' coloumn found.")
+        }
+        
+        # check POS
+        if (!"POS" %in% names(SNPset)) {
+            stop("No 'POS' coloumn found.")
+        }
+        
+        # check AD_REF.HIGH
+        if (!paste0("AD_REF.", highBulk) %in% names(SNPset)) {
+            stop(
+                "No High Bulk AD_REF coloumn found. Column should be named 'AD_REF.highBulkName'."
+            )
+        }
+        
+        # check AD_REF.LOW
+        if (!paste0("AD_REF.", lowBulk) %in% names(SNPset)) {
+            stop("No Low Bulk AD_REF coloumn found. Column should be named 'AD_REF.lowBulkName'.")
+        }
+        
+        #check AD_ALT.HIGH
+        if (!paste0("AD_ALT.", highBulk) %in% names(SNPset)) {
+            stop(
+                "No High Bulk AD_REF coloumn found. Column should be named 'AD_ALT.highBulkName'."
+            )
+        }
+        
+        # check AD_ALT.LOW
+        if (!paste0("AD_ALT.", lowBulk) %in% names(SNPset)) {
+            stop("No Low Bulk AD_ALT coloumn found. Column should be named 'AD_ALT.lowBulkName'.")
+        }
+        
+        # Keep only wanted chromosomes
+        if (!is.null(chromList)) {
+            message("Removing the following chromosomes: ",
+                    paste(unique(SNPset$CHROM)[!unique(SNPset$CHROM) %in% chromList], collapse = ", "))
+            SNPset <- SNPset[SNPset$CHROM %in% chromList, ]
+        }
+        # arrange the chromosomes by natural order sort, eg Chr1, Chr10, Chr2 >>> Chr1, Chr2, Chr10
+        SNPset$CHROM <-
+            factor(SNPset$CHROM, levels = gtools::mixedsort(unique(SNPset$CHROM)))
+        
+        # Rename columns
+        message("Renaming the following columns: ",
+                paste(colnames(SNPset)[!colnames(SNPset) %in% c("CHROM", "POS", "REF", "ALT")][grep(highBulk, x = colnames(SNPset)[!colnames(SNPset) %in% c("CHROM", "POS", "REF", "ALT")])], collapse = ", "))
+        colnames(SNPset)[!colnames(SNPset) %in% c("CHROM", "POS", "REF", "ALT")] <-
+            gsub(pattern = highBulk,
+                 replacement = "HIGH",
+                 x = colnames(SNPset)[!colnames(SNPset) %in% c("CHROM", "POS", "REF", "ALT")])
+        
+        message("Renaming the following columns: ",
+                paste(colnames(SNPset)[!colnames(SNPset) %in% c("CHROM", "POS", "REF", "ALT")][grep(lowBulk, x = colnames(SNPset)[!colnames(SNPset) %in% c("CHROM", "POS", "REF", "ALT")])], collapse = ", "))
+        colnames(SNPset)[!colnames(SNPset) %in% c("CHROM", "POS", "REF", "ALT")] <-
+            gsub(pattern = lowBulk,
+                 replacement = "LOW",
+                 x = colnames(SNPset)[!colnames(SNPset) %in% c("CHROM", "POS", "REF", "ALT")])
+        
+        # calculate DPs
+        SNPset <- SNPset %>%
+            dplyr::mutate(
+                DP.HIGH = AD_REF.HIGH + AD_ALT.HIGH,
+                DP.LOW = AD_REF.LOW + AD_ALT.LOW,
+                SNPindex.HIGH = AD_ALT.HIGH / DP.HIGH,
+                SNPindex.LOW = AD_ALT.LOW / DP.LOW,
+                REF_FRQ = (AD_REF.HIGH + AD_REF.LOW) / (DP.HIGH + DP.LOW),
+                deltaSNP = SNPindex.HIGH - SNPindex.LOW
+            ) %>%
+            dplyr::select(
+                -dplyr::contains("HIGH"),-dplyr::contains("LOW"),-dplyr::one_of("deltaSNP", "REF_FRQ"),
+                dplyr::matches("AD.*.LOW"),
+                dplyr::contains("LOW"),
+                dplyr::matches("AD.*.HIGH"),
+                dplyr::contains("HIGH"),
+                dplyr::everything()
+            )
+        
+        return(as.data.frame(SNPset))
+    }
+
+
 ## not exported still only works for GATK...
 importFromVCF <- function(file,
                           highBulk = character(),
