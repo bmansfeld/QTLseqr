@@ -42,14 +42,15 @@ simulateAlleleFreq <- function(n, pop = "F2") {
 
 simulateSNPindex <-
     function(depth,
-        altFreq1,
-        altFreq2,
-        replicates = 10000,
-        filter = NULL) {
+             altFreq1,
+             altFreq2,
+             replicates = 10000,
+             filter = NULL) {
+        
         SNPindex_H <- rbinom(replicates, size = depth, altFreq1) / depth
-        SNPindex_L <-
-            rbinom(replicates, size = depth, altFreq2) / depth
+        SNPindex_L <- rbinom(replicates, size = depth, altFreq2) / depth
         deltaSNP <- SNPindex_H - SNPindex_L
+        
         if (!is.null(filter)) {
             deltaSNP <- deltaSNP[SNPindex_H >= filter | SNPindex_L >= filter]
         }
@@ -67,7 +68,10 @@ simulateSNPindex <-
 #' The requested confidence intervals are then calculated from the bootstraps.
 #'
 #' @param popStruc the population structure. Defaults to "F2" and assumes "RIL" 
-#' @param bulkSize non-negative integer. The number of individuals in each bulk
+#' @param bulkSize non-negative integer vector. The number of individuals in
+#'   each simulated bulk. Can be of length 1, then both bulks are set to the
+#'   same size. Assumes the first value in the vector is the simulated high
+#'   bulk.
 #' @param depth integer. A read depth for which to replicate SNP-index calls.
 #' @param replications integer. The number of bootstrap replications.
 #' @param filter numeric. An optional minimum SNP-index filter
@@ -85,96 +89,111 @@ simulateSNPindex <-
 #'    depth = 1:100,
 #'    intervals = c(0.05, 0.95, 0.025, 0.975, 0.005, 0.995, 0.0025, 0.9975)
      
-simulateConfInt <-
-    function(popStruc = "F2",
-        bulkSize,
-        depth = 1:100,
-        replications = 10000,
-        filter = 0.3,
-        intervals = c(0.05, 0.025)) {
-        if (popStruc == "F2") {
-            message(
-                "Assuming bulks selected from F2 population, with ",
-                bulkSize,
-                " individuals per bulk."
-            )
-        } else {
-            message(
-                "Assuming bulks selected from RIL population, with ",
-                bulkSize,
-                " individuals per bulk."
-            )
-        }
-        
-        #makes a vector of possible alt allele frequencies once. this is then sampled for each replicate
-        tmp_freq <-
-            replicate(n = replications * 10, simulateAlleleFreq(n = bulkSize, pop = popStruc))
-        
+simulateConfInt <- function(popStruc = "F2",
+                            bulkSize,
+                            depth = 1:100,
+                            replications = 10000,
+                            filter = 0.3,
+                            intervals = c(0.05, 0.025)) {
+    if (popStruc == "F2") {
         message(
-            paste0(
-                "Simulating ",
-                replications,
-                " SNPs with reads at each depth: ",
-                min(depth),
-                "-",
-                max(depth)
-            )
+            "Assuming bulks selected from F2 population, with ",
+            bulkSize,
+            " individuals per bulk."
         )
-        message(paste0(
-            "Keeping SNPs with >= ",
-            filter,
-            " SNP-index in both simulated bulks"
-        ))
-        
-        # tmp allele freqs are sampled to produce 'replicate' numbers of probablities. these 
-        # are then used as altFreq probs to simulate SNP index values, per bulk.
-        CI <- sapply(
-            X = depth,
-            FUN = function(x)
-            {
-                quantile(
-                    x = simulateSNPindex(
-                        depth = x,
-                        altFreq1 = sample(
-                            x = tmp_freq,
-                            size = replications,
-                            replace = TRUE
-                        ),
-                        altFreq2 = sample(
-                            x = tmp_freq,
-                            size = replications,
-                            replace = TRUE
-                        ),
-                        replicates = replications,
-                        filter = filter
-                    ),
-                    probs = intervals,
-                    names = TRUE
-                )
-            }
+    } else {
+        message(
+            "Assuming bulks selected from RIL population, with ",
+            bulkSize,
+            " individuals per bulk."
         )
-        
-        CI <- as.data.frame(CI)
-        
-        if (length(CI) > 1) {
-            CI <- data.frame(t(CI))
-        }
-        
-        names(CI) <- paste0("CI_", 100 - (intervals * 200))
-        CI <- cbind(depth, CI)
-        
-        #to long format for easy plotting
-        # tidyr::gather(data = CI,
-        #     key = interval,
-        #     convert = TRUE,
-        #     value = SNPindex,-depth) %>%
-        #     dplyr::mutate(Confidence = factor(ifelse(
-        #         interval > 0.5,
-        #         paste0(round((1 - interval) * 200, digits = 1), "%"),
-        #         paste0((interval * 200), "%")
-        # )))
-        CI
     }
+    
+    if (length(bulkSize) == 1) {
+        message("The 'bulkSize' argument is of length 1, setting number of individuals in both bulks to: ", bulkSize)
+        bulkSize[2] <- bulkSize[1]
+    }
+    
+    if (length(bulkSize) > 2) {
+        message("The 'bulkSize' argument is larger than 2. Using the first two values as the bulk size.")
+    }
+    
+    if (any(bulkSize) < 0) {
+        stop("Negative bulkSize values")
+    }
+    
+    #makes a vector of possible alt allele frequencies once. this is then sampled for each replicate
+    tmp_freq <-
+        replicate(n = replications * 10, simulateAlleleFreq(n = bulkSize[1], pop = popStruc))
+    
+    tmp_freq2 <-
+        replicate(n = replications * 10, simulateAlleleFreq(n = bulkSize[2], pop = popStruc))
+    
+    message(
+        paste0(
+            "Simulating ",
+            replications,
+            " SNPs with reads at each depth: ",
+            min(depth),
+            "-",
+            max(depth)
+        )
+    )
+    message(paste0(
+        "Keeping SNPs with >= ",
+        filter,
+        " SNP-index in both simulated bulks"
+    ))
+    
+    # tmp allele freqs are sampled to produce 'replicate' numbers of probablities. these
+    # are then used as altFreq probs to simulate SNP index values, per bulk.
+    CI <- sapply(
+        X = depth,
+        FUN = function(x)
+        {
+            quantile(
+                x = simulateSNPindex(
+                    depth = x,
+                    altFreq1 = sample(
+                        x = tmp_freq,
+                        size = replications,
+                        replace = TRUE
+                    ),
+                    altFreq2 = sample(
+                        x = tmp_freq2,
+                        size = replications,
+                        replace = TRUE
+                    ),
+                    replicates = replications,
+                    filter = filter
+                ),
+                probs = intervals,
+                names = TRUE
+            )
+        }
+    )
+    
+    CI <- as.data.frame(CI)
+    
+    if (length(CI) > 1) {
+        CI <- data.frame(t(CI))
+    }
+    
+    names(CI) <- paste0("CI_", 100 - (intervals * 200))
+    CI <- cbind(depth, CI)
+    
+    #to long format for easy plotting
+    # tidyr::gather(data = CI,
+    #     key = interval,
+    #     convert = TRUE,
+    #     value = SNPindex,-depth) %>%
+    #     dplyr::mutate(Confidence = factor(ifelse(
+    #         interval > 0.5,
+    #         paste0(round((1 - interval) * 200, digits = 1), "%"),
+    #         paste0((interval * 200), "%")
+    # )))
+    CI
+}
 
 
 #' Calculates delta SNP confidence intervals for QTLseq analysis
@@ -189,7 +208,10 @@ simulateConfInt <-
 #' @param SNPset The data frame imported by \code{ImportFromGATK} 
 #' @param windowSize the window size (in base pairs) bracketing each SNP for which to calculate the statitics.
 #' @param popStruc the population structure. Defaults to "F2" and assumes "RIL" otherwise
-#' @param bulkSize non-negative integer. The number of individuals in each bulk
+#' @param bulkSize non-negative integer vector. The number of individuals in
+#'   each simulated bulk. Can be of length 1, then both bulks are set to the
+#'   same size. Assumes the first value in the vector is the simulated high
+#'   bulk.
 #' @param depth integer. A read depth for which to replicate SNP-index calls.
 #' @param replications integer. The number of bootstrap replications.
 #' @param filter numeric. An optional minimum SNP-index filter
@@ -201,21 +223,22 @@ simulateConfInt <-
 #'
 #' @examples df_filt <- runQTLseqAnalysis(
 #' SNPset = df_filt,
+#' bulkSize = c(25, 35)
 #' windowSize = 1e6,
 #' popStruc = "F2",
 #' replications = 10000,
 #' intervals = c(95, 99)
 #' )
 #' 
-#' 
-runQTLseqAnalysis <- function(SNPset, windowSize = 1e6,
-    popStruc = "F2",
-    bulkSize,
-    depth = NULL,
-    replications = 10000,
-    filter = 0.3,
-    intervals = c(95, 99)
-    ) {
+
+runQTLseqAnalysis <- function(SNPset,
+                              windowSize = 1e6,
+                              popStruc = "F2",
+                              bulkSize,
+                              depth = NULL,
+                              replications = 10000,
+                              filter = 0.3,
+                              intervals = c(95, 99)) {
     
     message("Counting SNPs in each window...")
     SNPset <- SNPset %>%
@@ -228,7 +251,10 @@ runQTLseqAnalysis <- function(SNPset, windowSize = 1e6,
     
     #convert intervals to quantiles
     if (all(intervals >= 1)) {
-        message("Returning the following two sided confidence intervals: ", paste(intervals, collapse = ", "))
+        message(
+            "Returning the following two sided confidence intervals: ",
+            paste(intervals, collapse = ", ")
+        )
         quantiles <- (100 - intervals) / 200
     } else {
         stop(
@@ -238,12 +264,12 @@ runQTLseqAnalysis <- function(SNPset, windowSize = 1e6,
     
     #calculate min depth per snp between bulks
     SNPset <-
-        SNPset %>% 
+        SNPset %>%
         dplyr::mutate(minDP = pmin(DP.LOW, DP.HIGH))
     
     SNPset <-
-        SNPset %>% 
-        dplyr::group_by(CHROM) %>% 
+        SNPset %>%
+        dplyr::group_by(CHROM) %>%
         dplyr::mutate(tricubeDP = floor(tricubeStat(POS, minDP, windowSize = windowSize)))
     
     if (is.null(depth)) {
@@ -274,11 +300,11 @@ runQTLseqAnalysis <- function(SNPset, windowSize = 1e6,
     #use join as a quick way to match min depth to matching conf intervals.
     SNPset <-
         dplyr::left_join(x = SNPset,
-            y = CI #, commented out becuase of above change. need to remove eventually
-            # by = c("tricubeDP" = "depth")
-            )
-    
-    as.data.frame(SNPset)
-    
+                         y = CI #, commented out becuase of above change. need to remove eventually
+                         # by = c("tricubeDP" = "depth"))
+        )
+                         as.data.frame(SNPset)
+                         
 }
+
 

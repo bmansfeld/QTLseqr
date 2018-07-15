@@ -15,7 +15,10 @@ runQTLseqAnalysis(SNPset, windowSize = 1e+06, popStruc = "F2", bulkSize,
 
 \item{popStruc}{the population structure. Defaults to "F2" and assumes "RIL" otherwise}
 
-\item{bulkSize}{non-negative integer. The number of individuals in each bulk}
+\item{bulkSize}{non-negative integer vector. The number of individuals in
+each simulated bulk. Can be of length 1, then both bulks are set to the
+same size. Assumes the first value in the vector is the simulated high
+bulk.}
 
 \item{depth}{integer. A read depth for which to replicate SNP-index calls.}
 
@@ -40,11 +43,11 @@ The requested confidence intervals are then calculated from the bootstraps.
 \examples{
 df_filt <- runQTLseqAnalysis(
 SNPset = df_filt,
+bulkSize = c(25, 35)
 windowSize = 1e6,
 popStruc = "F2",
 replications = 10000,
 intervals = c(95, 99)
 )
-
 
 }

@@ -10,7 +10,10 @@ simulateConfInt(popStruc = "F2", bulkSize, depth = 1:100,
 \arguments{
 \item{popStruc}{the population structure. Defaults to "F2" and assumes "RIL"}
 
-\item{bulkSize}{non-negative integer. The number of individuals in each bulk}
+\item{bulkSize}{non-negative integer vector. The number of individuals in
+each simulated bulk. Can be of length 1, then both bulks are set to the
+same size. Assumes the first value in the vector is the simulated high
+bulk.}
 
 \item{depth}{integer. A read depth for which to replicate SNP-index calls.}
 
