@@ -35,5 +35,5 @@ n_2)*(n_1 + n_3))/(n_1 + n_2 + n_3 + n_4)} \deqn{exp(n_2) = ((n_2 + n_1)*(n_2
 \seealso{
 \href{https://doi.org/10.1371/journal.pcbi.1002255}{The Statistics
   of Bulk Segregant Analysis Using Next Generation Sequencing}
-  \code{\link{tricubeGStat}} for G prime calculation
+  \code{\link{tricubeStat}} for G prime calculation
 }

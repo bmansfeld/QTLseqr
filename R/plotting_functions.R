@@ -200,7 +200,7 @@ plotQTLStats <-
 #'
 #' @examples plotGprimedist(df_filt_6Mb, outlierFilter = "deltaSNP")
 #'
-#' @seealso \code{\link{GetPvals}} for how p-values are calculated.
+#' @seealso \code{\link{getPvals}} for how p-values are calculated.
 #' @export plotGprimeDist
 
 

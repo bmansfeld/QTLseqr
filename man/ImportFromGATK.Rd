@@ -46,7 +46,7 @@ df <-  ImportFromGATK(filename = file.table,
     chromList = c("Chr1","Chr4","Chr7"))
 }
 \seealso{
-\code{\link{GetGStat}} for explaination of how G statistic is
+\code{\link{getG}} for explaination of how G statistic is
   calculated.
   \href{http://gatkforums.broadinstitute.org/gatk/discussion/1268/what-is-a-vcf-and-how-should-i-interpret-it}{What
   is a VCF and how should I interpret it?} for more information on GATK

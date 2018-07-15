@@ -24,7 +24,7 @@
 #'   sum of AD.REF for both bulks divided by total Depth for that SNP. The
 #'   deltaSNPindex is equal to  SNPindex.HIGH - SNPindex.LOW. The GStat column
 #'   is the calculated G statistic for that SNP.
-#' @seealso \code{\link{GetGStat}} for explaination of how G statistic is
+#' @seealso \code{\link{getG}} for explaination of how G statistic is
 #'   calculated.
 #'   \href{http://gatkforums.broadinstitute.org/gatk/discussion/1268/what-is-a-vcf-and-how-should-i-interpret-it}{What
 #'   is a VCF and how should I interpret it?} for more information on GATK

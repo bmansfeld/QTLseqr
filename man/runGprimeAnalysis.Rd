@@ -45,7 +45,7 @@ bulks: \deqn{exp(n_1) = ((n_1 + n_2)*(n_1 + n_3))/(n_1 + n_2 + n_3 + n_4)}
 \deqn{exp(n_3) = ((n_3 + n_1)*(n_3 + n_4))/(n_1 + n_2 + n_3 + n_4)}
 \deqn{exp(n_4) = ((n_4 + n_2)*(n_4 + n_3))/(n_1 + n_2 + n_3 + n_4)}\cr 2) G'
 - A tricube-smoothed G statistic is predicted by local regression within each
-chromosome using \code{\link{tricubeGStat}}. This works as a weighted average
+chromosome using \code{\link{tricubeStat}}. This works as a weighted average
 across neighboring SNPs that accounts for Linkage disequilibrium (LD) while
 minizing noise attributed to SNP calling errors. G values for neighboring
 SNPs within the window are weighted by physical distance from the focal SNP.

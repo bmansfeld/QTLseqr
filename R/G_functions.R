@@ -24,7 +24,7 @@
 #'
 #' @seealso \href{https://doi.org/10.1371/journal.pcbi.1002255}{The Statistics
 #'   of Bulk Segregant Analysis Using Next Generation Sequencing}
-#'   \code{\link{tricubeGStat}} for G prime calculation
+#'   \code{\link{tricubeStat}} for G prime calculation
 
 getG <- function(LowRef, HighRef, LowAlt, HighAlt)
 {
@@ -91,7 +91,7 @@ tricubeStat <- function(POS, Stat, windowSize = 2e6)
 #' @param outlierFilter one of either "deltaSNP" or "Hampel". Method for
 #'   filtering outlier (ie QTL) regions for p-value estimation
 #' @param filterThreshold The absolute delta SNP index to use to filter out putative QTL
-#'
+#' @export getPvals
 
 getPvals <-
     function(Gprime,
@@ -185,7 +185,7 @@ getFDRThreshold <- function(pvalues, alpha = 0.01)
 #' \deqn{exp(n_3) = ((n_3 + n_1)*(n_3 + n_4))/(n_1 + n_2 + n_3 + n_4)}
 #' \deqn{exp(n_4) = ((n_4 + n_2)*(n_4 + n_3))/(n_1 + n_2 + n_3 + n_4)}\cr 2) G'
 #' - A tricube-smoothed G statistic is predicted by local regression within each
-#' chromosome using \code{\link{tricubeGStat}}. This works as a weighted average
+#' chromosome using \code{\link{tricubeStat}}. This works as a weighted average
 #' across neighboring SNPs that accounts for Linkage disequilibrium (LD) while
 #' minizing noise attributed to SNP calling errors. G values for neighboring
 #' SNPs within the window are weighted by physical distance from the focal SNP.
