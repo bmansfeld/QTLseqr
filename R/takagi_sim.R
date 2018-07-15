@@ -98,7 +98,7 @@ simulateConfInt <- function(popStruc = "F2",
     if (popStruc == "F2") {
         message(
             "Assuming bulks selected from F2 population, with ",
-            bulkSize,
+            paste(bulkSize, collapse = " and "),
             " individuals per bulk."
         )
     } else {

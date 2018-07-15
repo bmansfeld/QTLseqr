@@ -371,7 +371,8 @@ df_filt <- runQTLseqAnalysis(df_filt,
     )
 ```
 ```{r atlseqanalysis-msg, message = TRUE, warning = FALSE, collapse = TRUE, echo = FALSE}
-df_filt <- runQTLseqAnalysis(df_filt,
+df_filt <- runQTLseqAnalysis(
+    df_filt,
     windowSize = 1e6,
     popStruc = "F2", 
     bulkSize = c(385, 430),
