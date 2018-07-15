@@ -30,7 +30,7 @@ knitr::opts_chunk$set(tidy=FALSE, cache=TRUE,
 
 > Mansfeld B.N. and Grumet R,
 > QTLseqr: An R package for bulk segregant analysis with next-generation sequencing
-> *The Plant Genome* [doi:10.3835/plantgenome2018.01.0006](https://doi:10.3835/plantgenome2018.01.0006)
+> *The Plant Genome* [doi:10.3835/plantgenome2018.01.0006](https://dl.sciencesocieties.org/publications/tpg/abstracts/11/2/180006)
 
 We also recommend citing the paper for the corresponding method you work with.
 
@@ -39,13 +39,13 @@ QTL-seq method:
 > Takagi, H., Abe, A., Yoshida, K., Kosugi, S., Natsume, S., Mitsuoka, C., Uemura, A., Utsushi,
 > H., Tamiru, M., Takuno, S., Innan, H., Cano, L. M., Kamoun, S. and Terauchi, R. (2013), 
 > QTL-seq: rapid mapping of quantitative trait loci in rice by whole genome resequencing of DNA 
-> from two bulked populations. *Plant J*, 74: 174–183. [doi:10.1111/tpj.12105](https://doi:10.1111/tpj.12105)
+> from two bulked populations. *Plant J*, 74: 174–183. [doi:10.1111/tpj.12105](https://onlinelibrary.wiley.com/doi/full/10.1111/tpj.12105)
 
 G prime method:
 
 > Magwene PM, Willis JH, Kelly JK (2011) The Statistics of Bulk Segregant Analysis Using Next 
 > Generation Sequencing. *PLOS Computational Biology* 7(11): e1002255. 
-> [doi.org/10.1371/journal.pcbi.1002255](https://doi.org/10.1371/journal.pcbi.1002255)
+> [doi.org/10.1371/journal.pcbi.1002255](http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1002255)
 
 ## Quick Start
 Here are the basic steps required to run and plot QTLseq and $G'$ analysis
@@ -100,7 +100,7 @@ df_filt <- runQTLseqAnalysis(
     SNPset = df_filt,
     windowSize = 1e6,
     popStruc = "F2",
-    bulkSize = 300,
+    bulkSize = c(300, 450),
     replications = 10000,
     intervals = c(95, 99)
 )
@@ -359,12 +359,13 @@ Alternate allele frequency is calculated per bulk based on the population type a
 
 1. Confidence intervals are matched with the relevant window depth at each SNP.
 
-Here is an example for running the analysis for an F2 population, with a bulk size of 300 individuals in each bulk. The simulation is bootstrapped 10000 times and the two-sided 95 and 99% confidence intervals are calculated:
+Here is an example for running the analysis for an F2 population. In Yang et al. (2013), the bulks are of different sizes (385 and 430 for high and low bulk respectively), so we set `bulkSize = c(385, 430)`. If your bulks are the same size you can simply set one value, i.e. `bulkSize = 25`. The simulation is bootstrapped 10000 times and the two-sided 95 and 99% confidence intervals are calculated:
+
 ```{r qtlseqanalysis-src, eval = FALSE}
 df_filt <- runQTLseqAnalysis(df_filt,
     windowSize = 1e6,
     popStruc = "F2", 
-    bulkSize = 300, 
+    bulkSize = c(385, 430), 
     replications = 10000, 
     intervals = c(95, 99)
     )
@@ -373,7 +374,7 @@ df_filt <- runQTLseqAnalysis(df_filt,
 df_filt <- runQTLseqAnalysis(df_filt,
     windowSize = 1e6,
     popStruc = "F2", 
-    bulkSize = 300, 
+    bulkSize = c(385, 430),
     replications = 10000, 
     intervals = c(95, 99)
     )

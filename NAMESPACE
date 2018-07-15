@@ -2,6 +2,7 @@
 
 export(countSNPs_cpp)
 export(filterSNPs)
+export(getPvals)
 export(getQTLTable)
 export(getSigRegions)
 export(importFromGATK)

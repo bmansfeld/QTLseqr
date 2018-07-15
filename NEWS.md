@@ -1,3 +1,10 @@
+# QTLseqr 0.7.0
+## Updates
+* Added `importFromTable` function to allow users to import from a delimited file.
+* Allowed different size bulks in `runQTLseqAnalysis`.
+* Updated vignettes and documentation files. 
+* Some documentation link fixes
+
 # QTLseqr 0.6.5
 ## Bug fixes
 * Corrected a bug in import that happend when high or low bulks were named with things that looked like CHROM, POS, ALT or REF. Now the function ignores those columns when renaming to HIGH.xx or LOW.xx. Also better definition of column types to force CHROM to be char and POS to be int.
