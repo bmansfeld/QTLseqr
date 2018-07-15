@@ -9,8 +9,7 @@ Analysis.
 QTLseqr is still under development and is offered with out any
 guarantee.
 
-\#\#\#**For more detailed instructions please read the vignette
-[here](https://github.com/bmansfeld/QTLseqr/raw/master/vignettes/QTLseqr.pdf)**
+### **For more detailed instructions please read the vignette [here](https://github.com/bmansfeld/QTLseqr/raw/master/vignettes/QTLseqr.pdf)**
 
 ### For updates read the [NEWS.md](https://github.com/bmansfeld/QTLseqr/blob/master/NEWS.md)
 
