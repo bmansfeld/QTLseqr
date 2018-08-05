@@ -1,3 +1,7 @@
+# QTLseqr 0.7.1
+## Bug fixes
+* Corrected a bug in checking for negative bulksizes
+
 # QTLseqr 0.7.0
 ## Updates
 * Added `importFromTable` function to allow users to import from a delimited file.

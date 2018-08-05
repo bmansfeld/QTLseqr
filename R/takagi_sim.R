@@ -118,7 +118,7 @@ simulateConfInt <- function(popStruc = "F2",
         message("The 'bulkSize' argument is larger than 2. Using the first two values as the bulk size.")
     }
     
-    if (any(bulkSize) < 0) {
+    if (any(bulkSize < 0)) {
         stop("Negative bulkSize values")
     }
     
