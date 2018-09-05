@@ -98,8 +98,10 @@ getSigRegions <-
 #' \item{length - the length in basepairs from start to end of the region}
 #' \item{nSNPs - the number of SNPs in the region}
 #' \item{avgSNPs_Mb - the average number of SNPs/Mb within that region}
-#' \item{peakDeltaSNP - the deltaSNP-index value at the peak summit}
+#' \item{peakDeltaSNP - the tricube-smoothed deltaSNP-index value at the peak summit}
+#' \item{posPeakDeltaSNP - the position of the absolute maximum tricube-smoothed deltaSNP-index}
 #' \item{maxGprime - the max G' score in the region}
+#' \item{posMaxGprime - the genomic position of the maximum G' value in the QTL}
 #' \item{meanGprime - the average G' score of that region}
 #' \item{sdGprime - the standard deviation of G' within the region}
 #' \item{AUCaT - the Area Under the Curve but above the Threshold line, an indicator of how significant or wide the peak is}
@@ -144,13 +146,16 @@ getQTLTable <-
         
         if (method == "QTLseq") {
             qtltable <-
-                SNPset %>% dplyr::mutate(passThresh = abs(tricubeDeltaSNP) > abs(!!as.name(conf))) %>%
+                SNPset %>% 
+                dplyr::mutate(passThresh = abs(tricubeDeltaSNP) > abs(!!as.name(conf))) %>%
                 dplyr::group_by(CHROM, run = {
                     run = rle(passThresh)
                     rep(seq_along(run$lengths), run$lengths)
                 }) %>%
-                dplyr::filter(passThresh == T) %>% dplyr::ungroup() %>%
-                dplyr::group_by(CHROM) %>% dplyr::group_by(CHROM, qtl = {
+                dplyr::filter(passThresh == TRUE) %>% 
+                dplyr::ungroup() %>%
+                dplyr::group_by(CHROM) %>% 
+                dplyr::group_by(CHROM, qtl = {
                     qtl = rep(seq_along(rle(run)$lengths), rle(run)$lengths)
                 }) %>%
                 #dont need run variable anymore
@@ -166,6 +171,7 @@ getQTLTable <-
                         max(tricubeDeltaSNP),
                         min(tricubeDeltaSNP)
                     ),
+                    posPeakDeltaSNP = POS[which.max(abs(tricubeDeltaSNP))],
                     avgDeltaSNP = mean(tricubeDeltaSNP)
                 )
         } else {
@@ -191,9 +197,11 @@ getQTLTable <-
                         max(tricubeDeltaSNP),
                         min(tricubeDeltaSNP)
                     ),
+                    posPeakDeltaSNP = POS[which.max(abs(tricubeDeltaSNP))],
                     avgDeltaSNP = mean(tricubeDeltaSNP),
                     #Gprime stuff
                     maxGprime = max(Gprime),
+                    posMaxGprime = POS[which.max(Gprime)],
                     meanGprime = mean(Gprime),
                     sdGprime = sd(Gprime),
                     AUCaT = sum(diff(POS) * (((head(Gprime, -1) + tail(Gprime, -1)) / 2
