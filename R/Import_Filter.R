@@ -334,6 +334,7 @@ importFromVCF <- function(file,
 #' @param maxTotalDepth The maximum total read depth for a SNP (counting both
 #'   bulks)
 #' @param minSampleDepth The minimum read depth for a SNP in each bulk
+#' @param depthDifference The maximum absolute difference in read depth between the bulks.
 #' @param minGQ The minimum Genotype Quality as set by GATK. This is a measure
 #'   of how confident GATK was with the assigned genotype (i.e. homozygous ref,
 #'   heterozygous, homozygous alt). See
@@ -370,6 +371,7 @@ filterSNPs <- function(SNPset,
     minTotalDepth,
     maxTotalDepth,
     minSampleDepth,
+    depthDifference,
     minGQ,
     verbose = TRUE) {
     
@@ -450,7 +452,7 @@ filterSNPs <- function(SNPset,
     }
     
     
-    # Read depth in each bulk should be greater than 40
+    # Filter by min read depth in either sample
     if (!missing(minSampleDepth)) {
         if (verbose) {
             message("Filtering by per sample read depth: DP >= ",
@@ -465,7 +467,7 @@ filterSNPs <- function(SNPset,
         count <- nrow(SNPset)
     }
     
-    # Filter by LOW BULK Genotype Quality
+    # Filter by Genotype Quality
     if (!missing(minGQ)) {
         if (all(c("GQ.LOW", "GQ.HIGH") %in% names(SNPset))) {
         if (verbose) {
@@ -480,6 +482,20 @@ filterSNPs <- function(SNPset,
         else {
             message("GQ columns not found. Skipping...")
         }
+    }
+    
+    # Filter by difference between high and low bulks
+    if (!missing(depthDifference)) {
+        if (verbose) {
+            message("Filtering by difference between bulks <= ",
+                    depthDifference)
+        }
+        SNPset <-
+            dplyr::filter(SNPset, abs(DP.HIGH - DP.LOW) <= depthDifference)
+        if (verbose) {
+            message("...Filtered ", count - nrow(SNPset), " SNPs")
+        }
+        count <- nrow(SNPset)
     }
     
     # #Filter SNP Clusters

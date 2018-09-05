@@ -5,7 +5,7 @@
 \title{Filter SNPs based on read depth and quality}
 \usage{
 filterSNPs(SNPset, refAlleleFreq, filterAroundMedianDepth, minTotalDepth,
-  maxTotalDepth, minSampleDepth, minGQ, verbose = TRUE)
+  maxTotalDepth, minSampleDepth, depthDifference, minGQ, verbose = TRUE)
 }
 \arguments{
 \item{SNPset}{The data frame imported by \code{ImportFromGATK}}
@@ -27,6 +27,8 @@ bulks)}
 bulks)}
 
 \item{minSampleDepth}{The minimum read depth for a SNP in each bulk}
+
+\item{depthDifference}{The maximum absolute difference in read depth between the bulks.}
 
 \item{minGQ}{The minimum Genotype Quality as set by GATK. This is a measure
 of how confident GATK was with the assigned genotype (i.e. homozygous ref,
