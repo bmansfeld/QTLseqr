@@ -288,7 +288,7 @@ While GATK has its own filtering tools, QTLseqr offers some options for filterin
 
 ### Read depth histograms
 
-One way to assess filtering thresholds is by plotting histograms of the read depths. We can get an idea of where to draw our thresholds. We'll use the ggplot2 package for this purpose, but you could use base R to plot as well.
+One way to assess filtering thresholds and check the quality of our data is by plotting histograms of the read depths. We can get an idea of where to draw our thresholds. We'll use the ggplot2 package for this purpose, but you could use base R to plot as well.
 
 Lets look at total read depth for example:
 ```{r plothist1, warning = FALSE, fig.align="center", fig.width=4, fig.height=3, dpi=300}
@@ -304,6 +304,14 @@ ggplot(data = df) +
 ggplot(data = df) +
     geom_histogram(aes(x = REF_FRQ))
 ```
+
+We can plot our per-bulk SNP-index to check if our data is good.We expect to find two small peaks on each end and most of the SNPs should be approximiately normally distributed arround 0.5 in an F2 population. Here is the HIGH bulk for example:
+
+```{r plotSNPindex, warning=FALSE, fig.align = "center", fig.width=4, fig.height=3, dpi=300}
+ggplot(data = df) +
+    geom_histogram(aes(x = SNPindex.HIGH))
+```
+
 
 ### Using the filterSNPs function
 Now that we have an idea about our read depth distribution we can filter out low confidence SNPS. In general we recommend filtering extremely low and high coverage SNPs, either in both bulks (`minTotalDepth/maxTotalDepth`) and/or in each bulk separately (`minSampleDepth`). We have the option to filter based on reference allele frequency (`refAlleleFreq`), this removes SNPs that for some reason are over- or under-represented in *BOTH* bulks. We can also filter SNPs that have large discrepancies in read depth between the bulks(i.e. one bulk has a depth of 500 and the other has 5). Such discrepancies can throw off the G statistic.  We can also use the GATK GQ score (Genotype Quality) to filter out low confidence SNPs. If the `verbose` parameter is set to `TRUE` (default) the function will report the numbers of SNPs filtered in each step.
