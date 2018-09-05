@@ -284,7 +284,7 @@ Let's review the column headers:
 
 ## Filtering SNPs
 Now that we have loaded the data into R we can start cleaning it up by filtering some of the low confidence SNPs.
-While GATK has its own filtering tools, QTLseqr offers some options for filtering that may help reduce noise and improve results. Filtering is mainly based on read depth for each SNP, such that we can try to eliminate SNPs with low confidence, due to low coverage, and SNPs that may be in repetitive regions and thus have inflated read depth. If you have your own quality columns you can always use R's base subsetting functions to filter out any SNPs you don't want. 
+While GATK has its own filtering tools, QTLseqr offers some options for filtering that may help reduce noise and improve results. Filtering is mainly based on read depth for each SNP, such that we can try to eliminate SNPs with low confidence, due to low coverage, and SNPs that may be in repetitive regions and thus have inflated read depth. You can also filter based on the absolute difference in read depth between the bulks. If you have your own quality columns you can always use R's base subsetting functions to filter out any SNPs you don't want. 
 
 ### Read depth histograms
 
@@ -306,14 +306,15 @@ ggplot(data = df) +
 ```
 
 ### Using the filterSNPs function
-Now that we have an idea about our read depth distribution we can filter out low confidence SNPS. In general we recommend filtering extremely low and high coverage SNPs, either in both bulks (`minTotalDepth/maxTotalDepth`) and/or in each bulk separately (`minSampleDepth`). We have the option to filter based on reference allele frequency (`refAlleleFreq`), this removes SNPs that for some reason are over- or under-represented in *BOTH* bulks. We can also use the GATK GQ score (Genotype Quality) to filter out low confidence SNPs. If the `verbose` parameter is set to `TRUE` (default) the function will report the numbers of SNPs filtered in each step.
+Now that we have an idea about our read depth distribution we can filter out low confidence SNPS. In general we recommend filtering extremely low and high coverage SNPs, either in both bulks (`minTotalDepth/maxTotalDepth`) and/or in each bulk separately (`minSampleDepth`). We have the option to filter based on reference allele frequency (`refAlleleFreq`), this removes SNPs that for some reason are over- or under-represented in *BOTH* bulks. We can also filter SNPs that have large discrepancies in read depth between the bulks(i.e. one bulk has a depth of 500 and the other has 5). Such discrepancies can throw off the G statistic.  We can also use the GATK GQ score (Genotype Quality) to filter out low confidence SNPs. If the `verbose` parameter is set to `TRUE` (default) the function will report the numbers of SNPs filtered in each step.
 ```{r filtSNPs-source, eval = FALSE, message = FALSE}
 df_filt <-
     filterSNPs(
         SNPset = df,
         refAlleleFreq = 0.20,
         minTotalDepth = 100,
-        maxTotalDepth = 400,
+        maxTotalDepth = 400, 
+        depthDifference = 100,
         minSampleDepth = 40,
         minGQ = 99,
         verbose = TRUE
@@ -327,6 +328,7 @@ df_filt <-
         refAlleleFreq = 0.20,
         minTotalDepth = 100,
         maxTotalDepth = 400,
+        depthDifference = 100,
         minSampleDepth = 40,
         minGQ = 99,
         verbose = TRUE
@@ -544,8 +546,10 @@ The columns are:
 * nSNPs - the number of SNPs in the region
 * avgSNPs_Mb - the average number of SNPs/Mb within that region
 * peakDeltaSNP - the $\Delta (SNP\text{-}index)$ value at the peak summit
+* posPeakDeltaSNP - the position of the absolute maximum tricube-smoothed deltaSNP-index
 * maxGprime - the max G' score in the region
 * meanGprime - the average $G'$ score of that region
+* posMaxGprime - the genomic position of the maximum G' value in the QTL
 * sdGprime - the standard deviation of $G'$ within the region
 * AUCaT - the **A**rea **U**nder the **C**urve but **a**bove the **T**hreshold line, an indicator of how significant or wide the peak is
 * meanPval - the average p-value in the region
