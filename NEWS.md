@@ -1,3 +1,9 @@
+# QTLseqr 0.7.2
+## Updates
+* Added `depthDifference` paramater to `filterSNPs` function. This helps filtering SNPs with high absolute differences in read depth between the bulks. 
+* `getQTLTable` now also reports the genomic position of the maximum of each peak. 
+* Updates to the vignette about filtering SNPs.
+
 # QTLseqr 0.7.1
 ## Bug fixes
 * Corrected a bug in checking for negative bulksizes
