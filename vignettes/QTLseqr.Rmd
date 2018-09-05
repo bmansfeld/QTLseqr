@@ -542,6 +542,7 @@ Here is the summary for significant regions with a FDR of 0.01:
 ```{r QTLtable}
 results <- getQTLTable(SNPset = df_filt, method = "Gprime",alpha = 0.01, export = FALSE)
 results
+
 ```
 
 The columns are:
