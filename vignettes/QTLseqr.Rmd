@@ -350,8 +350,17 @@ This step is quick and we can go back and plot some histograms to see if we are 
 The analysis in QTLseqr is an implementation of both pipelines for bulk segregant analysis, $G'$ and $\Delta (SNP\text{-}index)$, described by Magwene et al. (2011) and Takagi et al. (2013), respectively. We recommend reading both papers to fully understand the considerations and math behind the analysis. 
 
 There are two main analysis functions: 
+
 1. `runGprimeAnalysis` - performs Magwene et al type $G'$ analysis
 1. `runQTLseqAnalysis` - performs Takagi et al type QTLseq analysis
+
+### A note about window sizes
+
+QTLseqr utilizes a Nadaraya-Watson smoothing kernel to produce tricube-smoothed statistics for analysis. These smoothed statistics function as a weighted moving average across neighboring SNPs that accounts for linkage disequilibrium (LD), while minimizing noise attributed to SNP calling errors (Magwene et al., 2011). In a tricube-weighted window, SNPs that are close to the focal SNP have a high weighting value, while SNPs closer to the edge of the window have low weights. The tricube-smoothed values are predicted by constant local regression within each chromosome. The calculations are performed using the `locfit` function from the locfit package using a user defined window size and the degree of the polynomial set to zero.
+
+As this window is using a tricube-smoothing kernel, the window size *can* be much larger than you might expect. However, in the rice examples below, we choose a window size of 1Mb for the sliding window analysis to replicate the orignal results published in Yang et al., (2013). For a discussion about window size, we recommend reading Magwene et al. (2011). In general, larger windows will produce smoother data. The functions making these calculations are rather fast, so we recommend testing several window sizes for your data, and then deciding on the optimal size.
+
+When running either analysis functions above, some users will get an "newsplit: out of vertex space" error, coming from the `locfit` function. This usually happens when either the window size is set too small (it is a memory allocation error), or the organsim genome is very large and thus the default window size becomes too small. In such cases, the user may pass a higher `maxk` value to either analysis function (the default in `locfit.raw` is 100). **However**, if you are getting that warning, you should _*seriously*_ consider increasing your window size, as it is probably too small to effectively manage the noise in your data. Please read the literature and make educated choices about your selected window size. 
 
 ### QTLseq analysis
 Takagi et al. (2013) developed the method for QTLseq type NGS-BSA. The analysis is based on calculating the allele frequency differences, or $\Delta (SNP\text{-}index)$, from the allele depths at each SNP. To determine regions of the genome that significantly differ from the expected $\Delta (SNP\text{-}index)$ of 0, a simulation approach is used. Briefly, at each read depth, simulated SNP frequencies are bootstrapped, and the extreme quantiles are used as simulated confidence intervals. The true data are averaged over a sliding window and regions that surpass the CI are putative QTL.
@@ -449,7 +458,6 @@ df_filt <- runGprimeAnalysis(df_filt,
     outlierFilter = "deltaSNP",
     filterThreshold = 0.1)
 ```
-As this is window is using a tricube-smoothing kernel the window size *can* be much larger than you might expect. We however choose a window size of 1Mb for the sliding window analysis, for a discussion about window size we recommend reading Magwene et al. (2011). In general larger windows will produced smoother data. The functions making these calculations are rather fast, so we recommend testing several window sizes for your data, and deciding on the optimal size.
 
 Some additional columns are added to the filtered data frame:
 ```{r}
