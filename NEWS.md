@@ -1,3 +1,8 @@
+# QTLseqr 0.7.3
+## Updates
+* Added a `...` for all functions that use tricubed smoothing functions. So that users can easily pass higher maxk values to `raw.locfit`. 
+* Added _"A note about window sizes"_ to the vignette.
+
 # QTLseqr 0.7.2
 ## Updates
 * Added `depthDifference` paramater to `filterSNPs` function. This helps filtering SNPs with high absolute differences in read depth between the bulks. 
