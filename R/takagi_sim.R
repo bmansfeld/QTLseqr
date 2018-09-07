@@ -215,8 +215,16 @@ simulateConfInt <- function(popStruc = "F2",
 #' @param depth integer. A read depth for which to replicate SNP-index calls.
 #' @param replications integer. The number of bootstrap replications.
 #' @param filter numeric. An optional minimum SNP-index filter
-#' @param intervals numeric vector. Confidence intervals supplied as two-sided percentiles. i.e. If intervals = '95' will return the two sided 95\% confidence interval, 2.5\% on each side. 
-#'
+#' @param intervals numeric vector. Confidence intervals supplied as two-sided
+#'   percentiles. i.e. If intervals = '95' will return the two sided 95\%
+#'   confidence interval, 2.5\% on each side.
+#' @param ... Other arguments passed to \code{\link[locfit]{locfit}} and
+#'   subsequently to \code{\link[locfit]{locfit.raw}}() (or the lfproc). Usefull
+#'   in cases where you get "out of vertex space warnings"; Set the maxk higher
+#'   than the default 100. See \code{\link[locfit]{locfit.raw}}().  But if you
+#'   are getting that warning you should seriously consider increasing your
+#'   window size.
+#'   
 #' @return A SNPset data frame with delta SNP-index thresholds corrisponding to the 
 #' requested confidence intervals matching the tricube smoothed depth at each SNP.
 #' @export runQTLseqAnalysis
@@ -238,7 +246,8 @@ runQTLseqAnalysis <- function(SNPset,
                               depth = NULL,
                               replications = 10000,
                               filter = 0.3,
-                              intervals = c(95, 99)) {
+                              intervals = c(95, 99),
+                              ...) {
     
     message("Counting SNPs in each window...")
     SNPset <- SNPset %>%
@@ -247,7 +256,7 @@ runQTLseqAnalysis <- function(SNPset,
     
     message("Calculating tricube smoothed delta SNP index...")
     SNPset <- SNPset %>%
-        dplyr::mutate(tricubeDeltaSNP = tricubeStat(POS = POS, Stat = deltaSNP, windowSize))
+        dplyr::mutate(tricubeDeltaSNP = tricubeStat(POS = POS, Stat = deltaSNP, windowSize, ...))
     
     #convert intervals to quantiles
     if (all(intervals >= 1)) {
@@ -270,7 +279,7 @@ runQTLseqAnalysis <- function(SNPset,
     SNPset <-
         SNPset %>%
         dplyr::group_by(CHROM) %>%
-        dplyr::mutate(tricubeDP = floor(tricubeStat(POS, minDP, windowSize = windowSize)))
+        dplyr::mutate(tricubeDP = floor(tricubeStat(POS, minDP, windowSize = windowSize, ...)))
     
     if (is.null(depth)) {
         message(

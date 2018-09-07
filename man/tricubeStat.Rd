@@ -4,12 +4,17 @@
 \alias{tricubeStat}
 \title{Calculate tricube weighted statistics for each SNP}
 \usage{
-tricubeStat(POS, Stat, windowSize = 2e+06)
+tricubeStat(POS, Stat, windowSize = 2e+06, ...)
 }
 \arguments{
 \item{POS}{A vector of genomic positions for each SNP}
 
 \item{Stat}{A vector of values for a given statistic for each SNP}
+
+\item{...}{Other arguments passed to \code{\link[locfit]{locfit}} and
+subsequently to \code{\link[locfit]{locfit.raw}}() (or the lfproc). Usefull
+in cases where you get "out of vertex space warnings"; Set the maxk higher
+than the default 100. See \code{\link[locfit]{locfit.raw}}().}
 
 \item{WinSize}{the window size (in base pairs) bracketing each SNP for which
 to calculate the statitics. Magwene et. al recommend a window size of ~25
@@ -17,8 +22,8 @@ cM, but also recommend optionally trying several window sizes to test if
 peaks are over- or undersmoothed.}
 }
 \value{
-Returns a vector of the weighted statistic caluculted with a
-  tricube smoothing kernel
+Returns a vector of the weighted statistic caluculted with a tricube
+  smoothing kernel
 }
 \description{
 Uses local regression (wrapper for \code{\link[locfit]{locfit}}) to predict a

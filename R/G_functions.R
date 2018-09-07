@@ -52,8 +52,8 @@ getG <- function(LowRef, HighRef, LowAlt, HighAlt)
 #' Values for neighboring SNPs within the window are weighted by physical
 #' distance from the focal SNP.
 #'
-#' @return Returns a vector of the weighted statistic caluculted with a
-#'   tricube smoothing kernel
+#' @return Returns a vector of the weighted statistic caluculted with a tricube
+#'   smoothing kernel
 #'
 #' @param POS A vector of genomic positions for each SNP
 #' @param Stat A vector of values for a given statistic for each SNP
@@ -61,15 +61,19 @@ getG <- function(LowRef, HighRef, LowAlt, HighAlt)
 #'   to calculate the statitics. Magwene et. al recommend a window size of ~25
 #'   cM, but also recommend optionally trying several window sizes to test if
 #'   peaks are over- or undersmoothed.
+#' @param ... Other arguments passed to \code{\link[locfit]{locfit}} and
+#'   subsequently to \code{\link[locfit]{locfit.raw}}() (or the lfproc). Usefull
+#'   in cases where you get "out of vertex space warnings"; Set the maxk higher
+#'   than the default 100. See \code{\link[locfit]{locfit.raw}}().
 #' @examples df_filt_4mb$Gprime <- tricubeStat(POS, Stat = GStat, WinSize = 4e6)
 #' @seealso \code{\link{getG}} for G statistic calculation
 #' @seealso \code{\link[locfit]{locfit}} for local regression
 
-tricubeStat <- function(POS, Stat, windowSize = 2e6)
+tricubeStat <- function(POS, Stat, windowSize = 2e6, ...)
 {
     if (windowSize <= 0)
         stop("A positive smoothing window is required")
-    stats::predict(locfit::locfit(Stat ~ locfit::lp(POS, h = windowSize, deg = 0)), POS)
+    stats::predict(locfit::locfit(Stat ~ locfit::lp(POS, h = windowSize, deg = 0), ...), POS)
 }
 
 
@@ -210,7 +214,13 @@ getFDRThreshold <- function(pvalues, alpha = 0.01)
 #' @param outlierFilter one of either "deltaSNP" or "Hampel". Method for
 #'   filtering outlier (ie QTL) regions for p-value estimation
 #' @param filterThreshold The absolute delta SNP index to use to filter out putative QTL (default = 0.1)
-#'
+#' @param ... Other arguments passed to \code{\link[locfit]{locfit}} and
+#'   subsequently to \code{\link[locfit]{locfit.raw}}() (or the lfproc). Usefull
+#'   in cases where you get "out of vertex space warnings"; Set the maxk higher
+#'   than the default 100. See \code{\link[locfit]{locfit.raw}}(). But if you
+#'   are getting that warning you should seriously consider increasing your
+#'   window size.
+#'   
 #' @return The supplied SNP set tibble after G' analysis. Includes five new
 #'   columns: \itemize{\item{G - The G statistic for each SNP} \item{Gprime -
 #'   The tricube smoothed G statistic based on the supplied window size}
@@ -232,7 +242,8 @@ runGprimeAnalysis <-
     function(SNPset,
         windowSize = 1e6,
         outlierFilter = "deltaSNP",
-        filterThreshold = 0.1)
+        filterThreshold = 0.1, 
+        ...)
     {
         message("Counting SNPs in each window...")
         SNPset <- SNPset %>%
@@ -241,7 +252,7 @@ runGprimeAnalysis <-
         
         message("Calculating tricube smoothed delta SNP index...")
         SNPset <- SNPset %>%
-            dplyr::mutate(tricubeDeltaSNP = tricubeStat(POS = POS, Stat = deltaSNP, windowSize))
+            dplyr::mutate(tricubeDeltaSNP = tricubeStat(POS = POS, Stat = deltaSNP, windowSize, ...))
         
         message("Calculating G and G' statistics...")
         SNPset <- SNPset %>%
@@ -255,7 +266,8 @@ runGprimeAnalysis <-
                 Gprime = tricubeStat(
                     POS = POS,
                     Stat = G,
-                    windowSize = windowSize
+                    windowSize = windowSize,
+                    ...
                 )
             ) %>%
             dplyr::ungroup() %>%

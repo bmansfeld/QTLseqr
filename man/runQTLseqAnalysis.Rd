@@ -6,7 +6,7 @@
 \usage{
 runQTLseqAnalysis(SNPset, windowSize = 1e+06, popStruc = "F2", bulkSize,
   depth = NULL, replications = 10000, filter = 0.3, intervals = c(95,
-  99))
+  99), ...)
 }
 \arguments{
 \item{SNPset}{The data frame imported by \code{ImportFromGATK}}
@@ -26,7 +26,16 @@ bulk.}
 
 \item{filter}{numeric. An optional minimum SNP-index filter}
 
-\item{intervals}{numeric vector. Confidence intervals supplied as two-sided percentiles. i.e. If intervals = '95' will return the two sided 95\% confidence interval, 2.5\% on each side.}
+\item{intervals}{numeric vector. Confidence intervals supplied as two-sided
+percentiles. i.e. If intervals = '95' will return the two sided 95\%
+confidence interval, 2.5\% on each side.}
+
+\item{...}{Other arguments passed to \code{\link[locfit]{locfit}} and
+subsequently to \code{\link[locfit]{locfit.raw}}() (or the lfproc). Usefull
+in cases where you get "out of vertex space warnings"; Set the maxk higher
+than the default 100. See \code{\link[locfit]{locfit.raw}}().  But if you
+are getting that warning you should seriously consider increasing your
+window size.}
 }
 \value{
 A SNPset data frame with delta SNP-index thresholds corrisponding to the 

@@ -5,7 +5,7 @@
 \title{Identify QTL using a smoothed G statistic}
 \usage{
 runGprimeAnalysis(SNPset, windowSize = 1e+06, outlierFilter = "deltaSNP",
-  filterThreshold = 0.1)
+  filterThreshold = 0.1, ...)
 }
 \arguments{
 \item{SNPset}{Data frame SNP set containing previously filtered SNPs}
@@ -19,6 +19,13 @@ peaks are over- or undersmoothed.}
 filtering outlier (ie QTL) regions for p-value estimation}
 
 \item{filterThreshold}{The absolute delta SNP index to use to filter out putative QTL (default = 0.1)}
+
+\item{...}{Other arguments passed to \code{\link[locfit]{locfit}} and
+subsequently to \code{\link[locfit]{locfit.raw}}() (or the lfproc). Usefull
+in cases where you get "out of vertex space warnings"; Set the maxk higher
+than the default 100. See \code{\link[locfit]{locfit.raw}}(). But if you
+are getting that warning you should seriously consider increasing your
+window size.}
 }
 \value{
 The supplied SNP set tibble after G' analysis. Includes five new
