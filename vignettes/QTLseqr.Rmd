@@ -577,6 +577,6 @@ The columns are:
 We've reviewed how to load SNP data from GATK and filter the data to contain high confidence SNPs. We then performed $\Delta (SNP\text{-}index)$ and $G'$ analysis and calculate p-values and q-values based on the tricube-smoothed $G'$ values. The QTL regions that pass our defined threshold can be stored as a list for further analysis or summarized as a table for publication.
 
 # Session info
-```{r sessioninfo, echo=FALSE}
+```{r sessioninfo, echo=FALSE, cache=FALSE}
 sessionInfo()
 ```
