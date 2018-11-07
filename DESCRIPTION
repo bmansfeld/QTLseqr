@@ -31,4 +31,3 @@ RoxygenNote: 6.0.1
 biocViews: Software, Sequencing, Visualization
 VignetteBuilder: knitr
 LinkingTo: Rcpp
-Additional_repositories: https://bmansfeld.github.io/drat
