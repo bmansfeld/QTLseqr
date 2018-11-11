@@ -231,7 +231,7 @@ plotGprimeDist <-
         
         # estimate the mode of the trimmed G' prime set using the half-sample method
         modeTrimGprime <-
-            modeest::mlv(x = trimGprime, bw = 0.5, method = "hsm")$M
+            modeest::mlv(x = trimGprime, bw = 0.5, method = "hsm")[[1]]
         
         muE <- log(medianTrimGprime)
         varE <- abs(muE - log(modeTrimGprime))

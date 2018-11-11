@@ -1,3 +1,7 @@
+# QTLseqr 0.7.4
+## Bugs
+* Fixed a compatibility issue with new versions of the `modeest` package. Please note that from now on QTLseqr requires `modeest (> 2.3.2)`
+
 # QTLseqr 0.7.3
 ## Updates
 * Added a `...` for all functions that use tricubed smoothing functions. So that users can easily pass higher maxk values to `raw.locfit`. 
