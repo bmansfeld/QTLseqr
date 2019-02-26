@@ -4,9 +4,9 @@
 \alias{runQTLseqAnalysis}
 \title{Calculates delta SNP confidence intervals for QTLseq analysis}
 \usage{
-runQTLseqAnalysis(SNPset, windowSize = 1e+06, popStruc = "F2", bulkSize,
-  depth = NULL, replications = 10000, filter = 0.3, intervals = c(95,
-  99), ...)
+runQTLseqAnalysis(SNPset, windowSize = 1e+06, popStruc = "F2",
+  bulkSize, depth = NULL, replications = 10000, filter = 0.3,
+  intervals = c(95, 99), ...)
 }
 \arguments{
 \item{SNPset}{The data frame imported by \code{ImportFromGATK}}

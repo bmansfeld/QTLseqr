@@ -4,8 +4,8 @@
 \alias{getPvals}
 \title{Non-parametric estimation of the null distribution of G'}
 \usage{
-getPvals(Gprime, deltaSNP = NULL, outlierFilter = c("deltaSNP", "Hampel"),
-  filterThreshold)
+getPvals(Gprime, deltaSNP = NULL, outlierFilter = c("deltaSNP",
+  "Hampel"), filterThreshold)
 }
 \arguments{
 \item{Gprime}{a vector of G prime values (tricube weighted G statistics)}

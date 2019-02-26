@@ -4,8 +4,8 @@
 \alias{runGprimeAnalysis}
 \title{Identify QTL using a smoothed G statistic}
 \usage{
-runGprimeAnalysis(SNPset, windowSize = 1e+06, outlierFilter = "deltaSNP",
-  filterThreshold = 0.1, ...)
+runGprimeAnalysis(SNPset, windowSize = 1e+06,
+  outlierFilter = "deltaSNP", filterThreshold = 0.1, ...)
 }
 \arguments{
 \item{SNPset}{Data frame SNP set containing previously filtered SNPs}

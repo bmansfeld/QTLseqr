@@ -1,3 +1,7 @@
+# QTLseqr 0.7.5
+## Bugs
+* reading files would sometimes guess wrong. Set the default to col_character. This will help with very large read depth importing.
+
 # QTLseqr 0.7.4
 ## Bugs
 * Fixed a compatibility issue with new versions of the `modeest` package. Please note that from now on QTLseqr requires `modeest (> 2.3.2)`

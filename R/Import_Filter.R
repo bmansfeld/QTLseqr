@@ -43,7 +43,7 @@ importFromGATK <- function(file,
     SNPset <-
         readr::read_tsv(file = file, 
                         col_names = TRUE, 
-                        col_types = readr::cols(.default = readr::col_guess(),
+                        col_types = readr::cols(.default = readr::col_character(),
                                          CHROM = "c", POS = "i")
                         )
     

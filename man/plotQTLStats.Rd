@@ -4,9 +4,9 @@
 \alias{plotQTLStats}
 \title{Plots different paramaters for QTL identification}
 \usage{
-plotQTLStats(SNPset, subset = NULL, var = "nSNPs", scaleChroms = TRUE,
-  line = TRUE, plotThreshold = FALSE, plotIntervals = FALSE, q = 0.05,
-  ...)
+plotQTLStats(SNPset, subset = NULL, var = "nSNPs",
+  scaleChroms = TRUE, line = TRUE, plotThreshold = FALSE,
+  plotIntervals = FALSE, q = 0.05, ...)
 }
 \arguments{
 \item{SNPset}{a data frame with SNPs and genotype fields as imported by
