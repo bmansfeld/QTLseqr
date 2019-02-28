@@ -1,3 +1,7 @@
+# QTLseqr 0.7.5.1
+## Bugs
+* Import failure caused by 0.7.5 fixed
+
 # QTLseqr 0.7.5
 ## Bugs
 * reading files would sometimes guess wrong. Set the default to col_character. This will help with very large read depth importing.

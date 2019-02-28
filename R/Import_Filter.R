@@ -40,12 +40,32 @@ importFromGATK <- function(file,
     lowBulk = character(),
     chromList = NULL) {
     
-    SNPset <-
-        readr::read_tsv(file = file, 
-                        col_names = TRUE, 
-                        col_types = readr::cols(.default = readr::col_character(),
-                                         CHROM = "c", POS = "i")
-                        )
+    # first read one line to help define col types
+    colheader <- read.delim(file, nrows=1, check.names=FALSE)
+    
+    # identify the sample name specific int and chr columns
+    int_matches <- grep('DP|GQ', names(colheader), value=TRUE)
+    chr_matches <- grep('\\.AD', names(colheader), value=TRUE)
+    
+    # create cols_spec class definitions
+    int_cols <- do.call(readr::cols, setNames(
+        rep(list(readr::col_integer()), length(int_matches)), 
+        int_matches))$cols
+    
+    chr_cols <- do.call(readr::cols, setNames(
+        rep(list(readr::col_character()), length(chr_matches)), 
+        chr_matches))$cols
+    
+    col_defs <- readr::cols(CHROM = "c", POS = "i")
+    col_defs$cols <- c(readr::cols(CHROM = "c", POS = "i")$cols,
+                       int_cols,
+                       chr_cols
+    )
+    
+    SNPset <- readr::read_tsv(file = "highvslow.BSA.SNP.table", 
+                              col_names = TRUE, 
+                              guess_max = 10000,
+                              col_types = col_defs)
     
     if (!all(
         c(
