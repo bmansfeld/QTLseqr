@@ -1,3 +1,7 @@
+# QTLseqr 0.7.5.2
+## Bugs
+* Import failure caused by 0.7.5.1 fixed
+
 # QTLseqr 0.7.5.1
 ## Bugs
 * Import failure caused by 0.7.5 fixed

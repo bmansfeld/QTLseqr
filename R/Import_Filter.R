@@ -62,7 +62,7 @@ importFromGATK <- function(file,
                        chr_cols
     )
     
-    SNPset <- readr::read_tsv(file = "highvslow.BSA.SNP.table", 
+    SNPset <- readr::read_tsv(file = file, 
                               col_names = TRUE, 
                               guess_max = 10000,
                               col_types = col_defs)

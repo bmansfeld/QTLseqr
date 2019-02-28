@@ -20,7 +20,7 @@ knitr::opts_chunk$set(tidy=FALSE, cache=TRUE,
                       dev="png",
                       message=FALSE, error=FALSE, warning=TRUE)
 ```	
-# Current version: Development - `r packageVersion("QTLseqr")`  
+# Current version: Development - `r packageVersion("QTLseqr")`   
 
 # Introduction
 
