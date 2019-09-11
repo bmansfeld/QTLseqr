@@ -157,7 +157,7 @@ getPvals <-
 #' @param alpha the required false discovery rate alpha
 #'
 #' @return The p-value threshold that corresponds to the Benjamini-Hochberg adjusted p-value at the FDR set by alpha.
-#'
+#' @export getFDRThreshold
 
 getFDRThreshold <- function(pvalues, alpha = 0.01)
 {
